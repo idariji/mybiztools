@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:3001
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - mybiztools-network
+
+  # Backend
+  backend:
+    build:
+      context: ./mybiztools-backend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - HOST=0.0.0.0
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - API_KEY=${API_KEY}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - FROM_EMAIL=${FROM_EMAIL}
+      - EMAIL_PROVIDER=resend
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost}
+    networks:
+      - mybiztools-network
+    restart: unless-stopped
+
+networks:
+  mybiztools-network:
+    driver: bridge

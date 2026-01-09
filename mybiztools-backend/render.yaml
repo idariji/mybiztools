@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: mybiztools-api
+    runtime: node
+    region: frankfurt
+    plan: free
+    rootDir: mybiztools-backend
+    buildCommand: npm ci && npx prisma generate --schema=./prisma/schema.prisma && npm run build
+    startCommand: node dist/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: HOST
+        value: 0.0.0.0
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: FROM_EMAIL
+        sync: false
+      - key: TERMII_API_KEY
+        sync: false
+      - key: TERMII_SECRET_KEY
+        sync: false
+      - key: TERMII_SENDER_ID
+        value: MyBizTools
+      - key: FRONTEND_URL
+        sync: false
+      - key: MONNIFY_API_KEY
+        sync: false
+      - key: MONNIFY_SECRET_KEY
+        sync: false
+      - key: MONNIFY_CONTRACT_CODE
+        sync: false
+      - key: MONNIFY_BASE_URL
+        value: https://api.monnify.com
+      - key: ANTHROPIC_API_KEY
+        sync: false

@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx prisma:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run dev:*)",
+      "Bash(curl:*)",
+      "Bash(npx tsc:*)",
+      "Bash(cat:*)",
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "Bash(cmd /c \"for /r \"\"c:\\\\Users\\\\USER\\\\Desktop\\\\My Biz Tools\"\" %f in \\(*.md\\) do @echo %f\")",
+      "Bash(cmd /c \"if exist \"\"c:\\\\Users\\\\USER\\\\Desktop\\\\My Biz Tools\\\\README.md\"\" \\(echo EXISTS\\) else \\(echo NOT FOUND\\)\")",
+      "Bash(cmd /c \"if exist \"\"c:\\\\Users\\\\USER\\\\Desktop\\\\My Biz Tools\\\\mybiztools-backend\\\\README.md\"\" \\(echo EXISTS\\) else \\(echo NOT FOUND\\)\")",
+      "Bash(npx tsx:*)",
+      "Bash(dir /b \"c:\\\\Users\\\\USER\\\\Desktop\\\\My Biz Tools\\\\mybiztools-backend\\\\src\")",
+      "Bash(dir /s /b \"c:\\\\Users\\\\USER\\\\Desktop\\\\My Biz Tools\")",
+      "Bash(timeout 10 npx tsx:*)",
+      "Bash(powershell \"Stop-Process -Id 50972 -Force\")",
+      "Bash(node -e:*)",
+      "Bash(node --experimental-vm-modules -e:*)",
+      "Bash(nslookup:*)",
+      "Bash(ping:*)",
+      "Bash(gcloud:*)",
+      "Bash(git --version:*)",
+      "Bash(git remote:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(del /f nul)",
+      "Bash(git init:*)"
+    ]
+  }
+}

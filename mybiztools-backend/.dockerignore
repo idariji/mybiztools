@@ -1,0 +1,28 @@
+# Dependencies
+node_modules
+
+# Build output (will be built in container)
+dist
+
+# Environment files (secrets set via Cloud Run)
+.env
+.env.local
+.env.production
+
+# Development files
+*.log
+.git
+.gitignore
+README.md
+DEPLOYMENT.md
+
+# IDE
+.vscode
+.idea
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Uploads (use cloud storage in production)
+uploads

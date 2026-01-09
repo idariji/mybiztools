@@ -1,0 +1,898 @@
+// Prisma Schema for MyBizTools Backend
+// Run migrations after updating:
+// npx prisma migrate dev --name <migration-name>
+// npx prisma generate
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Database Configuration
+// DATABASE_URL is configured in prisma.config.ts
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================================
+// USER MODEL (with authentication)
+// ============================================================================
+
+model User {
+  id                    String    @id @default(cuid())
+  email                 String    @unique
+  password              String    // Hashed password
+  firstName             String?
+  lastName              String?
+  businessName          String?
+  phone                 String?
+  avatar_url            String?
+
+  // Email verification
+  emailVerified         Boolean   @default(false)
+  verificationToken     String?   @unique
+  verificationExpires   DateTime?
+
+  // Password reset
+  resetToken            String?   @unique
+  resetTokenExpires     DateTime?
+
+  // Subscription
+  subscription          Subscription?
+  current_plan          String    @default("free")
+  subscription_status   String    @default("active")
+
+  // Metadata
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+  last_login_at         DateTime?
+  ip_address            String?
+  country               String?
+  device_info           String?
+
+  // Relations
+  payments              Payment[]
+  audit_logs            AdminAuditLog[]
+  overrides             PromotionalOverride[]
+  usage_tracking        UsageTracking?
+  abuse_reports         AbuseReport[]
+
+  @@index([email])
+  @@index([subscription_status])
+  @@index([current_plan])
+  @@index([verificationToken])
+  @@index([resetToken])
+}
+
+// ============================================================================
+// SUBSCRIPTION MODELS
+// ============================================================================
+
+model Subscription {
+  id                        String    @id @default(cuid())
+  user_id                   String    @unique
+  user                      User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  plan_name                 String    // "free", "pro", "enterprise"
+  status                    String    @default("active")
+
+  // Dates
+  current_period_start      DateTime
+  current_period_end        DateTime
+  trial_end_date            DateTime?
+  expires_at                DateTime?
+  cancelled_at              DateTime?
+  cancelled_reason          String?
+
+  // Billing
+  mrr_value                 BigInt    @default(0) // Monthly Recurring Revenue in Naira
+  annual_value              BigInt    @default(0)
+  is_paused                 Boolean   @default(false)
+  auto_renew                Boolean   @default(true)
+
+  // Payment method
+  payment_method_id         String?
+  last_payment_id           String?
+
+  created_at                DateTime  @default(now())
+  updated_at                DateTime  @updatedAt
+
+  // Relations
+  manual_changes            ManualSubscriptionChange[]
+
+  @@index([plan_name])
+  @@index([status])
+  @@index([current_period_end])
+}
+
+// ============================================================================
+// PAYMENT MODELS
+// ============================================================================
+
+model Payment {
+  id                    String    @id @default(cuid())
+  user_id               String
+  user                  User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  subscription_id       String?
+
+  amount                BigInt    // Amount in Naira
+  currency              String    @default("NGN")
+  status                String    // "succeeded", "failed", "pending", "refunded"
+
+  // Payment Gateway
+  stripe_payment_id     String?   @unique
+  stripe_invoice_id     String?
+
+  // Billing period
+  billing_period_start  DateTime?
+  billing_period_end    DateTime?
+
+  // Failure tracking
+  failure_reason        String?
+  retry_count           Int       @default(0)
+  next_retry_at         DateTime?
+  max_retries_reached   Boolean   @default(false)
+
+  // Refund
+  refunded_amount       BigInt    @default(0)
+  refund_reason         String?
+  refunded_at           DateTime?
+
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  // Relations
+  refund_logs           RefundLog[]
+
+  @@index([user_id])
+  @@index([status])
+  @@index([created_at])
+  @@index([stripe_payment_id])
+}
+
+model RefundLog {
+  id                    String    @id @default(cuid())
+  payment_id            String
+  payment               Payment   @relation(fields: [payment_id], references: [id], onDelete: Cascade)
+
+  amount                BigInt    // Refund amount
+  reason                String
+  admin_id              String
+  admin_name            String
+
+  processed_at          DateTime  @default(now())
+
+  @@index([payment_id])
+}
+
+// ============================================================================
+// SUBSCRIPTION MANAGEMENT MODELS
+// ============================================================================
+
+model ManualSubscriptionChange {
+  id                    String    @id @default(cuid())
+  subscription_id       String
+  subscription          Subscription @relation(fields: [subscription_id], references: [id], onDelete: Cascade)
+  user_id               String
+
+  admin_id              String
+  admin_name            String
+  admin_role            String
+
+  action                String    // "upgrade", "downgrade", "suspend", "reactivate", "extend"
+  from_plan             String?
+  to_plan               String?
+
+  effective_date        DateTime
+  reason                String
+  notes                 String?
+
+  status                String    @default("pending")
+  approved_at           DateTime?
+  completed_at          DateTime?
+
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  @@index([user_id])
+  @@index([admin_id])
+  @@index([action])
+}
+
+model PromotionalOverride {
+  id                    String    @id @default(cuid())
+  user_id               String
+  user                  User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  override_type         String    // "free_promo", "discount", "plan_upgrade", "feature_unlock", "comp_account"
+  plan_override         String?   // Plan to override to
+  discount_percentage   Float?
+  discount_amount       BigInt?   // In Naira
+  specific_features     Json?     // JSON array of feature IDs
+
+  start_date            DateTime
+  end_date              DateTime
+  is_active             Boolean   @default(true)
+
+  reason                String
+  applied_by            String
+
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  @@index([user_id])
+  @@index([is_active])
+  @@index([end_date])
+}
+
+// ============================================================================
+// USAGE TRACKING MODELS
+// ============================================================================
+
+model UsageTracking {
+  id                    String    @id @default(cuid())
+  user_id               String    @unique
+  user                  User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  plan                  String
+
+  // Feature usage (JSON format)
+  feature_usage         Json      // { [feature]: { used, limit, resetDate } }
+
+  last_reset_date       DateTime  @default(now())
+  next_reset_date       DateTime
+
+  // Status
+  is_over_quota         Boolean   @default(false)
+  warnings_count        Int       @default(0)
+
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  @@index([plan])
+  @@index([is_over_quota])
+}
+
+// ============================================================================
+// ABUSE & SECURITY MODELS
+// ============================================================================
+
+model AbuseReport {
+  id                    String    @id @default(cuid())
+  user_id               String
+  user                  User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  report_type           String    // "quota_abuse", "payment_fraud", "api_abuse", "free_account_spam", "ai_abuse", "deletion_loops"
+  severity              String    // "low", "medium", "high", "critical"
+
+  description           String
+  evidence              Json?     // JSON with details
+
+  status                String    @default("pending")
+  flagged_at            DateTime  @default(now())
+  reviewed_at           DateTime?
+  reviewed_by           String?
+
+  action_taken          String?   // "suspended", "warned", "dismissed", "overridden"
+  action_reason         String?
+
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  @@index([user_id])
+  @@index([severity])
+  @@index([status])
+}
+
+// ============================================================================
+// ADMIN MODELS
+// ============================================================================
+
+model AdminAuditLog {
+  id                    String    @id @default(cuid())
+
+  admin_id              String
+  admin_name            String
+  admin_role            String
+
+  target_user_id        String?
+  target_user           User?     @relation(fields: [target_user_id], references: [id], onDelete: SetNull)
+
+  action                String    // "create", "read", "update", "delete"
+  resource              String    // "user", "subscription", "payment", "override", etc
+  resource_id           String
+
+  changes               Json?     // What was changed
+  reason                String?
+
+  ip_address            String?
+  user_agent            String?
+
+  created_at            DateTime  @default(now())
+
+  @@index([admin_id])
+  @@index([action])
+  @@index([resource])
+  @@index([created_at])
+  @@index([target_user_id])
+}
+
+model AdminRole {
+  id                    String    @id @default(cuid())
+  name                  String    @unique
+  level                 Int       // 1-4 for hierarchy
+
+  permissions           Json      // Action permissions (stored as JSON array)
+
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+}
+
+model Admin {
+  id                    String    @id @default(cuid())
+  email                 String    @unique
+  password              String
+  name                  String
+  role                  String    @default("viewer") // "super_admin", "billing_admin", "support_admin", "viewer"
+
+  is_active             Boolean   @default(true)
+
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+  last_login_at         DateTime?
+
+  @@index([email])
+  @@index([role])
+}
+
+// ============================================================================
+// DOCUMENT STORAGE MODELS
+// ============================================================================
+
+model Document {
+  id                    String    @id @default(cuid())
+  user_id               String
+
+  // File information
+  name                  String
+  original_name         String
+  mime_type             String
+  size                  BigInt    // File size in bytes
+  storage_path          String    // Path in storage (local or S3)
+  storage_type          String    @default("local") // "local", "s3", "cloudinary"
+
+  // Categorization
+  category              String    @default("other") // "invoice", "receipt", "contract", "report", "other"
+  tags                  Json?     // JSON array of tags
+  description           String?
+
+  // Metadata
+  is_public             Boolean   @default(false)
+  download_count        Int       @default(0)
+  last_accessed_at      DateTime?
+
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  @@index([user_id])
+  @@index([category])
+  @@index([created_at])
+}
+
+// ============================================================================
+// BUDGET & EXPENSE TRACKING MODELS
+// ============================================================================
+
+model Budget {
+  id                    String    @id @default(cuid())
+  user_id               String
+
+  name                  String
+  amount                BigInt    // Budget amount in Naira (kobo)
+  period                String    // "monthly", "quarterly", "yearly", "custom"
+  category              String    // "marketing", "operations", "salary", "utilities", "inventory", "other"
+
+  start_date            DateTime
+  end_date              DateTime
+
+  spent_amount          BigInt    @default(0) // Amount spent so far
+  is_active             Boolean   @default(true)
+
+  // Alerts
+  alert_threshold       Int       @default(80) // Percentage threshold for alerts
+  alert_sent            Boolean   @default(false)
+
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  // Relations
+  expenses              Expense[]
+
+  @@index([user_id])
+  @@index([category])
+  @@index([is_active])
+}
+
+model Expense {
+  id                    String    @id @default(cuid())
+  user_id               String
+  budget_id             String?
+  budget                Budget?   @relation(fields: [budget_id], references: [id], onDelete: SetNull)
+
+  amount                BigInt    // Amount in Naira (kobo)
+  currency              String    @default("NGN")
+  description           String
+  category              String
+
+  // Receipt/proof
+  receipt_url           String?
+  receipt_document_id   String?
+
+  // Payment info
+  payment_method        String?   // "cash", "transfer", "card", "mobile"
+  vendor                String?
+
+  expense_date          DateTime
+  is_recurring          Boolean   @default(false)
+  recurring_frequency   String?   // "daily", "weekly", "monthly"
+
+  // Approval workflow
+  status                String    @default("approved") // "pending", "approved", "rejected"
+  approved_by           String?
+  approved_at           DateTime?
+
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  @@index([user_id])
+  @@index([budget_id])
+  @@index([category])
+  @@index([expense_date])
+  @@index([status])
+}
+
+// ============================================================================
+// CONTACTS/CLIENTS MODELS
+// ============================================================================
+
+model Contact {
+  id                    String    @id @default(cuid())
+  user_id               String
+
+  // Basic info
+  name                  String
+  email                 String?
+  phone                 String?
+  company               String?
+  job_title             String?
+
+  // Type
+  type                  String    @default("customer") // "customer", "supplier", "partner", "lead", "other"
+
+  // Address
+  address               String?
+  city                  String?
+  state                 String?
+  country               String?   @default("Nigeria")
+  postal_code           String?
+
+  // Business info
+  tax_id                String?
+  website               String?
+
+  // Notes and tags
+  notes                 String?
+  tags                  Json?     // JSON array of tags
+
+  // Status
+  is_active             Boolean   @default(true)
+  last_contacted_at     DateTime?
+
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  // Relations
+  invoices              Invoice[]
+
+  @@index([user_id])
+  @@index([type])
+  @@index([is_active])
+  @@index([email])
+}
+
+model Invoice {
+  id                    String    @id @default(cuid())
+  user_id               String
+  contact_id            String?
+  contact               Contact?  @relation(fields: [contact_id], references: [id], onDelete: SetNull)
+
+  invoice_number        String
+
+  // Amounts
+  subtotal              BigInt    // In Naira (kobo)
+  tax_amount            BigInt    @default(0)
+  discount_amount       BigInt    @default(0)
+  total                 BigInt
+  currency              String    @default("NGN")
+
+  // Status
+  status                String    @default("draft") // "draft", "sent", "viewed", "paid", "overdue", "cancelled"
+
+  // Dates
+  issue_date            DateTime
+  due_date              DateTime
+  paid_date             DateTime?
+
+  // Payment
+  payment_method        String?
+  payment_reference     String?
+
+  // Notes
+  notes                 String?
+  terms                 String?
+
+  // Document
+  document_url          String?
+
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  // Relations
+  items                 InvoiceItem[]
+
+  @@unique([user_id, invoice_number])
+  @@index([user_id])
+  @@index([contact_id])
+  @@index([status])
+  @@index([due_date])
+}
+
+model InvoiceItem {
+  id                    String    @id @default(cuid())
+  invoice_id            String
+  invoice               Invoice   @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+
+  description           String
+  quantity              Int
+  unit_price            BigInt    // In Naira (kobo)
+  amount                BigInt    // quantity * unit_price
+
+  created_at            DateTime  @default(now())
+
+  @@index([invoice_id])
+}
+
+// ============================================================================
+// QUOTATION MODEL
+// ============================================================================
+
+model Quotation {
+  id                    String    @id @default(cuid())
+  user_id               String
+
+  quotation_number      String
+
+  // Client info
+  client_name           String
+  client_email          String?
+  client_phone          String?
+  client_address        String?
+
+  // Amounts
+  subtotal              BigInt    // In kobo
+  tax_amount            BigInt    @default(0)
+  discount_amount       BigInt    @default(0)
+  total                 BigInt
+  currency              String    @default("NGN")
+
+  // Status
+  status                String    @default("draft") // "draft", "sent", "accepted", "rejected", "expired"
+
+  // Dates
+  issue_date            DateTime
+  valid_until           DateTime
+
+  // Notes
+  notes                 String?
+  terms                 String?
+
+  // Public sharing
+  public_link           String?   @unique
+  public_link_expires   DateTime?
+
+  // Full document data (JSON)
+  document_data         Json?
+
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  // Relations
+  items                 QuotationItem[]
+
+  @@unique([user_id, quotation_number])
+  @@index([user_id])
+  @@index([status])
+  @@index([public_link])
+}
+
+model QuotationItem {
+  id                    String    @id @default(cuid())
+  quotation_id          String
+  quotation             Quotation @relation(fields: [quotation_id], references: [id], onDelete: Cascade)
+
+  description           String
+  quantity              Int
+  unit_price            BigInt
+  amount                BigInt
+
+  created_at            DateTime  @default(now())
+
+  @@index([quotation_id])
+}
+
+// ============================================================================
+// RECEIPT MODEL
+// ============================================================================
+
+model Receipt {
+  id                    String    @id @default(cuid())
+  user_id               String
+
+  receipt_number        String
+
+  // Customer info
+  customer_name         String
+  customer_email        String?
+  customer_phone        String?
+
+  // Amounts
+  subtotal              BigInt
+  tax_amount            BigInt    @default(0)
+  total                 BigInt
+  currency              String    @default("NGN")
+
+  // Payment info
+  payment_method        String?   // "cash", "transfer", "card", "mobile"
+  payment_reference     String?
+
+  // Date
+  receipt_date          DateTime
+
+  // Notes
+  notes                 String?
+
+  // Full document data (JSON)
+  document_data         Json?
+
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  // Relations
+  items                 ReceiptItem[]
+
+  @@unique([user_id, receipt_number])
+  @@index([user_id])
+  @@index([receipt_date])
+}
+
+model ReceiptItem {
+  id                    String    @id @default(cuid())
+  receipt_id            String
+  receipt               Receipt   @relation(fields: [receipt_id], references: [id], onDelete: Cascade)
+
+  description           String
+  quantity              Int
+  unit_price            BigInt
+  amount                BigInt
+
+  created_at            DateTime  @default(now())
+
+  @@index([receipt_id])
+}
+
+// ============================================================================
+// PAYSLIP MODEL
+// ============================================================================
+
+model Payslip {
+  id                    String    @id @default(cuid())
+  user_id               String
+
+  payslip_number        String
+
+  // Employee info
+  employee_name         String
+  employee_id           String?
+  employee_department   String?
+  employee_position     String?
+
+  // Pay period
+  pay_period_start      DateTime
+  pay_period_end        DateTime
+  payment_date          DateTime
+
+  // Earnings (all in kobo)
+  basic_salary          BigInt
+  housing_allowance     BigInt    @default(0)
+  transport_allowance   BigInt    @default(0)
+  other_allowances      BigInt    @default(0)
+  bonus                 BigInt    @default(0)
+  overtime              BigInt    @default(0)
+  gross_earnings        BigInt
+
+  // Deductions (all in kobo)
+  paye_tax              BigInt    @default(0)
+  pension               BigInt    @default(0)
+  nhf                   BigInt    @default(0)
+  loans                 BigInt    @default(0)
+  other_deductions      BigInt    @default(0)
+  total_deductions      BigInt
+
+  // Net pay
+  net_pay               BigInt
+
+  currency              String    @default("NGN")
+
+  // Full document data (JSON)
+  document_data         Json?
+
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  @@unique([user_id, payslip_number])
+  @@index([user_id])
+  @@index([payment_date])
+}
+
+// ============================================================================
+// SOCIAL MEDIA PLANNER MODELS
+// ============================================================================
+
+model SocialPost {
+  id                    String    @id @default(cuid())
+  user_id               String
+
+  // Content
+  content               String
+  media_urls            Json?     // JSON array of media URLs
+
+  // Platforms
+  platforms             Json      // JSON array: "twitter", "facebook", "instagram", "linkedin"
+
+  // Scheduling
+  scheduled_at          DateTime?
+  published_at          DateTime?
+  status                String    @default("draft") // "draft", "scheduled", "published", "failed"
+
+  // Analytics (populated after publishing)
+  likes                 Int       @default(0)
+  shares                Int       @default(0)
+  comments              Int       @default(0)
+  reach                 Int       @default(0)
+
+  // Error tracking
+  error_message         String?
+
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  @@index([user_id])
+  @@index([status])
+  @@index([scheduled_at])
+}
+
+// ============================================================================
+// AI CHAT (DEDA) MODELS
+// ============================================================================
+
+model ChatConversation {
+  id                    String    @id @default(cuid())
+  user_id               String
+
+  title                 String?
+  context               String?   // Business context for the AI
+
+  // Stats
+  message_count         Int       @default(0)
+  token_usage           Int       @default(0)
+
+  is_archived           Boolean   @default(false)
+
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  // Relations
+  messages              ChatMessage[]
+
+  @@index([user_id])
+  @@index([is_archived])
+}
+
+model ChatMessage {
+  id                    String    @id @default(cuid())
+  conversation_id       String
+  conversation          ChatConversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+
+  role                  String    // "user", "assistant", "system"
+  content               String
+
+  // Token tracking
+  tokens_used           Int       @default(0)
+
+  // Feedback
+  feedback              String?   // "helpful", "not_helpful"
+
+  created_at            DateTime  @default(now())
+
+  @@index([conversation_id])
+  @@index([created_at])
+}
+
+// ============================================================================
+// SUPPORT TICKET MODELS
+// ============================================================================
+
+model SupportTicket {
+  id                    String    @id @default(cuid())
+  user_id               String
+
+  // Ticket info
+  ticket_number         String    @unique
+  subject               String
+  message               String
+
+  // Contact info
+  customer_name         String
+  customer_email        String
+  customer_phone        String?
+
+  // Channel
+  channel               String    @default("email") // "email", "whatsapp", "sms"
+
+  // Status
+  status                String    @default("open") // "open", "in_progress", "resolved", "closed"
+  priority              String    @default("medium") // "low", "medium", "high", "urgent"
+
+  // Assignment
+  assigned_to           String?   // Admin ID
+  assigned_name         String?   // Admin name
+
+  // Response tracking
+  first_response_at     DateTime?
+  resolved_at           DateTime?
+
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  // Relations
+  responses             SupportTicketResponse[]
+
+  @@index([user_id])
+  @@index([status])
+  @@index([priority])
+  @@index([channel])
+  @@index([assigned_to])
+}
+
+model SupportTicketResponse {
+  id                    String    @id @default(cuid())
+  ticket_id             String
+  ticket                SupportTicket @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
+
+  // Response
+  message               String
+  channel               String    // "email", "whatsapp", "sms" - channel used to respond
+
+  // Sender
+  sender_type           String    // "admin", "customer"
+  sender_id             String?   // Admin ID or null for customer
+  sender_name           String
+
+  // Delivery status
+  delivered             Boolean   @default(false)
+  delivered_at          DateTime?
+
+  created_at            DateTime  @default(now())
+
+  @@index([ticket_id])
+  @@index([sender_type])
+}
