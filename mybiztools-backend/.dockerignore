@@ -1,6 +1,10 @@
 # Dependencies
 node_modules
 
+# Development database
+dev.db
+*.db
+
 # Build output (will be built in container)
 dist
 

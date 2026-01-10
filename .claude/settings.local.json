@@ -35,7 +35,10 @@
       "Bash(xargs:*)",
       "Bash(ForEach-Object { gcloud builds log $_ --region=us-central1 })",
       "Bash(Select-Object -Last 50)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(echo:*)",
+      "Bash(docker build:*)",
+      "Bash(gsutil cat:*)"
     ]
   }
 }
