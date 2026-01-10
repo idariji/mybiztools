@@ -63,7 +63,7 @@ export class PaymentGatewayService {
         },
       });
 
-      const result = await response.json();
+      const result = await response.json() as { requestSuccessful: boolean; responseBody: { accessToken: string }; responseMessage?: string };
       if (result.requestSuccessful) {
         return result.responseBody.accessToken;
       }
@@ -117,7 +117,7 @@ export class PaymentGatewayService {
         }),
       });
 
-      const result = await response.json();
+      const result = await response.json() as { requestSuccessful: boolean; responseMessage?: string; responseBody: { checkoutUrl: string } };
 
       if (!result.requestSuccessful) {
         return { success: false, message: result.responseMessage, error: 'INIT_FAILED' };
@@ -179,7 +179,7 @@ export class PaymentGatewayService {
         }
       );
 
-      const result = await response.json();
+      const result = await response.json() as { requestSuccessful: boolean; responseMessage?: string; responseBody: { paymentStatus: string; amountPaid?: number; metaData?: { plan?: string; billingCycle?: string } } };
 
       if (!result.requestSuccessful) {
         return { success: false, message: result.responseMessage, error: 'VERIFICATION_FAILED' };
@@ -192,12 +192,12 @@ export class PaymentGatewayService {
 
       // Process successful payment
       const metadata = txn.metaData || {};
-      await this.processSuccessfulPayment(reference, metadata.plan, metadata.billingCycle);
+      await this.processSuccessfulPayment(reference, metadata.plan || 'pro', (metadata.billingCycle || 'monthly') as 'monthly' | 'yearly');
 
       return {
         success: true,
         message: 'Payment verified successfully',
-        data: { reference, amount: txn.amountPaid, status: 'succeeded' },
+        data: { reference, amount: txn.amountPaid || 0, status: 'succeeded' },
       };
     } catch (error) {
       console.error('Verify payment error:', error);

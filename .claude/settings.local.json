@@ -32,7 +32,10 @@
       "Bash(git init:*)",
       "Bash(git config:*)",
       "Bash(openssl rand:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(ForEach-Object { gcloud builds log $_ --region=us-central1 })",
+      "Bash(Select-Object -Last 50)",
+      "Bash(npm run build:*)"
     ]
   }
 }

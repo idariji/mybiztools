@@ -234,7 +234,7 @@ router.post('/support/ticket', async (req: AuthenticatedRequest, res: Response) 
       });
     }
 
-    const user = userResult.data;
+    const user = userResult.data.user;
     const customerName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.businessName || 'User';
 
     const result = await SupportService.createTicket({

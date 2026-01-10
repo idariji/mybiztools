@@ -127,7 +127,7 @@ export class DocumentService {
             mime_type: document.mime_type,
             size: Number(document.size),
             category: document.category,
-            tags: document.tags,
+            tags: (document.tags as string[]) || [],
             description: document.description,
             created_at: document.created_at,
           },

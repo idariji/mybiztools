@@ -403,7 +403,7 @@ export class AuthService {
 
       // Send verification email
       try {
-        await EmailNotificationService.sendWelcomeEmail(
+        await EmailNotificationService.sendVerificationEmail(
           user.email,
           user.firstName,
           verificationToken

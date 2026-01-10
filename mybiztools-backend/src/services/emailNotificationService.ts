@@ -274,6 +274,17 @@ export class EmailNotificationService {
       html: this.generatePasswordResetHtml(name, resetLink),
     });
   }
+
+  /**
+   * Send a custom email (for support tickets, etc.)
+   */
+  static async sendCustomEmail(options: {
+    to: string;
+    subject: string;
+    html: string;
+  }): Promise<{ success: boolean; error?: string }> {
+    return this.sendEmail(options);
+  }
 }
 
 export default EmailNotificationService;

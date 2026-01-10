@@ -320,6 +320,17 @@ export class SmsService {
       };
     }
   }
+
+  // Send WhatsApp message (placeholder - requires WhatsApp Business API integration)
+  static async sendWhatsApp(input: { to: string; message: string }) {
+    // Note: WhatsApp Business API integration requires separate setup
+    // This is a placeholder that falls back to SMS
+    console.log(`WhatsApp message requested to ${input.to} - falling back to SMS`);
+    return this.sendSms({
+      to: input.to,
+      message: input.message,
+    });
+  }
 }
 
 export default SmsService;
