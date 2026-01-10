@@ -11,10 +11,30 @@ declare global {
 // Get database URL from environment
 const databaseUrl = process.env.DATABASE_URL || '';
 
+// Parse Cloud SQL socket path from DATABASE_URL if present
+const parseCloudSqlConfig = () => {
+  const hostMatch = databaseUrl.match(/host=([^&]+)/);
+  if (hostMatch && hostMatch[1].includes('/cloudsql/')) {
+    // Cloud SQL Unix socket connection
+    const socketPath = hostMatch[1];
+    const urlParts = databaseUrl.split('?')[0];
+    const match = urlParts.match(/postgresql:\/\/([^:]+):([^@]+)@[^/]*\/(.+)/);
+    if (match) {
+      return {
+        user: match[1],
+        password: match[2],
+        database: match[3],
+        host: socketPath,
+      };
+    }
+  }
+  // Standard connection string
+  return { connectionString: databaseUrl };
+};
+
 // Create PostgreSQL connection pool
-const pool = new pg.Pool({
-  connectionString: databaseUrl,
-});
+const poolConfig = parseCloudSqlConfig();
+const pool = new pg.Pool(poolConfig);
 
 // Create Prisma adapter for PostgreSQL
 const adapter = new PrismaPg(pool);
