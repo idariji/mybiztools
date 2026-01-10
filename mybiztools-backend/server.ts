@@ -79,12 +79,16 @@ const upload = multer({ storage: multer.memoryStorage() });
 // ============ MIDDLEWARE ============
 
 // CORS configuration - allow frontend from multiple ports in development
-const corsOrigin = process.env.NODE_ENV === 'development' 
+const corsOrigins = process.env.NODE_ENV === 'development'
   ? [/^http:\/\/localhost:\d+$/] // Allow any localhost port in development
-  : process.env.FRONTEND_URL || 'https://yourdomain.com'; // Use specific URL in production
+  : [
+      process.env.FRONTEND_URL || 'https://mybiztools.ng',
+      'https://www.mybiztools.ng',
+      'https://mybiztools.ng'
+    ]; // Allow both www and non-www in production
 
 app.use(cors({
-  origin: corsOrigin,
+  origin: corsOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],

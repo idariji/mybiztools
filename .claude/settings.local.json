@@ -38,7 +38,9 @@
       "Bash(npm run build:*)",
       "Bash(echo:*)",
       "Bash(docker build:*)",
-      "Bash(gsutil cat:*)"
+      "Bash(gsutil cat:*)",
+      "Bash(ls:*)",
+      "Bash(set NODE_OPTIONS=--max-old-space-size=4096)"
     ]
   }
 }

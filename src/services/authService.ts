@@ -132,7 +132,7 @@ class AuthServiceClass {
   // Verify email with token
   async verifyEmail(token: string): Promise<{ success: boolean; message: string; error?: string }> {
     try {
-      const response = await fetch(`${API_URL}/api/auth/verify-email/${token}`, {
+      const response = await fetch(`${API_URL}/api/auth/verify/${token}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
