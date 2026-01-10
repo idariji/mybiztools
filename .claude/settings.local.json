@@ -29,7 +29,10 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(del /f nul)",
-      "Bash(git init:*)"
+      "Bash(git init:*)",
+      "Bash(git config:*)",
+      "Bash(openssl rand:*)",
+      "Bash(xargs:*)"
     ]
   }
 }
