@@ -272,6 +272,23 @@ model AbuseReport {
 // ADMIN MODELS
 // ============================================================================
 
+model Admin {
+  id                    String    @id @default(cuid())
+  email                 String    @unique
+  password              String
+  name                  String
+  role                  String    @default("viewer") // "super_admin", "billing_admin", "support_admin", "viewer"
+
+  is_active             Boolean   @default(true)
+  last_login_at         DateTime?
+
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  @@index([email])
+  @@index([role])
+}
+
 model AdminAuditLog {
   id                    String    @id @default(cuid())
   
