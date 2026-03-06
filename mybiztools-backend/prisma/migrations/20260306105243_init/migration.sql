@@ -1,6 +1,6 @@
 -- CreateTable
 CREATE TABLE "User" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "firstName" TEXT,
@@ -10,30 +10,32 @@ CREATE TABLE "User" (
     "avatar_url" TEXT,
     "emailVerified" BOOLEAN NOT NULL DEFAULT false,
     "verificationToken" TEXT,
-    "verificationExpires" DATETIME,
+    "verificationExpires" TIMESTAMP(3),
     "resetToken" TEXT,
-    "resetTokenExpires" DATETIME,
+    "resetTokenExpires" TIMESTAMP(3),
     "current_plan" TEXT NOT NULL DEFAULT 'free',
     "subscription_status" TEXT NOT NULL DEFAULT 'active',
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL,
-    "last_login_at" DATETIME,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    "last_login_at" TIMESTAMP(3),
     "ip_address" TEXT,
     "country" TEXT,
-    "device_info" TEXT
+    "device_info" TEXT,
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Subscription" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
     "plan_name" TEXT NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'active',
-    "current_period_start" DATETIME NOT NULL,
-    "current_period_end" DATETIME NOT NULL,
-    "trial_end_date" DATETIME,
-    "expires_at" DATETIME,
-    "cancelled_at" DATETIME,
+    "current_period_start" TIMESTAMP(3) NOT NULL,
+    "current_period_end" TIMESTAMP(3) NOT NULL,
+    "trial_end_date" TIMESTAMP(3),
+    "expires_at" TIMESTAMP(3),
+    "cancelled_at" TIMESTAMP(3),
     "cancelled_reason" TEXT,
     "mrr_value" BIGINT NOT NULL DEFAULT 0,
     "annual_value" BIGINT NOT NULL DEFAULT 0,
@@ -41,14 +43,15 @@ CREATE TABLE "Subscription" (
     "auto_renew" BOOLEAN NOT NULL DEFAULT true,
     "payment_method_id" TEXT,
     "last_payment_id" TEXT,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL,
-    CONSTRAINT "Subscription_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Subscription_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Payment" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
     "subscription_id" TEXT,
     "amount" BIGINT NOT NULL,
@@ -56,35 +59,37 @@ CREATE TABLE "Payment" (
     "status" TEXT NOT NULL,
     "stripe_payment_id" TEXT,
     "stripe_invoice_id" TEXT,
-    "billing_period_start" DATETIME,
-    "billing_period_end" DATETIME,
+    "billing_period_start" TIMESTAMP(3),
+    "billing_period_end" TIMESTAMP(3),
     "failure_reason" TEXT,
     "retry_count" INTEGER NOT NULL DEFAULT 0,
-    "next_retry_at" DATETIME,
+    "next_retry_at" TIMESTAMP(3),
     "max_retries_reached" BOOLEAN NOT NULL DEFAULT false,
     "refunded_amount" BIGINT NOT NULL DEFAULT 0,
     "refund_reason" TEXT,
-    "refunded_at" DATETIME,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL,
-    CONSTRAINT "Payment_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "refunded_at" TIMESTAMP(3),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Payment_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "RefundLog" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "payment_id" TEXT NOT NULL,
     "amount" BIGINT NOT NULL,
     "reason" TEXT NOT NULL,
     "admin_id" TEXT NOT NULL,
     "admin_name" TEXT NOT NULL,
-    "processed_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "RefundLog_payment_id_fkey" FOREIGN KEY ("payment_id") REFERENCES "Payment" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "processed_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "RefundLog_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "ManualSubscriptionChange" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "subscription_id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
     "admin_id" TEXT NOT NULL,
@@ -93,73 +98,77 @@ CREATE TABLE "ManualSubscriptionChange" (
     "action" TEXT NOT NULL,
     "from_plan" TEXT,
     "to_plan" TEXT,
-    "effective_date" DATETIME NOT NULL,
+    "effective_date" TIMESTAMP(3) NOT NULL,
     "reason" TEXT NOT NULL,
     "notes" TEXT,
     "status" TEXT NOT NULL DEFAULT 'pending',
-    "approved_at" DATETIME,
-    "completed_at" DATETIME,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL,
-    CONSTRAINT "ManualSubscriptionChange_subscription_id_fkey" FOREIGN KEY ("subscription_id") REFERENCES "Subscription" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "approved_at" TIMESTAMP(3),
+    "completed_at" TIMESTAMP(3),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ManualSubscriptionChange_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "PromotionalOverride" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
     "override_type" TEXT NOT NULL,
     "plan_override" TEXT,
-    "discount_percentage" REAL,
+    "discount_percentage" DOUBLE PRECISION,
     "discount_amount" BIGINT,
     "specific_features" JSONB,
-    "start_date" DATETIME NOT NULL,
-    "end_date" DATETIME NOT NULL,
+    "start_date" TIMESTAMP(3) NOT NULL,
+    "end_date" TIMESTAMP(3) NOT NULL,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
     "reason" TEXT NOT NULL,
     "applied_by" TEXT NOT NULL,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL,
-    CONSTRAINT "PromotionalOverride_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "PromotionalOverride_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "UsageTracking" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
     "plan" TEXT NOT NULL,
     "feature_usage" JSONB NOT NULL,
-    "last_reset_date" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "next_reset_date" DATETIME NOT NULL,
+    "last_reset_date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "next_reset_date" TIMESTAMP(3) NOT NULL,
     "is_over_quota" BOOLEAN NOT NULL DEFAULT false,
     "warnings_count" INTEGER NOT NULL DEFAULT 0,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL,
-    CONSTRAINT "UsageTracking_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "UsageTracking_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "AbuseReport" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
     "report_type" TEXT NOT NULL,
     "severity" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "evidence" JSONB,
     "status" TEXT NOT NULL DEFAULT 'pending',
-    "flagged_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "reviewed_at" DATETIME,
+    "flagged_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "reviewed_at" TIMESTAMP(3),
     "reviewed_by" TEXT,
     "action_taken" TEXT,
     "action_reason" TEXT,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL,
-    CONSTRAINT "AbuseReport_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "AbuseReport_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "AdminAuditLog" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "admin_id" TEXT NOT NULL,
     "admin_name" TEXT NOT NULL,
     "admin_role" TEXT NOT NULL,
@@ -171,36 +180,41 @@ CREATE TABLE "AdminAuditLog" (
     "reason" TEXT,
     "ip_address" TEXT,
     "user_agent" TEXT,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "AdminAuditLog_target_user_id_fkey" FOREIGN KEY ("target_user_id") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "AdminAuditLog_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "AdminRole" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "level" INTEGER NOT NULL,
     "permissions" JSONB NOT NULL,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "AdminRole_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Admin" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "role" TEXT NOT NULL DEFAULT 'viewer',
     "is_active" BOOLEAN NOT NULL DEFAULT true,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL,
-    "last_login_at" DATETIME
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    "last_login_at" TIMESTAMP(3),
+
+    CONSTRAINT "Admin_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Document" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "original_name" TEXT NOT NULL,
@@ -213,32 +227,36 @@ CREATE TABLE "Document" (
     "description" TEXT,
     "is_public" BOOLEAN NOT NULL DEFAULT false,
     "download_count" INTEGER NOT NULL DEFAULT 0,
-    "last_accessed_at" DATETIME,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL
+    "last_accessed_at" TIMESTAMP(3),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Document_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Budget" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "amount" BIGINT NOT NULL,
     "period" TEXT NOT NULL,
     "category" TEXT NOT NULL,
-    "start_date" DATETIME NOT NULL,
-    "end_date" DATETIME NOT NULL,
+    "start_date" TIMESTAMP(3) NOT NULL,
+    "end_date" TIMESTAMP(3) NOT NULL,
     "spent_amount" BIGINT NOT NULL DEFAULT 0,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
     "alert_threshold" INTEGER NOT NULL DEFAULT 80,
     "alert_sent" BOOLEAN NOT NULL DEFAULT false,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Budget_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Expense" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
     "budget_id" TEXT,
     "amount" BIGINT NOT NULL,
@@ -249,20 +267,21 @@ CREATE TABLE "Expense" (
     "receipt_document_id" TEXT,
     "payment_method" TEXT,
     "vendor" TEXT,
-    "expense_date" DATETIME NOT NULL,
+    "expense_date" TIMESTAMP(3) NOT NULL,
     "is_recurring" BOOLEAN NOT NULL DEFAULT false,
     "recurring_frequency" TEXT,
     "status" TEXT NOT NULL DEFAULT 'approved',
     "approved_by" TEXT,
-    "approved_at" DATETIME,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL,
-    CONSTRAINT "Expense_budget_id_fkey" FOREIGN KEY ("budget_id") REFERENCES "Budget" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+    "approved_at" TIMESTAMP(3),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Expense_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Contact" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "email" TEXT,
@@ -280,14 +299,16 @@ CREATE TABLE "Contact" (
     "notes" TEXT,
     "tags" JSONB,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
-    "last_contacted_at" DATETIME,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL
+    "last_contacted_at" TIMESTAMP(3),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Contact_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Invoice" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
     "contact_id" TEXT,
     "invoice_number" TEXT NOT NULL,
@@ -297,34 +318,36 @@ CREATE TABLE "Invoice" (
     "total" BIGINT NOT NULL,
     "currency" TEXT NOT NULL DEFAULT 'NGN',
     "status" TEXT NOT NULL DEFAULT 'draft',
-    "issue_date" DATETIME NOT NULL,
-    "due_date" DATETIME NOT NULL,
-    "paid_date" DATETIME,
+    "issue_date" TIMESTAMP(3) NOT NULL,
+    "due_date" TIMESTAMP(3) NOT NULL,
+    "paid_date" TIMESTAMP(3),
     "payment_method" TEXT,
     "payment_reference" TEXT,
     "notes" TEXT,
     "terms" TEXT,
     "document_url" TEXT,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL,
-    CONSTRAINT "Invoice_contact_id_fkey" FOREIGN KEY ("contact_id") REFERENCES "Contact" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Invoice_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "InvoiceItem" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "invoice_id" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "quantity" INTEGER NOT NULL,
     "unit_price" BIGINT NOT NULL,
     "amount" BIGINT NOT NULL,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "InvoiceItem_invoice_id_fkey" FOREIGN KEY ("invoice_id") REFERENCES "Invoice" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "InvoiceItem_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Quotation" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
     "quotation_number" TEXT NOT NULL,
     "client_name" TEXT NOT NULL,
@@ -337,32 +360,35 @@ CREATE TABLE "Quotation" (
     "total" BIGINT NOT NULL,
     "currency" TEXT NOT NULL DEFAULT 'NGN',
     "status" TEXT NOT NULL DEFAULT 'draft',
-    "issue_date" DATETIME NOT NULL,
-    "valid_until" DATETIME NOT NULL,
+    "issue_date" TIMESTAMP(3) NOT NULL,
+    "valid_until" TIMESTAMP(3) NOT NULL,
     "notes" TEXT,
     "terms" TEXT,
     "public_link" TEXT,
-    "public_link_expires" DATETIME,
+    "public_link_expires" TIMESTAMP(3),
     "document_data" JSONB,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Quotation_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "QuotationItem" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "quotation_id" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "quantity" INTEGER NOT NULL,
     "unit_price" BIGINT NOT NULL,
     "amount" BIGINT NOT NULL,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "QuotationItem_quotation_id_fkey" FOREIGN KEY ("quotation_id") REFERENCES "Quotation" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "QuotationItem_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Receipt" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
     "receipt_number" TEXT NOT NULL,
     "customer_name" TEXT NOT NULL,
@@ -374,37 +400,40 @@ CREATE TABLE "Receipt" (
     "currency" TEXT NOT NULL DEFAULT 'NGN',
     "payment_method" TEXT,
     "payment_reference" TEXT,
-    "receipt_date" DATETIME NOT NULL,
+    "receipt_date" TIMESTAMP(3) NOT NULL,
     "notes" TEXT,
     "document_data" JSONB,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Receipt_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "ReceiptItem" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "receipt_id" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "quantity" INTEGER NOT NULL,
     "unit_price" BIGINT NOT NULL,
     "amount" BIGINT NOT NULL,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "ReceiptItem_receipt_id_fkey" FOREIGN KEY ("receipt_id") REFERENCES "Receipt" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ReceiptItem_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Payslip" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
     "payslip_number" TEXT NOT NULL,
     "employee_name" TEXT NOT NULL,
     "employee_id" TEXT,
     "employee_department" TEXT,
     "employee_position" TEXT,
-    "pay_period_start" DATETIME NOT NULL,
-    "pay_period_end" DATETIME NOT NULL,
-    "payment_date" DATETIME NOT NULL,
+    "pay_period_start" TIMESTAMP(3) NOT NULL,
+    "pay_period_end" TIMESTAMP(3) NOT NULL,
+    "payment_date" TIMESTAMP(3) NOT NULL,
     "basic_salary" BIGINT NOT NULL,
     "housing_allowance" BIGINT NOT NULL DEFAULT 0,
     "transport_allowance" BIGINT NOT NULL DEFAULT 0,
@@ -421,52 +450,98 @@ CREATE TABLE "Payslip" (
     "net_pay" BIGINT NOT NULL,
     "currency" TEXT NOT NULL DEFAULT 'NGN',
     "document_data" JSONB,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Payslip_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "SocialPost" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
     "content" TEXT NOT NULL,
     "media_urls" JSONB,
     "platforms" JSONB NOT NULL,
-    "scheduled_at" DATETIME,
-    "published_at" DATETIME,
+    "scheduled_at" TIMESTAMP(3),
+    "published_at" TIMESTAMP(3),
     "status" TEXT NOT NULL DEFAULT 'draft',
     "likes" INTEGER NOT NULL DEFAULT 0,
     "shares" INTEGER NOT NULL DEFAULT 0,
     "comments" INTEGER NOT NULL DEFAULT 0,
     "reach" INTEGER NOT NULL DEFAULT 0,
     "error_message" TEXT,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "SocialPost_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "ChatConversation" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "user_id" TEXT NOT NULL,
     "title" TEXT,
     "context" TEXT,
     "message_count" INTEGER NOT NULL DEFAULT 0,
     "token_usage" INTEGER NOT NULL DEFAULT 0,
     "is_archived" BOOLEAN NOT NULL DEFAULT false,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" DATETIME NOT NULL
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ChatConversation_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "ChatMessage" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "conversation_id" TEXT NOT NULL,
     "role" TEXT NOT NULL,
     "content" TEXT NOT NULL,
     "tokens_used" INTEGER NOT NULL DEFAULT 0,
     "feedback" TEXT,
-    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "ChatMessage_conversation_id_fkey" FOREIGN KEY ("conversation_id") REFERENCES "ChatConversation" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ChatMessage_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "SupportTicket" (
+    "id" TEXT NOT NULL,
+    "user_id" TEXT NOT NULL,
+    "ticket_number" TEXT NOT NULL,
+    "subject" TEXT NOT NULL,
+    "message" TEXT NOT NULL,
+    "customer_name" TEXT NOT NULL,
+    "customer_email" TEXT NOT NULL,
+    "customer_phone" TEXT,
+    "channel" TEXT NOT NULL DEFAULT 'email',
+    "status" TEXT NOT NULL DEFAULT 'open',
+    "priority" TEXT NOT NULL DEFAULT 'medium',
+    "assigned_to" TEXT,
+    "assigned_name" TEXT,
+    "first_response_at" TIMESTAMP(3),
+    "resolved_at" TIMESTAMP(3),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "SupportTicket_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "SupportTicketResponse" (
+    "id" TEXT NOT NULL,
+    "ticket_id" TEXT NOT NULL,
+    "message" TEXT NOT NULL,
+    "channel" TEXT NOT NULL,
+    "sender_type" TEXT NOT NULL,
+    "sender_id" TEXT,
+    "sender_name" TEXT NOT NULL,
+    "delivered" BOOLEAN NOT NULL DEFAULT false,
+    "delivered_at" TIMESTAMP(3),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "SupportTicketResponse_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -708,3 +783,72 @@ CREATE INDEX "ChatMessage_conversation_id_idx" ON "ChatMessage"("conversation_id
 
 -- CreateIndex
 CREATE INDEX "ChatMessage_created_at_idx" ON "ChatMessage"("created_at");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "SupportTicket_ticket_number_key" ON "SupportTicket"("ticket_number");
+
+-- CreateIndex
+CREATE INDEX "SupportTicket_user_id_idx" ON "SupportTicket"("user_id");
+
+-- CreateIndex
+CREATE INDEX "SupportTicket_status_idx" ON "SupportTicket"("status");
+
+-- CreateIndex
+CREATE INDEX "SupportTicket_priority_idx" ON "SupportTicket"("priority");
+
+-- CreateIndex
+CREATE INDEX "SupportTicket_channel_idx" ON "SupportTicket"("channel");
+
+-- CreateIndex
+CREATE INDEX "SupportTicket_assigned_to_idx" ON "SupportTicket"("assigned_to");
+
+-- CreateIndex
+CREATE INDEX "SupportTicketResponse_ticket_id_idx" ON "SupportTicketResponse"("ticket_id");
+
+-- CreateIndex
+CREATE INDEX "SupportTicketResponse_sender_type_idx" ON "SupportTicketResponse"("sender_type");
+
+-- AddForeignKey
+ALTER TABLE "Subscription" ADD CONSTRAINT "Subscription_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Payment" ADD CONSTRAINT "Payment_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "RefundLog" ADD CONSTRAINT "RefundLog_payment_id_fkey" FOREIGN KEY ("payment_id") REFERENCES "Payment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ManualSubscriptionChange" ADD CONSTRAINT "ManualSubscriptionChange_subscription_id_fkey" FOREIGN KEY ("subscription_id") REFERENCES "Subscription"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PromotionalOverride" ADD CONSTRAINT "PromotionalOverride_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "UsageTracking" ADD CONSTRAINT "UsageTracking_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AbuseReport" ADD CONSTRAINT "AbuseReport_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AdminAuditLog" ADD CONSTRAINT "AdminAuditLog_target_user_id_fkey" FOREIGN KEY ("target_user_id") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Expense" ADD CONSTRAINT "Expense_budget_id_fkey" FOREIGN KEY ("budget_id") REFERENCES "Budget"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Invoice" ADD CONSTRAINT "Invoice_contact_id_fkey" FOREIGN KEY ("contact_id") REFERENCES "Contact"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "InvoiceItem" ADD CONSTRAINT "InvoiceItem_invoice_id_fkey" FOREIGN KEY ("invoice_id") REFERENCES "Invoice"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "QuotationItem" ADD CONSTRAINT "QuotationItem_quotation_id_fkey" FOREIGN KEY ("quotation_id") REFERENCES "Quotation"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ReceiptItem" ADD CONSTRAINT "ReceiptItem_receipt_id_fkey" FOREIGN KEY ("receipt_id") REFERENCES "Receipt"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ChatMessage" ADD CONSTRAINT "ChatMessage_conversation_id_fkey" FOREIGN KEY ("conversation_id") REFERENCES "ChatConversation"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "SupportTicketResponse" ADD CONSTRAINT "SupportTicketResponse_ticket_id_fkey" FOREIGN KEY ("ticket_id") REFERENCES "SupportTicket"("id") ON DELETE CASCADE ON UPDATE CASCADE;

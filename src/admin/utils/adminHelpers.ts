@@ -253,7 +253,7 @@ export const AdminExporters = {
   ): void {
     if (data.length === 0) return;
 
-    const cols = headers || (Object.keys(data[0]) as (keyof T)[]);
+    const cols = headers || (Object.keys(data[0] as object) as (keyof T)[]);
     const csv = [
       cols.join(','),
       ...data.map((row) =>

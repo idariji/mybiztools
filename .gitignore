@@ -33,3 +33,15 @@ dist-ssr
 # Build
 build/
 *.tsbuildinfo
+
+# Versioned dist archives (build snapshots)
+dist-v*/
+dist-v*.zip
+dist.zip
+
+# SQLite dev database
+*.db
+*.db-journal
+
+# OS
+Thumbs.db
