@@ -1,24 +1,32 @@
 /**
  * Plan feature gates for MyBizTools
  *
- * Tiers (current_plan values stored in localStorage user object):
- *   'free' / 'starter'  → Free / Starter plan
- *   'pro'               → Business Pro
- *   'enterprise'        → Enterprise Suite
+ * Plans (current_plan values stored in DB / localStorage user object):
+ *   null / undefined / 'free' → Unsubscribed (no plan)
+ *   'starter'                 → Starter plan
+ *   'pro' / 'business_pro'    → Business Pro
+ *   'enterprise' / 'enterprise_suite' → Enterprise Suite
+ *
+ * Access rules:
+ *   No plan  → max 2 docs per type, locked premium features, watermark on exports
+ *   Starter  → unlimited docs, all features unlocked, watermark on exports
+ *   Pro      → unlimited docs, all features unlocked, no watermark
+ *   Enterprise → unlimited docs, all features unlocked, no watermark
  */
 
 export type PlanTier = 'free' | 'starter' | 'pro' | 'enterprise';
 
-/** Normalise any plan string to the three logical tiers */
+/** Normalise any plan string to a logical tier */
 export function normalisePlan(plan: string | undefined | null): PlanTier {
   if (!plan) return 'free';
-  const p = plan.toLowerCase();
-  if (p === 'enterprise') return 'enterprise';
+  const p = plan.toLowerCase().trim();
+  if (p === 'enterprise' || p === 'enterprise_suite' || p === 'enterprise suite') return 'enterprise';
   if (p === 'pro' || p === 'business_pro' || p === 'business pro') return 'pro';
-  return 'free'; // 'free', 'starter', or anything else → free
+  if (p === 'starter') return 'starter';
+  return 'free';
 }
 
-/** Features that are locked on the free/starter plan */
+/** Features locked only for unsubscribed (no plan) users */
 const LOCKED_FOR_FREE: string[] = [
   'business-card',
   'social-planner',
@@ -29,32 +37,34 @@ const LOCKED_FOR_FREE: string[] = [
 
 /**
  * Return true if this plan can access the given feature key.
- * feature keys match the path segment used in routing.
+ * Starter, Pro and Enterprise all have full feature access.
  */
 export function canAccessFeature(plan: string | undefined | null, feature: string): boolean {
   const tier = normalisePlan(plan);
-  if (tier === 'pro' || tier === 'enterprise') return true;
-  return !LOCKED_FOR_FREE.includes(feature);
+  if (tier === 'free') return !LOCKED_FOR_FREE.includes(feature);
+  return true; // starter / pro / enterprise: all features unlocked
 }
 
-/** Max documents of any single type allowed on the free plan (0 = unlimited) */
+/** Max documents of any single type allowed on the no-plan tier */
 export const FREE_DOCUMENT_LIMIT = 2;
 
 /**
  * Return true if the user may create another document of this type.
- * @param plan        current_plan string from user object
- * @param currentCount number of existing saved documents
+ * Only unsubscribed users are capped at FREE_DOCUMENT_LIMIT.
  */
 export function canCreateDocument(plan: string | undefined | null, currentCount: number): boolean {
   const tier = normalisePlan(plan);
-  if (tier === 'pro' || tier === 'enterprise') return true;
-  return currentCount < FREE_DOCUMENT_LIMIT;
+  if (tier === 'free') return currentCount < FREE_DOCUMENT_LIMIT;
+  return true; // starter / pro / enterprise: unlimited
 }
 
-/** Return true if plan-generated documents should show a watermark */
+/**
+ * Return true if exports should carry a watermark.
+ * Both unsubscribed and Starter plan users get watermarks.
+ */
 export function hasWatermark(plan: string | undefined | null): boolean {
   const tier = normalisePlan(plan);
-  return tier === 'free';
+  return tier === 'free' || tier === 'starter';
 }
 
 /** Human-readable plan display name */
@@ -62,5 +72,6 @@ export function planDisplayName(plan: string | undefined | null): string {
   const tier = normalisePlan(plan);
   if (tier === 'enterprise') return 'Enterprise Suite';
   if (tier === 'pro') return 'Business Pro';
-  return 'Starter (Free)';
+  if (tier === 'starter') return 'Starter';
+  return 'Free';
 }
