@@ -1,36 +1,84 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Check, X, Sparkles, Info } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 export function Pricing() {
   const [isAnnual, setIsAnnual] = useState(true);
+
+  const freeTierItems = [
+    'Up to 2 invoices, quotations, receipts & payslips',
+    'Basic dashboard access',
+    'Watermark on all exports',
+  ];
+  const freeLockedItems = [
+    'Business Card & QR Generator',
+    'Social Media Planner',
+    'Budget Tracker',
+    'Tax Calculator',
+    'DEDA AI Assistant',
+  ];
+
   const tiers = [{
     name: 'Starter',
-    price: 0,
-    description: 'Best for Beginners',
-    features: ['10 invoices/month', '10 quotes/month', '10 receipts/month', 'Budget tracker (basic)', 'Cost manager (basic)', 'Tax calculator (basic)', 'DEDA AI Assistant (Lite / 5 prompts per day)', 'Basic dashboard', 'Watermarked exports'],
-    notIncluded: ['Unlimited documents', 'Payslip generator', 'Business Card + QR generator', 'Social Media Planner', 'Custom branding', 'Multi-user access', 'Priority support', 'API Access'],
-    cta: 'Get Started – Free',
+    price: isAnnual ? 18000 : 2000,
+    description: 'Perfect for freelancers and solo entrepreneurs',
+    features: [
+      'Unlimited Invoices, Quotations, Receipts & Payslips',
+      'Business Card & QR Code Generator',
+      'Social Media Planner',
+      'Cost Manager',
+      'Budget Tracker',
+      'Tax Calculator (PAYE, CIT, VAT, WHT)',
+      'Email & WhatsApp document delivery',
+    ],
+    notIncluded: [
+      'DEDA AI Assistant',
+      'Watermark-free exports',
+      'Priority support',
+    ],
+    cta: 'Get Starter',
     variant: 'outline',
-    tag: 'Best for Beginners'
+    highlight: false,
   }, {
     name: 'Business Pro',
     price: isAnnual ? 45000 : 4500,
-    description: 'Most Popular',
-    features: ['Unlimited invoices', 'Unlimited quotes', 'Unlimited receipts', 'Payslip generator', 'Business Card + QR generator', 'Social Media Planner – basic', 'Budget tracker (advanced)', 'Cost manager (full analytics)', 'Tax Calculator (smart mode)', 'DEDA AI Assistant – Standard (50 prompts/day)', 'Custom branding on documents', 'Exports: PDF, DOCX, PNG', 'Email + in-app support'],
-    notIncluded: ['Multi-user access (10 users)', 'Unlimited DEDA AI prompts', 'API Access', 'Custom domain', 'Automated recurring invoices', 'Advanced templates pack'],
-    cta: 'Start Pro Plan',
+    description: 'Most Popular – full toolkit for growing businesses',
+    features: [
+      'Everything in Starter',
+      'DEDA AI Assistant',
+      'Watermark-free exports',
+      'Priority email support',
+      'Advanced analytics & insights',
+      'Custom business branding',
+      'Bulk document generation',
+    ],
+    notIncluded: [
+      'Team / multi-user access',
+      'Dedicated account manager',
+    ],
+    cta: 'Start Business Pro',
     variant: 'glow',
-    highlight: true
+    highlight: true,
   }, {
     name: 'Enterprise Suite',
     price: isAnnual ? 120000 : 12000,
-    description: 'For scaling teams and established companies.',
-    features: ['Everything in Pro', 'Up to 10 users', '24/7 priority support', 'DEDA AI Assistant – Full Mode (unlimited prompts)', 'Full Social Media Planner with analytics', 'Automated recurring invoices', 'API Access', 'Business insights dashboard', 'Custom domain for invoices/receipts', 'Finance reports', 'Advanced templates pack', 'Export to XLSX, CSV, DOCX, PDF'],
+    description: 'Full-scale solution for larger organisations',
+    features: [
+      'Everything in Business Pro',
+      'Team / multi-user access (up to 10 users)',
+      'Dedicated account manager',
+      'Custom integrations & API access',
+      'SLA-backed uptime guarantee',
+      'Onboarding & training sessions',
+      'White-label / custom branding',
+      'Quarterly business reviews',
+      'Export to XLSX, CSV, DOCX, PDF',
+    ],
     notIncluded: [],
     cta: 'Go Enterprise',
-    variant: 'secondary'
+    variant: 'secondary',
+    highlight: false,
   }];
   return <section className="py-32 bg-white relative" id="pricing">
       {/* Background blobs */}
@@ -72,6 +120,36 @@ export function Pricing() {
           </div>
         </div>
 
+        {/* Free tier info banner */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="max-w-4xl mx-auto mb-10"
+        >
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="flex items-center gap-2 shrink-0">
+              <Info className="w-5 h-5 text-slate-400" />
+              <span className="font-semibold text-slate-700 text-sm">No plan (Free)</span>
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500">
+              {freeTierItems.map((item, i) => (
+                <span key={i} className="flex items-center gap-1">
+                  <Check className="w-3.5 h-3.5 text-green-500 shrink-0" /> {item}
+                </span>
+              ))}
+              {freeLockedItems.map((item, i) => (
+                <span key={i} className="flex items-center gap-1 opacity-50">
+                  <X className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {item}
+                </span>
+              ))}
+            </div>
+            <Button variant="outline" size="sm" className="shrink-0 ml-auto" onClick={() => window.location.href = '/login'}>
+              Start Free
+            </Button>
+          </div>
+        </motion.div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto items-start">
           {tiers.map((tier, index) => <motion.div key={index} initial={{
           opacity: 0,
@@ -103,15 +181,18 @@ export function Pricing() {
                 <div className="mb-8">
                   <div className="flex items-baseline">
                     <span className="text-5xl font-extrabold text-slate-900 tracking-tight">
-                      {tier.price === 0 ? '₦0' : `₦${tier.price.toLocaleString()}`}
+                      ₦{tier.price.toLocaleString()}
                     </span>
                     <span className="text-slate-500 ml-2 font-medium">
-                      /{isAnnual && tier.price > 0 ? 'year' : 'month'}
+                      /{isAnnual ? 'year' : 'month'}
                     </span>
                   </div>
+                  {isAnnual && (
+                    <p className="text-xs text-green-600 mt-1 font-medium">20% off — billed annually</p>
+                  )}
                 </div>
 
-                <Button variant={tier.variant as any} className="w-full mb-8">
+                <Button variant={tier.variant as any} className="w-full mb-8" onClick={() => window.location.href = '/login'}>
                   {tier.cta}
                 </Button>
 
