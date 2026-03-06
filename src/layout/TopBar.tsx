@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Search, Bell, ChevronDown, User, Menu } from 'lucide-react';
 import { authService } from '../services/authService';
 
@@ -11,7 +11,6 @@ export function TopBar({ onMenuClick }: TopBarProps = {}) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
@@ -51,10 +50,12 @@ export function TopBar({ onMenuClick }: TopBarProps = {}) {
             className="flex items-center gap-2 sm:gap-3 p-1.5 sm:p-2 hover:bg-slate-100 rounded-lg transition-all active:scale-95"
           >
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#FF8A2B] to-[#FF6B00] flex items-center justify-center text-white font-bold shadow-md">
-              {user?.name ? user.name.charAt(0).toUpperCase() : <User size={18} />}
+              {user?.firstName ? user.firstName.charAt(0).toUpperCase() : <User size={18} />}
             </div>
             <div className="hidden md:block text-left">
-              <p className="text-sm font-semibold text-slate-900">{user?.name || 'User'}</p>
+              <p className="text-sm font-semibold text-slate-900">
+                {[user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.businessName || 'User'}
+              </p>
               <p className="text-xs text-slate-500">{user?.email || 'user@mybiztools.app'}</p>
             </div>
             <ChevronDown className="w-4 h-4 text-slate-600 hidden sm:block" />

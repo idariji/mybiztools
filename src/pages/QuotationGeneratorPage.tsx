@@ -11,10 +11,13 @@ import { useToast } from '../utils/useToast';
 import { ToastContainer } from '../components/ui/Toast';
 import { safeGetJSON, safeSetJSON } from '../utils/storage';
 import { safePrint } from '../utils/printUtils';
+import { authService } from '../services/authService';
+import { hasWatermark } from '../utils/planUtils';
 
 export function QuotationGeneratorPage() {
   const navigate = useNavigate();
   const { toasts, addToast, removeToast } = useToast();
+  const showWatermark = hasWatermark(authService.getCurrentUser()?.current_plan);
   const [quotation, setQuotation] = useState<Quotation>({
     quotationNumber: generateQuotationNumber(),
     issueDate: new Date().toISOString().split('T')[0],
@@ -284,7 +287,7 @@ export function QuotationGeneratorPage() {
                 <p className="text-xs sm:text-sm text-gray-600">This is how your quotation will look</p>
               </div>
               <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
-                <QuotationPreview quotation={quotation} />
+                <QuotationPreview quotation={quotation} showWatermark={showWatermark} />
               </div>
             </div>
           </div>

@@ -13,6 +13,7 @@ import html2canvas from 'html2canvas';
 import { useToast } from '../utils/useToast';
 import { ToastContainer } from '../components/ui/Toast';
 import { authService } from '../services/authService';
+import { hasWatermark } from '../utils/planUtils';
 import { safeGetJSON, safeSetJSON } from '../utils/storage';
 import { safePrint } from '../utils/printUtils';
 
@@ -22,6 +23,7 @@ export function InvoiceGeneratorPage() {
   
   // Get user data for pre-filling
   const user = authService.getCurrentUser();
+  const showWatermark = hasWatermark(user?.current_plan);
   
   // Check if editing existing invoice
   const initialInvoice = safeGetJSON<Invoice | null>('current-invoice', null);
@@ -357,7 +359,7 @@ export function InvoiceGeneratorPage() {
               <p className="text-sm text-gray-600">This is how your invoice will look</p>
             </div>
             <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
-              <InvoicePreview invoice={invoice} />
+              <InvoicePreview invoice={invoice} showWatermark={showWatermark} />
             </div>
           </div>
         </div>
