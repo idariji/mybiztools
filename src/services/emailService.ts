@@ -396,7 +396,6 @@ export const sendPaymentReminderEmail = async (
         to: email,
         subject: `Payment Reminder: Invoice #${invoiceNumber} is ${daysOverdue} Days Overdue`,
         html: generatePaymentReminderTemplate(
-          email,
           clientName,
           invoiceNumber,
           amount,
@@ -465,7 +464,7 @@ export const generateEmailTemplate = (invoice: Invoice, message: string): string
               </div>
               <div class="info-row">
                 <span class="info-label">Total Amount</span>
-                <span class="info-value"><strong>${currency || 'NGN'} ${total}</strong></span>
+                <span class="info-value"><strong>${invoice.currency || 'NGN'} ${total}</strong></span>
               </div>
               <div class="info-row">
                 <span class="info-label">Due Date</span>
@@ -677,7 +676,6 @@ export const generatePayslipTemplate = (payslip: Payslip): string => {
               <p>Your complete payslip is attached to this email. Please keep it for your records.</p>
             </div>
           </div>
-
           <div class="footer">
             <p><strong>Questions?</strong></p>
             <p>Contact your HR department if you have any questions about your payslip.</p>

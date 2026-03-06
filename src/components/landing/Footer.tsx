@@ -1,5 +1,6 @@
 import React from 'react';
 import { Facebook, Twitter, Linkedin, Instagram, Hexagon, Heart } from 'lucide-react';
+import { Link } from 'react-router-dom';
 export function Footer() {
   return <footer className="bg-slate-950 text-slate-300 pt-24 pb-12 border-t border-slate-800 relative overflow-hidden">
       {/* Top Gradient Line */}
@@ -70,7 +71,7 @@ export function Footer() {
         </div>
 
         <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500">
-          <p>© 2025 MyBizTools. All rights reserved.</p>
+          <p>© 2025 MyBizTools. All rights reserved. &nbsp;·&nbsp; <Link to="/terms" className="hover:text-[#FF8A2B] transition-colors">Terms</Link> &nbsp;·&nbsp; <Link to="/privacy" className="hover:text-[#FF8A2B] transition-colors">Privacy</Link></p>
           <p className="flex items-center gap-1">
             Powered by{' '}
             <span className="text-slate-300 font-medium">Idariji Concept</span>

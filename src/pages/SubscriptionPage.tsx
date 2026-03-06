@@ -21,7 +21,7 @@ export function SubscriptionPage() {
 
   const fetchPlans = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/payments/plans`);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/payments/plans`);
       const result = await response.json();
       if (result.success) {
         setPlans(result.data.plans);
@@ -38,8 +38,8 @@ export function SubscriptionPage() {
 
     setProcessing(true);
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/payments/initialize`, {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/payments/initialize`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -69,8 +69,8 @@ export function SubscriptionPage() {
 
   const verifyPayment = async (reference: string) => {
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/payments/verify`, {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/payments/verify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -186,7 +186,7 @@ class AuthServiceClass {
   // Request password reset
   async requestPasswordReset(email: string): Promise<{ success: boolean; message: string; error?: string }> {
     try {
-      const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
+      const response = await fetch(`${API_URL}/api/auth/forgot`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -208,12 +208,12 @@ class AuthServiceClass {
   // Reset password with token
   async resetPassword(token: string, newPassword: string): Promise<{ success: boolean; message: string; error?: string }> {
     try {
-      const response = await fetch(`${API_URL}/api/auth/reset-password`, {
+      const response = await fetch(`${API_URL}/api/auth/reset`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ token, newPassword }),
+        body: JSON.stringify({ token, password: newPassword }),
       });
 
       return await response.json();
@@ -231,7 +231,7 @@ class AuthServiceClass {
   async updateProfile(updates: Partial<User>): Promise<AuthResponse> {
     try {
       const token = this.getToken();
-      const response = await fetch(`${API_URL}/api/auth/profile`, {
+      const response = await fetch(`${API_URL}/api/users/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

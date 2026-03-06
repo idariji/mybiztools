@@ -2,15 +2,17 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, FileText, Receipt, Calculator, Bot, Hexagon, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Input } from '../components/auth/Input';
 import { Button } from '../components/ui/Button';
 import { useToast } from '../utils/useToast';
 import { ToastContainer } from '../components/ui/Toast';
-import { authService } from '../services/authService';
+import { useAuth } from '../contexts/AuthContext';
 
 export function LoginPage() {
   const navigate = useNavigate();
   const { toasts, addToast, removeToast } = useToast();
+  const { login, signup } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     firstName: '',
@@ -57,28 +59,24 @@ export function LoginPage() {
     if (Object.keys(newErrors).length === 0) {
       if (isLogin) {
         // Login flow
-        const response = await authService.login({
-          email: formData.email,
-          password: formData.password
-        });
-        
+        const response = await login(formData.email, formData.password);
+
         if (response.success) {
-          const user = authService.getCurrentUser();
-          addToast(`Welcome back, ${user?.firstName || user?.name || 'User'}!`, 'success');
+          addToast(`Welcome back!`, 'success');
           setTimeout(() => navigate('/dashboard'), 1500);
         } else {
           addToast(response.message, 'error');
         }
       } else {
         // Signup flow
-        const response = await authService.signup({
+        const response = await signup({
           firstName: formData.firstName,
           lastName: formData.lastName,
           businessName: formData.businessName,
           email: formData.email,
           password: formData.password
         });
-        
+
         if (response.success) {
           addToast(`Welcome, ${formData.firstName}! Your account has been created.`, 'success');
           setTimeout(() => navigate('/dashboard'), 1500);
@@ -243,13 +241,13 @@ export function LoginPage() {
                       />
                       <span className="text-sm text-slate-600">
                         I agree to the{' '}
-                        <a href="#" className="text-[#FF8A2B] font-semibold hover:underline">
+                        <Link to="/terms" target="_blank" className="text-[#FF8A2B] font-semibold hover:underline">
                           Terms & Conditions
-                        </a>{' '}
+                        </Link>{' '}
                         and{' '}
-                        <a href="#" className="text-[#FF8A2B] font-semibold hover:underline">
+                        <Link to="/privacy" target="_blank" className="text-[#FF8A2B] font-semibold hover:underline">
                           Privacy Policy
-                        </a>
+                        </Link>
                       </span>
                     </label>
                     {errors.agreeTerms && <p className="text-red-500 text-sm mt-1">{errors.agreeTerms}</p>}

@@ -17,6 +17,9 @@ import { QuotationGeneratorPage } from './pages/QuotationGeneratorPage';
 import { ReceiptPage } from './pages/ReceiptPage';
 import { ReceiptGeneratorPage } from './pages/ReceiptGeneratorPage';
 import { PayslipGeneratorPage } from './pages/PayslipGeneratorPage';
+import { PayslipPage } from './pages/PayslipPage';
+import { TermsPage } from './pages/TermsPage';
+import { PrivacyPage } from './pages/PrivacyPage';
 import { BusinessCardPage } from './pages/BusinessCardPage';
 import { SocialPlannerPage } from './pages/SocialPlannerPage';
 import { BudgetTrackerPage } from './pages/BudgetTrackerPage';
@@ -26,6 +29,8 @@ import { AccountPage } from './pages/AccountPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { DEDAPage } from './pages/DEDAPage';
+import { SubscriptionPage } from './pages/SubscriptionPage';
+import { PaymentCallbackPage } from './pages/PaymentCallbackPage';
 import { DashboardLayout } from './layout/DashboardLayout';
 import { DEDAChat } from './components/dashboard/DEDAChat';
 // Admin dashboard moved to standalone admin-portal app (runs on port 5174)
@@ -42,6 +47,9 @@ export function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/verify-email" element={<EmailVerificationPage />} />
+          <Route path="/payment/callback" element={<PaymentCallbackPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
 
           {/* Protected Dashboard Routes */}
           <Route path="/dashboard" element={<ProtectedRoute><DashboardHome /></ProtectedRoute>} />
@@ -51,6 +59,7 @@ export function App() {
           <Route path="/dashboard/quotations/create" element={<ProtectedRoute><QuotationGeneratorPage /></ProtectedRoute>} />
           <Route path="/dashboard/receipts" element={<ProtectedRoute><ReceiptPage /></ProtectedRoute>} />
           <Route path="/dashboard/receipts/create" element={<ProtectedRoute><ReceiptGeneratorPage /></ProtectedRoute>} />
+          <Route path="/dashboard/payslips" element={<ProtectedRoute><PayslipPage /></ProtectedRoute>} />
           <Route path="/dashboard/payslips/create" element={<ProtectedRoute><DashboardLayout><PayslipGeneratorPage /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/budget" element={<ProtectedRoute><BudgetPage /></ProtectedRoute>} />
           <Route path="/dashboard/business-card" element={<ProtectedRoute><DashboardLayout><BusinessCardPage /></DashboardLayout></ProtectedRoute>} />
@@ -62,6 +71,7 @@ export function App() {
           <Route path="/dashboard/profile" element={<ProtectedRoute><DashboardLayout><ProfilePage /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/settings" element={<ProtectedRoute><DashboardLayout><SettingsPage /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/dedai" element={<ProtectedRoute><DashboardLayout><DEDAPage /></DashboardLayout></ProtectedRoute>} />
+          <Route path="/dashboard/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
         </Routes>
         <DEDAChat />
         </AuthProvider>
