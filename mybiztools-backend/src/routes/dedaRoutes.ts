@@ -1,11 +1,12 @@
 import { Router, Response } from 'express';
 import { DedaService } from '../services/dedaService.js';
-import { authenticateUser, AuthenticatedRequest } from '../middleware/authMiddleware.js';
+import { authenticateUser, requirePlan, AuthenticatedRequest } from '../middleware/authMiddleware.js';
 
 const router = Router();
 
-// All routes require authentication
+// All routes require authentication + Business Pro or Enterprise plan
 router.use(authenticateUser);
+router.use(requirePlan('pro', 'enterprise'));
 
 // POST /api/deda/chat - Send a message to DEDA
 router.post('/chat', async (req: AuthenticatedRequest, res: Response) => {

@@ -157,12 +157,12 @@ export function InvoicePage() {
             </div>
             <h2 className="text-xl font-bold text-slate-900 text-center mb-2">Document Limit Reached</h2>
             <p className="text-slate-600 text-center text-sm mb-6">
-              Free plan allows up to <strong>{FREE_DOCUMENT_LIMIT} invoices</strong>. Upgrade to Business Pro for unlimited invoices, no watermark, and all premium features.
+              Free plan allows up to <strong>{FREE_DOCUMENT_LIMIT} documents</strong> total. Upgrade to <strong>Starter, Business Pro, or Enterprise Suite</strong> for unlimited documents and all premium features.
             </p>
             <div className="flex flex-col gap-3">
               <button onClick={() => { setShowUpgrade(false); navigate('/dashboard/subscription'); }}
                 className="w-full flex items-center justify-center gap-2 py-3 bg-[#FF8A2B] text-white rounded-xl font-semibold hover:bg-[#FF6B00] transition-colors">
-                <Zap className="w-4 h-4" /> Upgrade to Business Pro
+                <Zap className="w-4 h-4" /> View Plans
               </button>
               <button onClick={() => setShowUpgrade(false)} className="w-full py-3 text-slate-600 text-sm hover:underline">
                 Maybe later

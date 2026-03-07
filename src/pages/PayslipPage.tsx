@@ -164,7 +164,7 @@ export function PayslipPage() {
               You've reached the <strong>{FREE_DOCUMENT_LIMIT} payslip limit</strong> on the Free plan.
             </p>
             <p className="text-slate-600 mb-6">
-              Upgrade to <strong>Business Pro</strong> or <strong>Enterprise Suite</strong> for unlimited payslips and full access to all features.
+              Upgrade to <strong>Starter, Business Pro, or Enterprise Suite</strong> for unlimited payslips and full access to all features.
             </p>
             <div className="flex gap-3">
               <button

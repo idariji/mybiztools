@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { authenticateUser } from '../middleware/authMiddleware.js';
 import {
   InvoiceService,
@@ -10,6 +10,25 @@ import {
 import { validatePagination } from '../utils/validation.js';
 
 const router = Router();
+
+// Middleware: enforce 2-document limit for free-tier users on create operations
+const enforceFreeDocumentLimit = async (req: Request, res: Response, next: NextFunction) => {
+  const plan = req.user?.current_plan?.toLowerCase().trim() || '';
+  const isPaid = ['starter', 'pro', 'enterprise', 'business_pro', 'business pro', 'enterprise_suite', 'enterprise suite'].includes(plan);
+  if (isPaid) return next();
+
+  // Free tier: check total document count
+  const stats = await DocumentStatsService.getUserDocumentCounts(req.user!.id);
+  if (stats.success && stats.data.counts.total >= 2) {
+    return res.status(403).json({
+      success: false,
+      message: 'Free plan is limited to 2 documents. Please upgrade to create more.',
+      error: 'DOCUMENT_LIMIT_REACHED',
+      currentPlan: 'free',
+    });
+  }
+  next();
+};
 
 // All routes require authentication except public quotation link
 // ============================================================================
@@ -37,7 +56,7 @@ router.get('/stats', authenticateUser, async (req: Request, res: Response) => {
 // INVOICE ROUTES (protected)
 // ============================================================================
 
-router.post('/invoices', authenticateUser, async (req: Request, res: Response) => {
+router.post('/invoices', authenticateUser, enforceFreeDocumentLimit, async (req: Request, res: Response) => {
   try {
     const result = await InvoiceService.create(req.user!.id, req.body);
     if (!result.success) {
@@ -132,7 +151,7 @@ router.delete('/invoices/:invoiceId', authenticateUser, async (req: Request, res
 // QUOTATION ROUTES (protected + public link)
 // ============================================================================
 
-router.post('/quotations', authenticateUser, async (req: Request, res: Response) => {
+router.post('/quotations', authenticateUser, enforceFreeDocumentLimit, async (req: Request, res: Response) => {
   try {
     const result = await QuotationService.create(req.user!.id, req.body);
     if (!result.success) {
@@ -245,7 +264,7 @@ router.delete('/quotations/:quotationId', authenticateUser, async (req: Request,
 // RECEIPT ROUTES (protected)
 // ============================================================================
 
-router.post('/receipts', authenticateUser, async (req: Request, res: Response) => {
+router.post('/receipts', authenticateUser, enforceFreeDocumentLimit, async (req: Request, res: Response) => {
   try {
     const result = await ReceiptService.create(req.user!.id, req.body);
     if (!result.success) {
@@ -322,7 +341,7 @@ router.delete('/receipts/:receiptId', authenticateUser, async (req: Request, res
 // PAYSLIP ROUTES (protected)
 // ============================================================================
 
-router.post('/payslips', authenticateUser, async (req: Request, res: Response) => {
+router.post('/payslips', authenticateUser, enforceFreeDocumentLimit, async (req: Request, res: Response) => {
   try {
     const result = await PayslipService.create(req.user!.id, req.body);
     if (!result.success) {

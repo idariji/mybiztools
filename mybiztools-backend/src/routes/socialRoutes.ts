@@ -1,11 +1,12 @@
 import { Router, Response } from 'express';
 import { SocialService } from '../services/socialService.js';
-import { authenticateUser, AuthenticatedRequest } from '../middleware/authMiddleware.js';
+import { authenticateUser, requirePlan, AuthenticatedRequest } from '../middleware/authMiddleware.js';
 
 const router = Router();
 
-// All routes require authentication
+// All routes require authentication + Starter, Business Pro, or Enterprise plan
 router.use(authenticateUser);
+router.use(requirePlan('starter', 'pro', 'enterprise'));
 
 // POST /api/social/posts
 router.post('/posts', async (req: AuthenticatedRequest, res: Response) => {

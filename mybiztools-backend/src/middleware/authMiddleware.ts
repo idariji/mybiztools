@@ -173,7 +173,17 @@ export const requireVerifiedEmail = (
   next();
 };
 
-// Require specific plan
+/** Normalise stored plan string to a canonical tier */
+function normalisePlan(plan: string | null | undefined): string {
+  if (!plan) return 'free';
+  const p = plan.toLowerCase().trim();
+  if (p === 'enterprise' || p === 'enterprise_suite' || p === 'enterprise suite') return 'enterprise';
+  if (p === 'pro' || p === 'business_pro' || p === 'business pro') return 'pro';
+  if (p === 'starter') return 'starter';
+  return 'free';
+}
+
+// Require specific plan tier(s). Pass canonical tier names: 'starter', 'pro', 'enterprise'
 export const requirePlan = (...allowedPlans: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
@@ -184,13 +194,14 @@ export const requirePlan = (...allowedPlans: string[]) => {
       });
     }
 
-    if (!allowedPlans.includes(req.user.current_plan)) {
+    const tier = normalisePlan(req.user.current_plan);
+    if (!allowedPlans.includes(tier)) {
       return res.status(403).json({
         success: false,
         message: `This feature requires one of the following plans: ${allowedPlans.join(', ')}`,
         error: 'PLAN_REQUIRED',
         requiredPlans: allowedPlans,
-        currentPlan: req.user.current_plan,
+        currentPlan: tier,
       });
     }
 

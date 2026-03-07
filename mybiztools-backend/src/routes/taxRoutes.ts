@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { TaxService } from '../services/taxService.js';
-import { authenticateUser, AuthenticatedRequest } from '../middleware/authMiddleware.js';
+import { authenticateUser, requirePlan, AuthenticatedRequest } from '../middleware/authMiddleware.js';
 
 const router = Router();
 
@@ -19,8 +19,9 @@ router.get('/rates', (req: Request, res: Response) => {
   }
 });
 
-// Protected routes require authentication
+// Protected routes require authentication + any paid plan
 router.use(authenticateUser);
+router.use(requirePlan('starter', 'pro', 'enterprise'));
 
 // POST /api/tax/calculate/cit - Calculate Companies Income Tax
 router.post('/calculate/cit', (req: AuthenticatedRequest, res: Response) => {

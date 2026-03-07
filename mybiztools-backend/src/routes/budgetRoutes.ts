@@ -1,13 +1,14 @@
 import { Router, Response } from 'express';
 import { BudgetService } from '../services/budgetService.js';
 import { ExpenseService } from '../services/expenseService.js';
-import { authenticateUser, AuthenticatedRequest } from '../middleware/authMiddleware.js';
+import { authenticateUser, requirePlan, AuthenticatedRequest } from '../middleware/authMiddleware.js';
 import { safeParseInt, validatePagination } from '../utils/validation.js';
 
 const router = Router();
 
-// All routes require authentication
+// All routes require authentication + Starter, Business Pro, or Enterprise plan
 router.use(authenticateUser);
+router.use(requirePlan('starter', 'pro', 'enterprise'));
 
 // ============ BUDGET ROUTES ============
 

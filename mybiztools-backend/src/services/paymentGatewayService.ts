@@ -14,20 +14,46 @@ const MONNIFY_BASE_URL = process.env.MONNIFY_BASE_URL || 'https://api.monnify.co
 
 // Plan pricing in Naira
 export const PLAN_PRICING = {
-  free: {
-    monthly: 0,
-    yearly: 0,
-    features: ['Basic features', '100MB storage', '5 documents', '10 contacts'],
+  starter: {
+    monthly: 2000,
+    yearly: 18000,
+    features: [
+      'Unlimited Invoices, Quotations, Receipts & Payslips',
+      'Business Card & QR Code Generator',
+      'Social Media Planner',
+      'Cost Manager',
+      'Budget Tracker',
+      'Tax Calculator (PAYE, CIT, VAT, WHT)',
+      'Email & WhatsApp document delivery',
+      'Watermark on exports',
+    ],
   },
   pro: {
-    monthly: 5000,
-    yearly: 48000,
-    features: ['All free features', '5GB storage', 'Unlimited documents', 'Unlimited contacts', 'Priority support'],
+    monthly: 4500,
+    yearly: 45000,
+    features: [
+      'Everything in Starter',
+      'DEDA AI Assistant',
+      'Watermark-free exports',
+      'Priority email support',
+      'Advanced analytics & insights',
+      'Custom business branding',
+      'Bulk document generation',
+    ],
   },
   enterprise: {
-    monthly: 25000,
-    yearly: 240000,
-    features: ['All pro features', '50GB storage', 'API access', 'Custom integrations', 'Dedicated support'],
+    monthly: 12000,
+    yearly: 120000,
+    features: [
+      'Everything in Business Pro',
+      'Team / multi-user access (up to 10 users)',
+      'Dedicated account manager',
+      'Custom integrations & API access',
+      'SLA-backed uptime guarantee',
+      'Onboarding & training sessions',
+      'White-label / custom branding',
+      'Quarterly business reviews',
+    ],
   },
 };
 
@@ -81,12 +107,8 @@ export class PaymentGatewayService {
     try {
       const { userId, email, plan, billingCycle, callbackUrl } = input;
 
-      if (!['free', 'pro', 'enterprise'].includes(plan)) {
+      if (!['starter', 'pro', 'enterprise'].includes(plan)) {
         return { success: false, message: 'Invalid plan selected', error: 'INVALID_PLAN' };
-      }
-
-      if (plan === 'free') {
-        return { success: false, message: 'Free plan does not require payment', error: 'FREE_PLAN' };
       }
 
       const planConfig = PLAN_PRICING[plan as keyof typeof PLAN_PRICING];
