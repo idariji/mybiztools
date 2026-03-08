@@ -4,11 +4,17 @@ import { formatCurrencyNGN } from '../../utils/payslipUtils';
 
 interface PayslipPreviewProps {
   payslip: Payslip;
+  showWatermark?: boolean;
 }
 
-export function PayslipPreview({ payslip }: PayslipPreviewProps) {
+export function PayslipPreview({ payslip, showWatermark }: PayslipPreviewProps) {
   return (
-    <div className="bg-white rounded-xl shadow-lg p-8 max-w-4xl mx-auto" id="payslip-preview">
+    <div className="bg-white rounded-xl shadow-lg p-8 max-w-4xl mx-auto relative overflow-hidden" id="payslip-preview">
+      {showWatermark && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-10 rotate-[-35deg] opacity-10 select-none">
+          <span className="text-[80px] font-black text-gray-800 whitespace-nowrap tracking-widest">MYBIZTOOLS FREE</span>
+        </div>
+      )}
       <div className="border-2 border-[#1e3a8a] rounded-lg p-6">
         {/* Header */}
         <div className="text-center mb-6 pb-4 border-b-2 border-gray-200">

@@ -249,6 +249,7 @@ router.get('/rates', TaxController.getTaxRates);
 
 // All calculation routes require authentication
 router.use(authenticateUser);
+router.use(requirePlan('starter', 'pro', 'enterprise'));
 
 /**
  * @swagger

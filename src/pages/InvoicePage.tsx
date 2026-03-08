@@ -1,15 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '../layout/DashboardLayout';
-import { Plus, Download, Eye, Trash2, FileText } from 'lucide-react';
+import { Plus, Download, Eye, Trash2, FileText, Lock, Zap } from 'lucide-react';
 import { Invoice } from '../types/invoice';
 import { useToast } from '../utils/useToast';
 import { ToastContainer } from '../components/ui/Toast';
+import { authService } from '../services/authService';
+import { canCreateDocument, FREE_DOCUMENT_LIMIT, normalisePlan } from '../utils/planUtils';
 
 export function InvoicePage() {
   const navigate = useNavigate();
   const { toasts, addToast, removeToast } = useToast();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const user = authService.getCurrentUser();
+  const plan = user?.current_plan;
+  const isFree = normalisePlan(plan) === 'free';
 
   useEffect(() => {
     loadInvoices();
@@ -45,13 +51,23 @@ export function InvoicePage() {
             <h1 className="text-3xl font-bold text-slate-900">Invoice Generator</h1>
             <p className="text-slate-600 mt-1">Create and manage professional invoices</p>
           </div>
-          <button 
-            onClick={() => navigate('/dashboard/invoices/create')}
-            className="flex items-center gap-2 px-6 py-3 bg-[#FF8A2B] text-white rounded-xl font-semibold hover:bg-[#FF6B00] transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            New Invoice
-          </button>
+          <div className="flex items-center gap-3">
+            {isFree && (
+              <span className="text-xs text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg">
+                {invoices.length}/{FREE_DOCUMENT_LIMIT} invoices used
+              </span>
+            )}
+            <button
+              onClick={() => {
+                if (!canCreateDocument(plan, invoices.length)) { setShowUpgrade(true); return; }
+                navigate('/dashboard/invoices/create');
+              }}
+              className="flex items-center gap-2 px-6 py-3 bg-[#FF8A2B] text-white rounded-xl font-semibold hover:bg-[#FF6B00] transition-colors"
+            >
+              <Plus className="w-5 h-5" />
+              New Invoice
+            </button>
+          </div>
         </div>
 
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
@@ -132,6 +148,29 @@ export function InvoicePage() {
         </div>
         </div>
       </DashboardLayout>
+
+      {showUpgrade && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowUpgrade(false)}>
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="w-14 h-14 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-4">
+              <Lock className="w-7 h-7 text-[#FF8A2B]" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-900 text-center mb-2">Document Limit Reached</h2>
+            <p className="text-slate-600 text-center text-sm mb-6">
+              Free plan allows up to <strong>{FREE_DOCUMENT_LIMIT} documents</strong> total. Upgrade to <strong>Starter, Business Pro, or Enterprise Suite</strong> for unlimited documents and all premium features.
+            </p>
+            <div className="flex flex-col gap-3">
+              <button onClick={() => { setShowUpgrade(false); navigate('/dashboard/subscription'); }}
+                className="w-full flex items-center justify-center gap-2 py-3 bg-[#FF8A2B] text-white rounded-xl font-semibold hover:bg-[#FF6B00] transition-colors">
+                <Zap className="w-4 h-4" /> View Plans
+              </button>
+              <button onClick={() => setShowUpgrade(false)} className="w-full py-3 text-slate-600 text-sm hover:underline">
+                Maybe later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

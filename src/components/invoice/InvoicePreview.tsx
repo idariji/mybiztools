@@ -4,14 +4,20 @@ import { formatCurrency, formatDate } from '../../utils/invoiceUtils';
 
 interface InvoicePreviewProps {
   invoice: Invoice;
+  showWatermark?: boolean;
 }
 
-export function InvoicePreview({ invoice }: InvoicePreviewProps) {
+export function InvoicePreview({ invoice, showWatermark }: InvoicePreviewProps) {
   const currency = CURRENCIES.find(c => c.code === invoice.currency);
   const currencySymbol = currency?.symbol || '$';
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-8 max-w-4xl mx-auto" id="invoice-preview">
+    <div className="bg-white rounded-xl shadow-lg p-8 max-w-4xl mx-auto relative overflow-hidden" id="invoice-preview">
+      {showWatermark && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-10 rotate-[-35deg] opacity-10 select-none">
+          <span className="text-[80px] font-black text-gray-800 whitespace-nowrap tracking-widest">MYBIZTOOLS FREE</span>
+        </div>
+      )}
       {/* Header */}
       <div className="flex justify-between items-start mb-8">
         <div>

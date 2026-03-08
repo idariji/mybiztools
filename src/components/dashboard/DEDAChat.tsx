@@ -27,7 +27,7 @@ export function DEDAChat() {
       setMessages([{
         id: '1',
         text: DEDAI_GREETING,
-        sender: 'dedai',
+        sender: 'deda',
         timestamp: new Date()
       }]);
       setIsFirstVisit(false);

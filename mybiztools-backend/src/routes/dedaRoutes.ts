@@ -217,6 +217,7 @@ const router = Router();
 
 // All DEDA routes require authentication
 router.use(authenticateUser);
+router.use(requirePlan('pro', 'enterprise'));
 
 /**
  * @swagger

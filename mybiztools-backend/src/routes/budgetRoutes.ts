@@ -383,6 +383,7 @@ import {
 const router = Router();
 
 router.use(authenticateUser);
+router.use(requirePlan('starter', 'pro', 'enterprise'));
 
 /**
  * @swagger

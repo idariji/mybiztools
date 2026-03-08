@@ -39,7 +39,7 @@ export function DashboardHome() {
     // Show welcome notification on first dashboard visit
     const hasShownWelcome = sessionStorage.getItem('welcomeShown');
     if (!hasShownWelcome) {
-      const userName = currentUser?.firstName || currentUser?.name || 'User';
+      const userName = currentUser?.firstName || currentUser?.lastName || 'User';
       addToast(`Welcome to MyBizTools, ${userName}!`, 'success');
       sessionStorage.setItem('welcomeShown', 'true');
     }
