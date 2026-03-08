@@ -290,20 +290,133 @@
 // export default EmailNotificationService;
 
 
-import { createRequire } from 'module';
+// import { createRequire } from 'module';
+// import { env } from '../config/env.js';
+
+// // EMAIL NOTIFICATION SERVICE (Brevo)
+// // @getbrevo/brevo is a CommonJS package — must be loaded via createRequire
+// const require = createRequire(import.meta.url);
+// const Brevo = require('@getbrevo/brevo');
+
+// const getClient = () => {
+//   const client = new Brevo.TransactionalEmailsApi();
+//   const apiKey = client.authentications['api-key'];
+//   apiKey.apiKey = env.brevoApiKey;
+//   return client;
+// };
+
+// // Internal send helper
+// const send = async (
+//   to: string,
+//   subject: string,
+//   html: string,
+//   attachments?: { filename: string; content: Buffer }[]
+// ): Promise<{ messageId?: string }> => {
+//   if (!env.brevoApiKey) {
+//     console.warn(`[Email] Skipped — no BREVO_API_KEY. Would send "${subject}" to ${to}`);
+//     return {};
+//   }
+
+//   const client = getClient();
+
+//   const message = new Brevo.SendSmtpEmail();
+//   message.sender = { name: 'MyBizTools', email: env.fromEmail };
+//   message.to = [{ email: to }];
+//   message.subject = subject;
+//   message.htmlContent = html;
+
+//   if (attachments?.length) {
+//     message.attachment = attachments.map((a: { filename: string; content: Buffer }) => ({
+//       name: a.filename,
+//       content: a.content.toString('base64'),
+//     }));
+//   }
+
+//   const response = await client.sendTransacEmail(message);
+//   return { messageId: response?.body?.messageId };
+// };
+
+// // EMAIL NOTIFICATION SERVICE
+// export class EmailNotificationService {
+//   // OTP EMAIL (verification & password reset)
+//   static async sendOtpEmail(
+//     to: string,
+//     firstName: string | null,
+//     otp: string,
+//     purpose: 'email_verification' | 'password_reset'
+//   ): Promise<void> {
+//     const isVerification = purpose === 'email_verification';
+//     const subject = isVerification
+//       ? 'Verify Your Email — MyBizTools'
+//       : 'Reset Your Password — MyBizTools';
+//     const heading = isVerification ? 'Verify your email address' : 'Reset your password';
+//     const body = isVerification
+//       ? 'Use the OTP below to verify your email. It expires in <strong>10 minutes</strong>.'
+//       : 'Use the OTP below to reset your password. It expires in <strong>10 minutes</strong>.';
+
+//     const html = `
+//       <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:32px;border:1px solid #e5e7eb;border-radius:8px;">
+//         <h2 style="color:#111827;margin-bottom:8px;">${heading}</h2>
+//         <p style="color:#6b7280;">Hi ${firstName ?? 'there'},</p>
+//         <p style="color:#374151;">${body}</p>
+//         <div style="text-align:center;margin:32px 0;">
+//           <span style="display:inline-block;font-size:36px;font-weight:700;letter-spacing:12px;color:#111827;background:#f3f4f6;padding:16px 24px;border-radius:8px;">
+//             ${otp}
+//           </span>
+//         </div>
+//         <p style="color:#9ca3af;font-size:13px;">If you didn't request this, you can safely ignore this email.</p>
+//         <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;" />
+//         <p style="color:#9ca3af;font-size:12px;text-align:center;">© ${new Date().getFullYear()} MyBizTools. All rights reserved.</p>
+//       </div>
+//     `;
+
+//     await send(to, subject, html);
+//   }
+
+//   // WELCOME EMAIL
+//   static async sendWelcomeEmail(to: string, firstName: string | null): Promise<void> {
+//     const html = `
+//       <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:32px;border:1px solid #e5e7eb;border-radius:8px;">
+//         <h2 style="color:#111827;">Welcome to MyBizTools 🎉</h2>
+//         <p style="color:#374151;">Hi ${firstName ?? 'there'}, your email has been verified and your account is ready.</p>
+//         <p style="color:#374151;">Start by exploring your dashboard and setting up your business profile.</p>
+//         <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;" />
+//         <p style="color:#9ca3af;font-size:12px;text-align:center;">© ${new Date().getFullYear()} MyBizTools. All rights reserved.</p>
+//       </div>
+//     `;
+//     await send(to, 'Welcome to MyBizTools!', html);
+//   }
+
+//   // GENERIC EMAIL (for sending invoices, receipts, etc.)
+//   static async sendEmail(options: {
+//     to: string;
+//     subject: string;
+//     html: string;
+//     attachments?: { filename: string; content: Buffer }[];
+//   }): Promise<{ success: boolean; messageId?: string; error?: string }> {
+//     if (!env.brevoApiKey) {
+//       return { success: false, error: 'Email service not configured. BREVO_API_KEY is missing.' };
+//     }
+
+//     try {
+//       const result = await send(options.to, options.subject, options.html, options.attachments);
+//       return { success: true, messageId: result.messageId };
+//     } catch (error) {
+//       const message = error instanceof Error ? error.message : 'Unknown error';
+//       console.error('[Email] Send failed:', message);
+//       return { success: false, error: message };
+//     }
+//   }
+// }
+
+import { Resend } from 'resend';
 import { env } from '../config/env.js';
 
-// EMAIL NOTIFICATION SERVICE (Brevo)
-// @getbrevo/brevo is a CommonJS package — must be loaded via createRequire
-const require = createRequire(import.meta.url);
-const Brevo = require('@getbrevo/brevo');
+// ============================================================================
+// EMAIL NOTIFICATION SERVICE (Resend)
+// ============================================================================
 
-const getClient = () => {
-  const client = new Brevo.TransactionalEmailsApi();
-  const apiKey = client.authentications['api-key'];
-  apiKey.apiKey = env.brevoApiKey;
-  return client;
-};
+const getClient = () => new Resend(env.resendApiKey);
 
 // Internal send helper
 const send = async (
@@ -312,33 +425,43 @@ const send = async (
   html: string,
   attachments?: { filename: string; content: Buffer }[]
 ): Promise<{ messageId?: string }> => {
-  if (!env.brevoApiKey) {
-    console.warn(`[Email] Skipped — no BREVO_API_KEY. Would send "${subject}" to ${to}`);
+  if (!env.resendApiKey) {
+    console.warn(`[Email] Skipped — no RESEND_API_KEY. Would send "${subject}" to ${to}`);
     return {};
   }
 
-  const client = getClient();
+  const resend = getClient();
 
-  const message = new Brevo.SendSmtpEmail();
-  message.sender = { name: 'MyBizTools', email: env.fromEmail };
-  message.to = [{ email: to }];
-  message.subject = subject;
-  message.htmlContent = html;
+  const payload: any = {
+    from: `MyBizTools <${env.fromEmail}>`,
+    to,
+    subject,
+    html,
+  };
 
   if (attachments?.length) {
-    message.attachment = attachments.map((a: { filename: string; content: Buffer }) => ({
-      name: a.filename,
-      content: a.content.toString('base64'),
+    payload.attachments = attachments.map((a) => ({
+      filename: a.filename,
+      content: a.content,
     }));
   }
 
-  const response = await client.sendTransacEmail(message);
-  return { messageId: response?.body?.messageId };
+  const { data, error } = await resend.emails.send(payload);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return { messageId: data?.id };
 };
 
-// EMAIL NOTIFICATION SERVICE
+// ============================================================================
+
 export class EmailNotificationService {
+  // --------------------------------------------------------------------------
   // OTP EMAIL (verification & password reset)
+  // --------------------------------------------------------------------------
+
   static async sendOtpEmail(
     to: string,
     firstName: string | null,
@@ -373,7 +496,10 @@ export class EmailNotificationService {
     await send(to, subject, html);
   }
 
+  // --------------------------------------------------------------------------
   // WELCOME EMAIL
+  // --------------------------------------------------------------------------
+
   static async sendWelcomeEmail(to: string, firstName: string | null): Promise<void> {
     const html = `
       <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:32px;border:1px solid #e5e7eb;border-radius:8px;">
@@ -387,15 +513,18 @@ export class EmailNotificationService {
     await send(to, 'Welcome to MyBizTools!', html);
   }
 
-  // GENERIC EMAIL (for sending invoices, receipts, etc.)
+  // --------------------------------------------------------------------------
+  // GENERIC EMAIL (invoices, receipts, support responses, etc.)
+  // --------------------------------------------------------------------------
+
   static async sendEmail(options: {
     to: string;
     subject: string;
     html: string;
     attachments?: { filename: string; content: Buffer }[];
   }): Promise<{ success: boolean; messageId?: string; error?: string }> {
-    if (!env.brevoApiKey) {
-      return { success: false, error: 'Email service not configured. BREVO_API_KEY is missing.' };
+    if (!env.resendApiKey) {
+      return { success: false, error: 'Email service not configured. RESEND_API_KEY is missing.' };
     }
 
     try {

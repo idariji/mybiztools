@@ -17,7 +17,7 @@ export const env = {
   databaseUrl: process.env.DATABASE_URL || '',
 
   // Email (Resend)
-  brevoApiKey: process.env.BREVO_API_KEY || '',
+  resendApiKey: process.env.RESEND_API_KEY || '',
   fromEmail: process.env.FROM_EMAIL || 'noreply@mybiztools.ng',
 
   // Frontend
@@ -43,7 +43,7 @@ export const validateEnv = (): void => {
     }
   }
 
-  if (!env.brevoApiKey) {
+  if (!env.resendApiKey) {
     warnings.push('RESEND_API_KEY is missing — emails will not be sent');
   }
 
