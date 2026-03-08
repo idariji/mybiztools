@@ -1,74 +1,423 @@
-/**
- * Nigerian Tax Calculator Service
- * Calculate various Nigerian taxes for businesses
- */
+// /**
+//  * Nigerian Tax Calculator Service
+//  * Calculate various Nigerian taxes for businesses
+//  */
 
-// Nigerian Tax Rates (2024/2025)
+// // Nigerian Tax Rates (2024/2025)
+// const TAX_RATES = {
+//   // Companies Income Tax (CIT)
+//   cit: {
+//     small: 0, // Companies with turnover < NGN 25 million
+//     medium: 0.20, // 20% for medium companies (NGN 25-100 million)
+//     large: 0.30, // 30% for large companies (> NGN 100 million)
+//   },
+
+//   // Value Added Tax (VAT)
+//   vat: 0.075, // 7.5%
+
+//   // Withholding Tax (WHT) rates
+//   wht: {
+//     dividends: 0.10, // 10%
+//     interest: 0.10, // 10%
+//     rent: 0.10, // 10%
+//     royalties: 0.10, // 10%
+//     commission: 0.10, // 10%
+//     consultancy: 0.10, // 10%
+//     management_fees: 0.10, // 10%
+//     technical_fees: 0.10, // 10%
+//     contracts: 0.05, // 5%
+//     director_fees: 0.10, // 10%
+//   },
+
+//   // Personal Income Tax (PIT) - Progressive rates
+//   pit: [
+//     { min: 0, max: 300000, rate: 0.07 }, // 7% for first NGN 300,000
+//     { min: 300000, max: 600000, rate: 0.11 }, // 11% for next NGN 300,000
+//     { min: 600000, max: 1100000, rate: 0.15 }, // 15% for next NGN 500,000
+//     { min: 1100000, max: 1600000, rate: 0.19 }, // 19% for next NGN 500,000
+//     { min: 1600000, max: 3200000, rate: 0.21 }, // 21% for next NGN 1,600,000
+//     { min: 3200000, max: Infinity, rate: 0.24 }, // 24% for above NGN 3,200,000
+//   ],
+
+//   // Tertiary Education Tax (TET)
+//   tet: 0.025, // 2.5% of assessable profit
+
+//   // NSITF (Nigeria Social Insurance Trust Fund)
+//   nsitf: 0.01, // 1% of monthly payroll
+
+//   // NHF (National Housing Fund)
+//   nhf: 0.025, // 2.5% of basic salary
+
+//   // Pension
+//   pension: {
+//     employee: 0.08, // 8% employee contribution
+//     employer: 0.10, // 10% employer contribution
+//   },
+// };
+
+// export interface CITCalculationInput {
+//   annualTurnover: number;
+//   assessableProfit: number;
+// }
+
+// export interface VATCalculationInput {
+//   amount: number;
+//   isInclusive?: boolean;
+// }
+
+// export interface PITCalculationInput {
+//   annualGrossIncome: number;
+//   reliefs?: {
+//     consolidatedRelief?: boolean; // 20% of gross income + NGN 200,000
+//     pensionContribution?: number;
+//     nhfContribution?: number;
+//     lifeInsurance?: number;
+//     nationalHealthInsurance?: number;
+//   };
+// }
+
+// export interface PayrollCalculationInput {
+//   basicSalary: number;
+//   housing?: number;
+//   transport?: number;
+//   otherAllowances?: number;
+// }
+
+// export class TaxService {
+//   /**
+//    * Calculate Companies Income Tax (CIT)
+//    */
+//   static calculateCIT(input: CITCalculationInput) {
+//     const { annualTurnover, assessableProfit } = input;
+
+//     let taxRate: number;
+//     let companySize: string;
+
+//     if (annualTurnover < 25000000) {
+//       taxRate = TAX_RATES.cit.small;
+//       companySize = 'small';
+//     } else if (annualTurnover < 100000000) {
+//       taxRate = TAX_RATES.cit.medium;
+//       companySize = 'medium';
+//     } else {
+//       taxRate = TAX_RATES.cit.large;
+//       companySize = 'large';
+//     }
+
+//     const citAmount = assessableProfit * taxRate;
+//     const tetAmount = assessableProfit * TAX_RATES.tet;
+//     const totalTax = citAmount + tetAmount;
+
+//     return {
+//       success: true,
+//       data: {
+//         companySize,
+//         annualTurnover,
+//         assessableProfit,
+//         citRate: taxRate * 100,
+//         citAmount: Math.round(citAmount),
+//         tetRate: TAX_RATES.tet * 100,
+//         tetAmount: Math.round(tetAmount),
+//         totalTax: Math.round(totalTax),
+//         effectiveRate: assessableProfit > 0
+//           ? Math.round((totalTax / assessableProfit) * 10000) / 100
+//           : 0,
+//       },
+//     };
+//   }
+
+//   /**
+//    * Calculate VAT
+//    */
+//   static calculateVAT(input: VATCalculationInput) {
+//     const { amount, isInclusive } = input;
+//     const vatRate = TAX_RATES.vat;
+
+//     let netAmount: number;
+//     let vatAmount: number;
+//     let grossAmount: number;
+
+//     if (isInclusive) {
+//       // Amount includes VAT, extract it
+//       grossAmount = amount;
+//       netAmount = amount / (1 + vatRate);
+//       vatAmount = amount - netAmount;
+//     } else {
+//       // Amount excludes VAT, add it
+//       netAmount = amount;
+//       vatAmount = amount * vatRate;
+//       grossAmount = amount + vatAmount;
+//     }
+
+//     return {
+//       success: true,
+//       data: {
+//         netAmount: Math.round(netAmount * 100) / 100,
+//         vatRate: vatRate * 100,
+//         vatAmount: Math.round(vatAmount * 100) / 100,
+//         grossAmount: Math.round(grossAmount * 100) / 100,
+//         isInclusive: !!isInclusive,
+//       },
+//     };
+//   }
+
+//   /**
+//    * Calculate Personal Income Tax (PAYE)
+//    */
+//   static calculatePIT(input: PITCalculationInput) {
+//     const { annualGrossIncome, reliefs = {} } = input;
+
+//     // Calculate reliefs
+//     let totalReliefs = 0;
+
+//     // Consolidated Relief Allowance (CRA)
+//     if (reliefs.consolidatedRelief !== false) {
+//       const cra = Math.max(200000, annualGrossIncome * 0.20);
+//       totalReliefs += cra;
+//     }
+
+//     // Pension contribution (exempt from tax)
+//     if (reliefs.pensionContribution) {
+//       totalReliefs += reliefs.pensionContribution;
+//     }
+
+//     // NHF contribution
+//     if (reliefs.nhfContribution) {
+//       totalReliefs += reliefs.nhfContribution;
+//     }
+
+//     // Life insurance premium (up to 20% of gross income)
+//     if (reliefs.lifeInsurance) {
+//       const maxInsurance = annualGrossIncome * 0.20;
+//       totalReliefs += Math.min(reliefs.lifeInsurance, maxInsurance);
+//     }
+
+//     // National Health Insurance
+//     if (reliefs.nationalHealthInsurance) {
+//       totalReliefs += reliefs.nationalHealthInsurance;
+//     }
+
+//     // Calculate taxable income
+//     const taxableIncome = Math.max(0, annualGrossIncome - totalReliefs);
+
+//     // Calculate tax using progressive rates
+//     let remainingIncome = taxableIncome;
+//     let totalTax = 0;
+//     const breakdown: { bracket: string; amount: number; rate: number; tax: number }[] = [];
+
+//     for (const bracket of TAX_RATES.pit) {
+//       if (remainingIncome <= 0) break;
+
+//       const bracketSize = bracket.max - bracket.min;
+//       const taxableInBracket = Math.min(remainingIncome, bracketSize);
+//       const taxInBracket = taxableInBracket * bracket.rate;
+
+//       totalTax += taxInBracket;
+//       breakdown.push({
+//         bracket: `${bracket.min.toLocaleString()} - ${bracket.max === Infinity ? 'Above' : bracket.max.toLocaleString()}`,
+//         amount: Math.round(taxableInBracket),
+//         rate: bracket.rate * 100,
+//         tax: Math.round(taxInBracket),
+//       });
+
+//       remainingIncome -= taxableInBracket;
+//     }
+
+//     // Minimum tax (1% of gross income if calculated tax < minimum)
+//     const minimumTax = annualGrossIncome * 0.01;
+//     const effectiveTax = Math.max(totalTax, minimumTax);
+
+//     return {
+//       success: true,
+//       data: {
+//         annualGrossIncome,
+//         totalReliefs: Math.round(totalReliefs),
+//         taxableIncome: Math.round(taxableIncome),
+//         calculatedTax: Math.round(totalTax),
+//         minimumTax: Math.round(minimumTax),
+//         annualTax: Math.round(effectiveTax),
+//         monthlyTax: Math.round(effectiveTax / 12),
+//         effectiveRate: annualGrossIncome > 0
+//           ? Math.round((effectiveTax / annualGrossIncome) * 10000) / 100
+//           : 0,
+//         breakdown,
+//       },
+//     };
+//   }
+
+//   /**
+//    * Calculate Withholding Tax
+//    */
+//   static calculateWHT(amount: number, type: keyof typeof TAX_RATES.wht) {
+//     const rate = TAX_RATES.wht[type];
+
+//     if (rate === undefined) {
+//       return {
+//         success: false,
+//         message: 'Invalid WHT type',
+//         error: 'INVALID_WHT_TYPE',
+//       };
+//     }
+
+//     const whtAmount = amount * rate;
+
+//     return {
+//       success: true,
+//       data: {
+//         grossAmount: amount,
+//         whtType: type,
+//         whtRate: rate * 100,
+//         whtAmount: Math.round(whtAmount * 100) / 100,
+//         netAmount: Math.round((amount - whtAmount) * 100) / 100,
+//       },
+//     };
+//   }
+
+//   /**
+//    * Calculate full payroll deductions
+//    */
+//   static calculatePayroll(input: PayrollCalculationInput) {
+//     const { basicSalary, housing = 0, transport = 0, otherAllowances = 0 } = input;
+
+//     const grossSalary = basicSalary + housing + transport + otherAllowances;
+//     const annualGross = grossSalary * 12;
+
+//     // Pension (8% employee, 10% employer - on basic + housing + transport)
+//     const pensionBase = basicSalary + housing + transport;
+//     const employeePension = pensionBase * TAX_RATES.pension.employee;
+//     const employerPension = pensionBase * TAX_RATES.pension.employer;
+
+//     // NHF (2.5% of basic)
+//     const nhf = basicSalary * TAX_RATES.nhf;
+
+//     // Calculate PAYE
+//     const payeResult = this.calculatePIT({
+//       annualGrossIncome: annualGross,
+//       reliefs: {
+//         consolidatedRelief: true,
+//         pensionContribution: employeePension * 12,
+//         nhfContribution: nhf * 12,
+//       },
+//     });
+
+//     const monthlyPaye = payeResult.data?.monthlyTax || 0;
+
+//     // Total deductions
+//     const totalDeductions = employeePension + nhf + monthlyPaye;
+//     const netSalary = grossSalary - totalDeductions;
+
+//     // Employer costs
+//     const employerNsitf = grossSalary * TAX_RATES.nsitf;
+//     const totalEmployerCost = grossSalary + employerPension + employerNsitf;
+
+//     return {
+//       success: true,
+//       data: {
+//         earnings: {
+//           basicSalary: Math.round(basicSalary),
+//           housing: Math.round(housing),
+//           transport: Math.round(transport),
+//           otherAllowances: Math.round(otherAllowances),
+//           grossSalary: Math.round(grossSalary),
+//         },
+//         deductions: {
+//           pension: Math.round(employeePension),
+//           nhf: Math.round(nhf),
+//           paye: Math.round(monthlyPaye),
+//           totalDeductions: Math.round(totalDeductions),
+//         },
+//         netSalary: Math.round(netSalary),
+//         employerContributions: {
+//           pension: Math.round(employerPension),
+//           nsitf: Math.round(employerNsitf),
+//           totalCost: Math.round(totalEmployerCost),
+//         },
+//       },
+//     };
+//   }
+
+//   /**
+//    * Get all tax rates
+//    */
+//   static getTaxRates() {
+//     return {
+//       success: true,
+//       data: {
+//         rates: TAX_RATES,
+//         currency: 'NGN',
+//         lastUpdated: '2024-01-01',
+//         notes: [
+//           'Small companies (turnover < NGN 25M) are exempt from CIT',
+//           'VAT rate is 7.5% on goods and services',
+//           'Personal Income Tax follows progressive rates from 7% to 24%',
+//           'Pension is 8% employee + 10% employer contribution',
+//         ],
+//       },
+//     };
+//   }
+// }
+
+// export default TaxService;
+
+import type { ServiceResponse } from '../types/index.js';
+
+// ============================================================================
+// NIGERIAN TAX CALCULATOR SERVICE
+// Rates based on 2024/2025 Nigerian tax laws
+// ============================================================================
+
 const TAX_RATES = {
-  // Companies Income Tax (CIT)
   cit: {
-    small: 0, // Companies with turnover < NGN 25 million
-    medium: 0.20, // 20% for medium companies (NGN 25-100 million)
-    large: 0.30, // 30% for large companies (> NGN 100 million)
+    small: 0,     // < NGN 25 million — exempt
+    medium: 0.20, // NGN 25–100 million
+    large: 0.30,  // > NGN 100 million
   },
-
-  // Value Added Tax (VAT)
   vat: 0.075, // 7.5%
-
-  // Withholding Tax (WHT) rates
   wht: {
-    dividends: 0.10, // 10%
-    interest: 0.10, // 10%
-    rent: 0.10, // 10%
-    royalties: 0.10, // 10%
-    commission: 0.10, // 10%
-    consultancy: 0.10, // 10%
-    management_fees: 0.10, // 10%
-    technical_fees: 0.10, // 10%
-    contracts: 0.05, // 5%
-    director_fees: 0.10, // 10%
+    dividends:       0.10,
+    interest:        0.10,
+    rent:            0.10,
+    royalties:       0.10,
+    commission:      0.10,
+    consultancy:     0.10,
+    management_fees: 0.10,
+    technical_fees:  0.10,
+    contracts:       0.05,
+    director_fees:   0.10,
   },
-
-  // Personal Income Tax (PIT) - Progressive rates
   pit: [
-    { min: 0, max: 300000, rate: 0.07 }, // 7% for first NGN 300,000
-    { min: 300000, max: 600000, rate: 0.11 }, // 11% for next NGN 300,000
-    { min: 600000, max: 1100000, rate: 0.15 }, // 15% for next NGN 500,000
-    { min: 1100000, max: 1600000, rate: 0.19 }, // 19% for next NGN 500,000
-    { min: 1600000, max: 3200000, rate: 0.21 }, // 21% for next NGN 1,600,000
-    { min: 3200000, max: Infinity, rate: 0.24 }, // 24% for above NGN 3,200,000
+    { min: 0,       max: 300000,  rate: 0.07 },
+    { min: 300000,  max: 600000,  rate: 0.11 },
+    { min: 600000,  max: 1100000, rate: 0.15 },
+    { min: 1100000, max: 1600000, rate: 0.19 },
+    { min: 1600000, max: 3200000, rate: 0.21 },
+    { min: 3200000, max: Infinity, rate: 0.24 },
   ],
-
-  // Tertiary Education Tax (TET)
-  tet: 0.025, // 2.5% of assessable profit
-
-  // NSITF (Nigeria Social Insurance Trust Fund)
-  nsitf: 0.01, // 1% of monthly payroll
-
-  // NHF (National Housing Fund)
-  nhf: 0.025, // 2.5% of basic salary
-
-  // Pension
+  tet:   0.025, // Tertiary Education Tax — 2.5% of assessable profit
+  nsitf: 0.01,  // Nigeria Social Insurance Trust Fund — 1% of payroll
+  nhf:   0.025, // National Housing Fund — 2.5% of basic salary
   pension: {
-    employee: 0.08, // 8% employee contribution
-    employer: 0.10, // 10% employer contribution
+    employee: 0.08,
+    employer: 0.10,
   },
 };
 
-export interface CITCalculationInput {
+export type WhtType = keyof typeof TAX_RATES.wht;
+
+export interface CITInput {
   annualTurnover: number;
   assessableProfit: number;
 }
 
-export interface VATCalculationInput {
+export interface VATInput {
   amount: number;
   isInclusive?: boolean;
 }
 
-export interface PITCalculationInput {
+export interface PITInput {
   annualGrossIncome: number;
   reliefs?: {
-    consolidatedRelief?: boolean; // 20% of gross income + NGN 200,000
+    consolidatedRelief?: boolean;
     pensionContribution?: number;
     nhfContribution?: number;
     lifeInsurance?: number;
@@ -76,7 +425,7 @@ export interface PITCalculationInput {
   };
 }
 
-export interface PayrollCalculationInput {
+export interface PayrollInput {
   basicSalary: number;
   housing?: number;
   transport?: number;
@@ -84,19 +433,20 @@ export interface PayrollCalculationInput {
 }
 
 export class TaxService {
-  /**
-   * Calculate Companies Income Tax (CIT)
-   */
-  static calculateCIT(input: CITCalculationInput) {
+  // --------------------------------------------------------------------------
+  // COMPANIES INCOME TAX (CIT)
+  // --------------------------------------------------------------------------
+
+  static calculateCIT(input: CITInput): ServiceResponse {
     const { annualTurnover, assessableProfit } = input;
 
     let taxRate: number;
     let companySize: string;
 
-    if (annualTurnover < 25000000) {
+    if (annualTurnover < 25_000_000) {
       taxRate = TAX_RATES.cit.small;
       companySize = 'small';
-    } else if (annualTurnover < 100000000) {
+    } else if (annualTurnover < 100_000_000) {
       taxRate = TAX_RATES.cit.medium;
       companySize = 'medium';
     } else {
@@ -110,6 +460,7 @@ export class TaxService {
 
     return {
       success: true,
+      message: 'CIT calculated successfully',
       data: {
         companySize,
         annualTurnover,
@@ -126,10 +477,11 @@ export class TaxService {
     };
   }
 
-  /**
-   * Calculate VAT
-   */
-  static calculateVAT(input: VATCalculationInput) {
+  // --------------------------------------------------------------------------
+  // VALUE ADDED TAX (VAT)
+  // --------------------------------------------------------------------------
+
+  static calculateVAT(input: VATInput): ServiceResponse {
     const { amount, isInclusive } = input;
     const vatRate = TAX_RATES.vat;
 
@@ -138,12 +490,10 @@ export class TaxService {
     let grossAmount: number;
 
     if (isInclusive) {
-      // Amount includes VAT, extract it
       grossAmount = amount;
       netAmount = amount / (1 + vatRate);
       vatAmount = amount - netAmount;
     } else {
-      // Amount excludes VAT, add it
       netAmount = amount;
       vatAmount = amount * vatRate;
       grossAmount = amount + vatAmount;
@@ -151,6 +501,7 @@ export class TaxService {
 
     return {
       success: true,
+      message: 'VAT calculated successfully',
       data: {
         netAmount: Math.round(netAmount * 100) / 100,
         vatRate: vatRate * 100,
@@ -161,57 +512,39 @@ export class TaxService {
     };
   }
 
-  /**
-   * Calculate Personal Income Tax (PAYE)
-   */
-  static calculatePIT(input: PITCalculationInput) {
+  // --------------------------------------------------------------------------
+  // PERSONAL INCOME TAX (PIT / PAYE)
+  // --------------------------------------------------------------------------
+
+  static calculatePIT(input: PITInput): ServiceResponse {
     const { annualGrossIncome, reliefs = {} } = input;
 
-    // Calculate reliefs
     let totalReliefs = 0;
 
-    // Consolidated Relief Allowance (CRA)
+    // Consolidated Relief Allowance — 20% of gross + NGN 200,000
     if (reliefs.consolidatedRelief !== false) {
-      const cra = Math.max(200000, annualGrossIncome * 0.20);
-      totalReliefs += cra;
+      totalReliefs += Math.max(200_000, annualGrossIncome * 0.20);
     }
 
-    // Pension contribution (exempt from tax)
-    if (reliefs.pensionContribution) {
-      totalReliefs += reliefs.pensionContribution;
-    }
+    if (reliefs.pensionContribution)      totalReliefs += reliefs.pensionContribution;
+    if (reliefs.nhfContribution)          totalReliefs += reliefs.nhfContribution;
+    if (reliefs.nationalHealthInsurance)  totalReliefs += reliefs.nationalHealthInsurance;
 
-    // NHF contribution
-    if (reliefs.nhfContribution) {
-      totalReliefs += reliefs.nhfContribution;
-    }
-
-    // Life insurance premium (up to 20% of gross income)
     if (reliefs.lifeInsurance) {
-      const maxInsurance = annualGrossIncome * 0.20;
-      totalReliefs += Math.min(reliefs.lifeInsurance, maxInsurance);
+      totalReliefs += Math.min(reliefs.lifeInsurance, annualGrossIncome * 0.20);
     }
 
-    // National Health Insurance
-    if (reliefs.nationalHealthInsurance) {
-      totalReliefs += reliefs.nationalHealthInsurance;
-    }
-
-    // Calculate taxable income
     const taxableIncome = Math.max(0, annualGrossIncome - totalReliefs);
 
-    // Calculate tax using progressive rates
     let remainingIncome = taxableIncome;
     let totalTax = 0;
     const breakdown: { bracket: string; amount: number; rate: number; tax: number }[] = [];
 
     for (const bracket of TAX_RATES.pit) {
       if (remainingIncome <= 0) break;
-
       const bracketSize = bracket.max - bracket.min;
       const taxableInBracket = Math.min(remainingIncome, bracketSize);
       const taxInBracket = taxableInBracket * bracket.rate;
-
       totalTax += taxInBracket;
       breakdown.push({
         bracket: `${bracket.min.toLocaleString()} - ${bracket.max === Infinity ? 'Above' : bracket.max.toLocaleString()}`,
@@ -219,16 +552,15 @@ export class TaxService {
         rate: bracket.rate * 100,
         tax: Math.round(taxInBracket),
       });
-
       remainingIncome -= taxableInBracket;
     }
 
-    // Minimum tax (1% of gross income if calculated tax < minimum)
     const minimumTax = annualGrossIncome * 0.01;
     const effectiveTax = Math.max(totalTax, minimumTax);
 
     return {
       success: true,
+      message: 'PIT calculated successfully',
       data: {
         annualGrossIncome,
         totalReliefs: Math.round(totalReliefs),
@@ -245,24 +577,22 @@ export class TaxService {
     };
   }
 
-  /**
-   * Calculate Withholding Tax
-   */
-  static calculateWHT(amount: number, type: keyof typeof TAX_RATES.wht) {
+  // --------------------------------------------------------------------------
+  // WITHHOLDING TAX (WHT)
+  // --------------------------------------------------------------------------
+
+  static calculateWHT(amount: number, type: WhtType): ServiceResponse {
     const rate = TAX_RATES.wht[type];
 
     if (rate === undefined) {
-      return {
-        success: false,
-        message: 'Invalid WHT type',
-        error: 'INVALID_WHT_TYPE',
-      };
+      return { success: false, message: 'Invalid WHT type', error: 'INVALID_WHT_TYPE' };
     }
 
     const whtAmount = amount * rate;
 
     return {
       success: true,
+      message: 'WHT calculated successfully',
       data: {
         grossAmount: amount,
         whtType: type,
@@ -273,25 +603,23 @@ export class TaxService {
     };
   }
 
-  /**
-   * Calculate full payroll deductions
-   */
-  static calculatePayroll(input: PayrollCalculationInput) {
+  // --------------------------------------------------------------------------
+  // PAYROLL DEDUCTIONS
+  // --------------------------------------------------------------------------
+
+  static calculatePayroll(input: PayrollInput): ServiceResponse {
     const { basicSalary, housing = 0, transport = 0, otherAllowances = 0 } = input;
 
     const grossSalary = basicSalary + housing + transport + otherAllowances;
     const annualGross = grossSalary * 12;
 
-    // Pension (8% employee, 10% employer - on basic + housing + transport)
     const pensionBase = basicSalary + housing + transport;
     const employeePension = pensionBase * TAX_RATES.pension.employee;
     const employerPension = pensionBase * TAX_RATES.pension.employer;
 
-    // NHF (2.5% of basic)
     const nhf = basicSalary * TAX_RATES.nhf;
 
-    // Calculate PAYE
-    const payeResult = this.calculatePIT({
+    const payeResult = TaxService.calculatePIT({
       annualGrossIncome: annualGross,
       reliefs: {
         consolidatedRelief: true,
@@ -300,18 +628,16 @@ export class TaxService {
       },
     });
 
-    const monthlyPaye = payeResult.data?.monthlyTax || 0;
-
-    // Total deductions
+    const monthlyPaye = (payeResult.data as any)?.monthlyTax ?? 0;
     const totalDeductions = employeePension + nhf + monthlyPaye;
     const netSalary = grossSalary - totalDeductions;
 
-    // Employer costs
     const employerNsitf = grossSalary * TAX_RATES.nsitf;
     const totalEmployerCost = grossSalary + employerPension + employerNsitf;
 
     return {
       success: true,
+      message: 'Payroll calculated successfully',
       data: {
         earnings: {
           basicSalary: Math.round(basicSalary),
@@ -336,12 +662,14 @@ export class TaxService {
     };
   }
 
-  /**
-   * Get all tax rates
-   */
-  static getTaxRates() {
+  // --------------------------------------------------------------------------
+  // GET TAX RATES
+  // --------------------------------------------------------------------------
+
+  static getTaxRates(): ServiceResponse {
     return {
       success: true,
+      message: 'Tax rates retrieved successfully',
       data: {
         rates: TAX_RATES,
         currency: 'NGN',
