@@ -5,62 +5,62 @@
 
 generator client {
   provider = "prisma-client-js"
+
 }
 
-// Database Configuration
-// URL is configured in prisma.config.ts for Prisma 7
 datasource db {
   provider = "postgresql"
 }
 
 // ============================================================================
-// USER MODEL (with authentication)
+// USER MODEL
 // ============================================================================
 
 model User {
-  id                    String    @id @default(cuid())
-  email                 String    @unique
-  password              String    // Hashed password
-  firstName             String?
-  lastName              String?
-  businessName          String?
-  phone                 String?
-  avatar_url            String?
+  id                  String    @id @default(uuid())
+  email               String    @unique
+  password            String
+  firstName           String?
+  lastName            String?
+  businessName        String?
+  phone               String?
+  avatarUrl           String?
 
   // Email verification
-  emailVerified         Boolean   @default(false)
-  verificationToken     String?   @unique
-  verificationExpires   DateTime?
+  emailVerified       Boolean   @default(false)
+  verificationToken   String?   @unique
+  verificationExpires DateTime?
 
-  // Password reset
-  resetToken            String?   @unique
-  resetTokenExpires     DateTime?
+  // OTP
+  otpCode             String?
+  otpExpires          DateTime?
+  otpPurpose          String?   // "email_verification" | "password_reset"
 
   // Subscription
-  subscription          Subscription?
-  current_plan          String    @default("free")
-  subscription_status   String    @default("active")
+  subscription        Subscription?
+  currentPlan         String    @default("free")
+  subscriptionStatus  String    @default("active")
 
   // Metadata
-  created_at            DateTime  @default(now())
-  updated_at            DateTime  @updatedAt
-  last_login_at         DateTime?
-  ip_address            String?
-  country               String?
-  device_info           String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  lastLoginAt         DateTime?
+  ipAddress           String?
+  country             String?
+  deviceInfo          String?
 
   // Relations
-  payments              Payment[]
-  audit_logs            AdminAuditLog[]
-  overrides             PromotionalOverride[]
-  usage_tracking        UsageTracking?
-  abuse_reports         AbuseReport[]
+  payments            Payment[]
+  auditLogs           AdminAuditLog[]
+  overrides           PromotionalOverride[]
+  usageTracking       UsageTracking?
+  abuseReports        AbuseReport[]
 
   @@index([email])
-  @@index([subscription_status])
-  @@index([current_plan])
+  @@index([subscriptionStatus])
+  @@index([currentPlan])
   @@index([verificationToken])
-  @@index([resetToken])
+  @@index([otpCode])
 }
 
 // ============================================================================
@@ -68,40 +68,37 @@ model User {
 // ============================================================================
 
 model Subscription {
-  id                        String    @id @default(cuid())
-  user_id                   String    @unique
-  user                      User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id                   String    @id @default(uuid())
+  userId               String    @unique
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  plan_name                 String    // "free", "pro", "enterprise"
-  status                    String    @default("active")
+  planName             String    // "free" | "pro" | "enterprise"
+  status               String    @default("active")
 
-  // Dates
-  current_period_start      DateTime
-  current_period_end        DateTime
-  trial_end_date            DateTime?
-  expires_at                DateTime?
-  cancelled_at              DateTime?
-  cancelled_reason          String?
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  trialEndDate         DateTime?
+  expiresAt            DateTime?
+  cancelledAt          DateTime?
+  cancelledReason      String?
 
-  // Billing
-  mrr_value                 BigInt    @default(0) // Monthly Recurring Revenue in Naira
-  annual_value              BigInt    @default(0)
-  is_paused                 Boolean   @default(false)
-  auto_renew                Boolean   @default(true)
+  // Billing (in Naira kobo)
+  mrrValue             BigInt    @default(0)
+  annualValue          BigInt    @default(0)
+  isPaused             Boolean   @default(false)
+  autoRenew            Boolean   @default(true)
 
-  // Payment method
-  payment_method_id         String?
-  last_payment_id           String?
+  paymentMethodId      String?
+  lastPaymentId        String?
 
-  created_at                DateTime  @default(now())
-  updated_at                DateTime  @updatedAt
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
-  // Relations
-  manual_changes            ManualSubscriptionChange[]
+  manualChanges        ManualSubscriptionChange[]
 
-  @@index([plan_name])
+  @@index([planName])
   @@index([status])
-  @@index([current_period_end])
+  @@index([currentPeriodEnd])
 }
 
 // ============================================================================
@@ -109,59 +106,54 @@ model Subscription {
 // ============================================================================
 
 model Payment {
-  id                    String    @id @default(cuid())
-  user_id               String
-  user                  User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  subscription_id       String?
+  id                 String    @id @default(uuid())
+  userId             String
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptionId     String?
 
-  amount                BigInt    // Amount in Naira
-  currency              String    @default("NGN")
-  status                String    // "succeeded", "failed", "pending", "refunded"
+  amount             BigInt    // In Naira kobo
+  currency           String    @default("NGN")
+  status             String    // "succeeded" | "failed" | "pending" | "refunded"
 
-  // Payment Gateway
-  stripe_payment_id     String?   @unique
-  stripe_invoice_id     String?
+  stripePaymentId    String?   @unique
+  stripeInvoiceId    String?
 
-  // Billing period
-  billing_period_start  DateTime?
-  billing_period_end    DateTime?
+  billingPeriodStart DateTime?
+  billingPeriodEnd   DateTime?
 
-  // Failure tracking
-  failure_reason        String?
-  retry_count           Int       @default(0)
-  next_retry_at         DateTime?
-  max_retries_reached   Boolean   @default(false)
+  failureReason      String?
+  retryCount         Int       @default(0)
+  nextRetryAt        DateTime?
+  maxRetriesReached  Boolean   @default(false)
 
-  // Refund
-  refunded_amount       BigInt    @default(0)
-  refund_reason         String?
-  refunded_at           DateTime?
+  refundedAmount     BigInt    @default(0)
+  refundReason       String?
+  refundedAt         DateTime?
 
-  created_at            DateTime  @default(now())
-  updated_at            DateTime  @updatedAt
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
-  // Relations
-  refund_logs           RefundLog[]
+  refundLogs         RefundLog[]
 
-  @@index([user_id])
+  @@index([userId])
   @@index([status])
-  @@index([created_at])
-  @@index([stripe_payment_id])
+  @@index([createdAt])
+  @@index([stripePaymentId])
 }
 
 model RefundLog {
-  id                    String    @id @default(cuid())
-  payment_id            String
-  payment               Payment   @relation(fields: [payment_id], references: [id], onDelete: Cascade)
+  id          String   @id @default(uuid())
+  paymentId   String
+  payment     Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
 
-  amount                BigInt    // Refund amount
-  reason                String
-  admin_id              String
-  admin_name            String
+  amount      BigInt
+  reason      String
+  adminId     String
+  adminName   String
 
-  processed_at          DateTime  @default(now())
+  processedAt DateTime @default(now())
 
-  @@index([payment_id])
+  @@index([paymentId])
 }
 
 // ============================================================================
@@ -169,116 +161,113 @@ model RefundLog {
 // ============================================================================
 
 model ManualSubscriptionChange {
-  id                    String    @id @default(cuid())
-  subscription_id       String
-  subscription          Subscription @relation(fields: [subscription_id], references: [id], onDelete: Cascade)
-  user_id               String
+  id             String       @id @default(uuid())
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  userId         String
 
-  admin_id              String
-  admin_name            String
-  admin_role            String
+  adminId        String
+  adminName      String
+  adminRole      String
 
-  action                String    // "upgrade", "downgrade", "suspend", "reactivate", "extend"
-  from_plan             String?
-  to_plan               String?
+  action         String    // "upgrade" | "downgrade" | "suspend" | "reactivate" | "extend"
+  fromPlan       String?
+  toPlan         String?
 
-  effective_date        DateTime
-  reason                String
-  notes                 String?
+  effectiveDate  DateTime
+  reason         String
+  notes          String?
 
-  status                String    @default("pending")
-  approved_at           DateTime?
-  completed_at          DateTime?
+  status         String    @default("pending")
+  approvedAt     DateTime?
+  completedAt    DateTime?
 
-  created_at            DateTime  @default(now())
-  updated_at            DateTime  @updatedAt
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  @@index([user_id])
-  @@index([admin_id])
+  @@index([userId])
+  @@index([adminId])
   @@index([action])
 }
 
 model PromotionalOverride {
-  id                    String    @id @default(cuid())
-  user_id               String
-  user                  User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id                 String   @id @default(uuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  override_type         String    // "free_promo", "discount", "plan_upgrade", "feature_unlock", "comp_account"
-  plan_override         String?   // Plan to override to
-  discount_percentage   Float?
-  discount_amount       BigInt?   // In Naira
-  specific_features     Json?     // JSON array of feature IDs
+  overrideType       String   // "free_promo" | "discount" | "plan_upgrade" | "feature_unlock" | "comp_account"
+  planOverride       String?
+  discountPercentage Float?
+  discountAmount     BigInt?
+  specificFeatures   Json?
 
-  start_date            DateTime
-  end_date              DateTime
-  is_active             Boolean   @default(true)
+  startDate          DateTime
+  endDate            DateTime
+  isActive           Boolean  @default(true)
 
-  reason                String
-  applied_by            String
+  reason             String
+  appliedBy          String
 
-  created_at            DateTime  @default(now())
-  updated_at            DateTime  @updatedAt
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
-  @@index([user_id])
-  @@index([is_active])
-  @@index([end_date])
+  @@index([userId])
+  @@index([isActive])
+  @@index([endDate])
 }
 
 // ============================================================================
-// USAGE TRACKING MODELS
+// USAGE TRACKING
 // ============================================================================
 
 model UsageTracking {
-  id                    String    @id @default(cuid())
-  user_id               String    @unique
-  user                  User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  plan                  String
+  plan           String
+  featureUsage   Json     // { [feature]: { used, limit, resetDate } }
 
-  // Feature usage (JSON format)
-  feature_usage         Json      // { [feature]: { used, limit, resetDate } }
+  lastResetDate  DateTime @default(now())
+  nextResetDate  DateTime
 
-  last_reset_date       DateTime  @default(now())
-  next_reset_date       DateTime
+  isOverQuota    Boolean  @default(false)
+  warningsCount  Int      @default(0)
 
-  // Status
-  is_over_quota         Boolean   @default(false)
-  warnings_count        Int       @default(0)
-
-  created_at            DateTime  @default(now())
-  updated_at            DateTime  @updatedAt
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@index([plan])
-  @@index([is_over_quota])
+  @@index([isOverQuota])
 }
 
 // ============================================================================
-// ABUSE & SECURITY MODELS
+// ABUSE & SECURITY
 // ============================================================================
 
 model AbuseReport {
-  id                    String    @id @default(cuid())
-  user_id               String
-  user                  User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  report_type           String    // "quota_abuse", "payment_fraud", "api_abuse", "free_account_spam", "ai_abuse", "deletion_loops"
-  severity              String    // "low", "medium", "high", "critical"
+  reportType  String   // "quota_abuse" | "payment_fraud" | "api_abuse" | "free_account_spam" | "ai_abuse" | "deletion_loops"
+  severity    String   // "low" | "medium" | "high" | "critical"
 
-  description           String
-  evidence              Json?     // JSON with details
+  description String
+  evidence    Json?
 
-  status                String    @default("pending")
-  flagged_at            DateTime  @default(now())
-  reviewed_at           DateTime?
-  reviewed_by           String?
+  status      String    @default("pending")
+  flaggedAt   DateTime  @default(now())
+  reviewedAt  DateTime?
+  reviewedBy  String?
 
-  action_taken          String?   // "suspended", "warned", "dismissed", "overridden"
-  action_reason         String?
+  actionTaken  String?  // "suspended" | "warned" | "dismissed" | "overridden"
+  actionReason String?
 
-  created_at            DateTime  @default(now())
-  updated_at            DateTime  @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  @@index([user_id])
+  @@index([userId])
   @@index([severity])
   @@index([status])
 }
@@ -288,611 +277,547 @@ model AbuseReport {
 // ============================================================================
 
 model AdminAuditLog {
-  id                    String    @id @default(cuid())
+  id           String  @id @default(uuid())
 
-  admin_id              String
-  admin_name            String
-  admin_role            String
+  adminId      String
+  adminName    String
+  adminRole    String
 
-  target_user_id        String?
-  target_user           User?     @relation(fields: [target_user_id], references: [id], onDelete: SetNull)
+  targetUserId String?
+  targetUser   User?   @relation(fields: [targetUserId], references: [id], onDelete: SetNull)
 
-  action                String    // "create", "read", "update", "delete"
-  resource              String    // "user", "subscription", "payment", "override", etc
-  resource_id           String
+  action       String  // "create" | "read" | "update" | "delete"
+  resource     String
+  resourceId   String
 
-  changes               Json?     // What was changed
-  reason                String?
+  changes      Json?
+  reason       String?
 
-  ip_address            String?
-  user_agent            String?
+  ipAddress    String?
+  userAgent    String?
 
-  created_at            DateTime  @default(now())
+  createdAt    DateTime @default(now())
 
-  @@index([admin_id])
+  @@index([adminId])
   @@index([action])
   @@index([resource])
-  @@index([created_at])
-  @@index([target_user_id])
+  @@index([createdAt])
+  @@index([targetUserId])
 }
 
 model AdminRole {
-  id                    String    @id @default(cuid())
-  name                  String    @unique
-  level                 Int       // 1-4 for hierarchy
+  id          String   @id @default(uuid())
+  name        String   @unique
+  level       Int      // 1-4 hierarchy
 
-  permissions           Json      // Action permissions (stored as JSON array)
+  permissions Json     // JSON array of permission strings
 
-  created_at            DateTime  @default(now())
-  updated_at            DateTime  @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Admin {
-  id                    String    @id @default(cuid())
-  email                 String    @unique
-  password              String
-  name                  String
-  role                  String    @default("viewer") // "super_admin", "billing_admin", "support_admin", "viewer"
+  id          String   @id @default(uuid())
+  email       String   @unique
+  password    String
+  name        String
+  role        String   @default("viewer") // "super_admin" | "billing_admin" | "support_admin" | "viewer"
 
-  is_active             Boolean   @default(true)
+  isActive    Boolean  @default(true)
 
-  created_at            DateTime  @default(now())
-  updated_at            DateTime  @updatedAt
-  last_login_at         DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  lastLoginAt DateTime?
 
   @@index([email])
   @@index([role])
 }
 
 // ============================================================================
-// DOCUMENT STORAGE MODELS
+// DOCUMENT STORAGE
 // ============================================================================
 
 model Document {
-  id                    String    @id @default(cuid())
-  user_id               String
+  id             String   @id @default(uuid())
+  userId         String
 
-  // File information
-  name                  String
-  original_name         String
-  mime_type             String
-  size                  BigInt    // File size in bytes
-  storage_path          String    // Path in storage (local or S3)
-  storage_type          String    @default("local") // "local", "s3", "cloudinary"
+  name           String
+  originalName   String
+  mimeType       String
+  size           BigInt
+  storagePath    String
+  storageType    String   @default("local") // "local" | "s3" | "cloudinary"
 
-  // Categorization
-  category              String    @default("other") // "invoice", "receipt", "contract", "report", "other"
-  tags                  Json?     // JSON array of tags
-  description           String?
+  category       String   @default("other") // "invoice" | "receipt" | "contract" | "report" | "other"
+  tags           Json?
+  description    String?
 
-  // Metadata
-  is_public             Boolean   @default(false)
-  download_count        Int       @default(0)
-  last_accessed_at      DateTime?
+  isPublic       Boolean  @default(false)
+  downloadCount  Int      @default(0)
+  lastAccessedAt DateTime?
 
-  created_at            DateTime  @default(now())
-  updated_at            DateTime  @updatedAt
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  @@index([user_id])
+  @@index([userId])
   @@index([category])
-  @@index([created_at])
+  @@index([createdAt])
 }
 
 // ============================================================================
-// BUDGET & EXPENSE TRACKING MODELS
+// BUDGET & EXPENSE TRACKING
 // ============================================================================
 
 model Budget {
-  id                    String    @id @default(cuid())
-  user_id               String
+  id             String    @id @default(uuid())
+  userId         String
 
-  name                  String
-  amount                BigInt    // Budget amount in Naira (kobo)
-  period                String    // "monthly", "quarterly", "yearly", "custom"
-  category              String    // "marketing", "operations", "salary", "utilities", "inventory", "other"
+  name           String
+  amount         BigInt    // In Naira kobo
+  period         String    // "monthly" | "quarterly" | "yearly" | "custom"
+  category       String    // "marketing" | "operations" | "salary" | "utilities" | "inventory" | "other"
 
-  start_date            DateTime
-  end_date              DateTime
+  startDate      DateTime
+  endDate        DateTime
 
-  spent_amount          BigInt    @default(0) // Amount spent so far
-  is_active             Boolean   @default(true)
+  spentAmount    BigInt    @default(0)
+  isActive       Boolean   @default(true)
 
-  // Alerts
-  alert_threshold       Int       @default(80) // Percentage threshold for alerts
-  alert_sent            Boolean   @default(false)
+  alertThreshold Int       @default(80)
+  alertSent      Boolean   @default(false)
 
-  created_at            DateTime  @default(now())
-  updated_at            DateTime  @updatedAt
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  // Relations
-  expenses              Expense[]
+  expenses       Expense[]
 
-  @@index([user_id])
+  @@index([userId])
   @@index([category])
-  @@index([is_active])
+  @@index([isActive])
 }
 
 model Expense {
-  id                    String    @id @default(cuid())
-  user_id               String
-  budget_id             String?
-  budget                Budget?   @relation(fields: [budget_id], references: [id], onDelete: SetNull)
+  id                 String   @id @default(uuid())
+  userId             String
+  budgetId           String?
+  budget             Budget?  @relation(fields: [budgetId], references: [id], onDelete: SetNull)
 
-  amount                BigInt    // Amount in Naira (kobo)
-  currency              String    @default("NGN")
-  description           String
-  category              String
+  amount             BigInt
+  currency           String   @default("NGN")
+  description        String
+  category           String
 
-  // Receipt/proof
-  receipt_url           String?
-  receipt_document_id   String?
+  receiptUrl         String?
+  receiptDocumentId  String?
 
-  // Payment info
-  payment_method        String?   // "cash", "transfer", "card", "mobile"
-  vendor                String?
+  paymentMethod      String?  // "cash" | "transfer" | "card" | "mobile"
+  vendor             String?
 
-  expense_date          DateTime
-  is_recurring          Boolean   @default(false)
-  recurring_frequency   String?   // "daily", "weekly", "monthly"
+  expenseDate        DateTime
+  isRecurring        Boolean  @default(false)
+  recurringFrequency String?  // "daily" | "weekly" | "monthly"
 
-  // Approval workflow
-  status                String    @default("approved") // "pending", "approved", "rejected"
-  approved_by           String?
-  approved_at           DateTime?
+  status             String   @default("approved") // "pending" | "approved" | "rejected"
+  approvedBy         String?
+  approvedAt         DateTime?
 
-  created_at            DateTime  @default(now())
-  updated_at            DateTime  @updatedAt
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
-  @@index([user_id])
-  @@index([budget_id])
+  @@index([userId])
+  @@index([budgetId])
   @@index([category])
-  @@index([expense_date])
+  @@index([expenseDate])
   @@index([status])
 }
 
 // ============================================================================
-// CONTACTS/CLIENTS MODELS
+// CONTACTS / CLIENTS
 // ============================================================================
 
 model Contact {
-  id                    String    @id @default(cuid())
-  user_id               String
+  id              String   @id @default(uuid())
+  userId          String
 
-  // Basic info
-  name                  String
-  email                 String?
-  phone                 String?
-  company               String?
-  job_title             String?
+  name            String
+  email           String?
+  phone           String?
+  company         String?
+  jobTitle        String?
 
-  // Type
-  type                  String    @default("customer") // "customer", "supplier", "partner", "lead", "other"
+  type            String   @default("customer") // "customer" | "supplier" | "partner" | "lead" | "other"
 
-  // Address
-  address               String?
-  city                  String?
-  state                 String?
-  country               String?   @default("Nigeria")
-  postal_code           String?
+  address         String?
+  city            String?
+  state           String?
+  country         String?  @default("Nigeria")
+  postalCode      String?
 
-  // Business info
-  tax_id                String?
-  website               String?
+  taxId           String?
+  website         String?
 
-  // Notes and tags
-  notes                 String?
-  tags                  Json?     // JSON array of tags
+  notes           String?
+  tags            Json?
 
-  // Status
-  is_active             Boolean   @default(true)
-  last_contacted_at     DateTime?
+  isActive        Boolean  @default(true)
+  lastContactedAt DateTime?
 
-  created_at            DateTime  @default(now())
-  updated_at            DateTime  @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  // Relations
-  invoices              Invoice[]
+  invoices        Invoice[]
 
-  @@index([user_id])
+  @@index([userId])
   @@index([type])
-  @@index([is_active])
+  @@index([isActive])
   @@index([email])
 }
 
 model Invoice {
-  id                    String    @id @default(cuid())
-  user_id               String
-  contact_id            String?
-  contact               Contact?  @relation(fields: [contact_id], references: [id], onDelete: SetNull)
+  id               String   @id @default(uuid())
+  userId           String
+  contactId        String?
+  contact          Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
 
-  invoice_number        String
+  invoiceNumber    String
 
-  // Amounts
-  subtotal              BigInt    // In Naira (kobo)
-  tax_amount            BigInt    @default(0)
-  discount_amount       BigInt    @default(0)
-  total                 BigInt
-  currency              String    @default("NGN")
+  subtotal         BigInt
+  taxAmount        BigInt   @default(0)
+  discountAmount   BigInt   @default(0)
+  total            BigInt
+  currency         String   @default("NGN")
 
-  // Status
-  status                String    @default("draft") // "draft", "sent", "viewed", "paid", "overdue", "cancelled"
+  status           String   @default("draft") // "draft" | "sent" | "viewed" | "paid" | "overdue" | "cancelled"
 
-  // Dates
-  issue_date            DateTime
-  due_date              DateTime
-  paid_date             DateTime?
+  issueDate        DateTime
+  dueDate          DateTime
+  paidDate         DateTime?
 
-  // Payment
-  payment_method        String?
-  payment_reference     String?
+  paymentMethod    String?
+  paymentReference String?
 
-  // Notes
-  notes                 String?
-  terms                 String?
+  notes            String?
+  terms            String?
+  documentUrl      String?
 
-  // Document
-  document_url          String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  created_at            DateTime  @default(now())
-  updated_at            DateTime  @updatedAt
+  items            InvoiceItem[]
 
-  // Relations
-  items                 InvoiceItem[]
-
-  @@unique([user_id, invoice_number])
-  @@index([user_id])
-  @@index([contact_id])
+  @@unique([userId, invoiceNumber])
+  @@index([userId])
+  @@index([contactId])
   @@index([status])
-  @@index([due_date])
+  @@index([dueDate])
 }
 
 model InvoiceItem {
-  id                    String    @id @default(cuid())
-  invoice_id            String
-  invoice               Invoice   @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+  id          String   @id @default(uuid())
+  invoiceId   String
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
-  description           String
-  quantity              Int
-  unit_price            BigInt    // In Naira (kobo)
-  amount                BigInt    // quantity * unit_price
+  description String
+  quantity    Int
+  unitPrice   BigInt
+  amount      BigInt
 
-  created_at            DateTime  @default(now())
+  createdAt   DateTime @default(now())
 
-  @@index([invoice_id])
+  @@index([invoiceId])
 }
 
 // ============================================================================
-// QUOTATION MODEL
+// QUOTATION
 // ============================================================================
 
 model Quotation {
-  id                    String    @id @default(cuid())
-  user_id               String
+  id              String   @id @default(uuid())
+  userId          String
 
-  quotation_number      String
+  quotationNumber String
 
-  // Client info
-  client_name           String
-  client_email          String?
-  client_phone          String?
-  client_address        String?
+  clientName      String
+  clientEmail     String?
+  clientPhone     String?
+  clientAddress   String?
 
-  // Amounts
-  subtotal              BigInt    // In kobo
-  tax_amount            BigInt    @default(0)
-  discount_amount       BigInt    @default(0)
-  total                 BigInt
-  currency              String    @default("NGN")
+  subtotal        BigInt
+  taxAmount       BigInt   @default(0)
+  discountAmount  BigInt   @default(0)
+  total           BigInt
+  currency        String   @default("NGN")
 
-  // Status
-  status                String    @default("draft") // "draft", "sent", "accepted", "rejected", "expired"
+  status          String   @default("draft") // "draft" | "sent" | "accepted" | "rejected" | "expired"
 
-  // Dates
-  issue_date            DateTime
-  valid_until           DateTime
+  issueDate       DateTime
+  validUntil      DateTime
 
-  // Notes
-  notes                 String?
-  terms                 String?
+  notes           String?
+  terms           String?
 
-  // Public sharing
-  public_link           String?   @unique
-  public_link_expires   DateTime?
+  publicLink      String?  @unique
+  publicLinkExpires DateTime?
 
-  // Full document data (JSON)
-  document_data         Json?
+  documentData    Json?
 
-  created_at            DateTime  @default(now())
-  updated_at            DateTime  @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  // Relations
-  items                 QuotationItem[]
+  items           QuotationItem[]
 
-  @@unique([user_id, quotation_number])
-  @@index([user_id])
+  @@unique([userId, quotationNumber])
+  @@index([userId])
   @@index([status])
-  @@index([public_link])
+  @@index([publicLink])
 }
 
 model QuotationItem {
-  id                    String    @id @default(cuid())
-  quotation_id          String
-  quotation             Quotation @relation(fields: [quotation_id], references: [id], onDelete: Cascade)
+  id           String    @id @default(uuid())
+  quotationId  String
+  quotation    Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
 
-  description           String
-  quantity              Int
-  unit_price            BigInt
-  amount                BigInt
+  description  String
+  quantity     Int
+  unitPrice    BigInt
+  amount       BigInt
 
-  created_at            DateTime  @default(now())
+  createdAt    DateTime  @default(now())
 
-  @@index([quotation_id])
+  @@index([quotationId])
 }
 
 // ============================================================================
-// RECEIPT MODEL
+// RECEIPT
 // ============================================================================
 
 model Receipt {
-  id                    String    @id @default(cuid())
-  user_id               String
+  id               String   @id @default(uuid())
+  userId           String
 
-  receipt_number        String
+  receiptNumber    String
 
-  // Customer info
-  customer_name         String
-  customer_email        String?
-  customer_phone        String?
+  customerName     String
+  customerEmail    String?
+  customerPhone    String?
 
-  // Amounts
-  subtotal              BigInt
-  tax_amount            BigInt    @default(0)
-  total                 BigInt
-  currency              String    @default("NGN")
+  subtotal         BigInt
+  taxAmount        BigInt   @default(0)
+  total            BigInt
+  currency         String   @default("NGN")
 
-  // Payment info
-  payment_method        String?   // "cash", "transfer", "card", "mobile"
-  payment_reference     String?
+  paymentMethod    String?
+  paymentReference String?
 
-  // Date
-  receipt_date          DateTime
+  receiptDate      DateTime
 
-  // Notes
-  notes                 String?
+  notes            String?
+  documentData     Json?
 
-  // Full document data (JSON)
-  document_data         Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  created_at            DateTime  @default(now())
-  updated_at            DateTime  @updatedAt
+  items            ReceiptItem[]
 
-  // Relations
-  items                 ReceiptItem[]
-
-  @@unique([user_id, receipt_number])
-  @@index([user_id])
-  @@index([receipt_date])
+  @@unique([userId, receiptNumber])
+  @@index([userId])
+  @@index([receiptDate])
 }
 
 model ReceiptItem {
-  id                    String    @id @default(cuid())
-  receipt_id            String
-  receipt               Receipt   @relation(fields: [receipt_id], references: [id], onDelete: Cascade)
+  id          String   @id @default(uuid())
+  receiptId   String
+  receipt     Receipt  @relation(fields: [receiptId], references: [id], onDelete: Cascade)
 
-  description           String
-  quantity              Int
-  unit_price            BigInt
-  amount                BigInt
+  description String
+  quantity    Int
+  unitPrice   BigInt
+  amount      BigInt
 
-  created_at            DateTime  @default(now())
+  createdAt   DateTime @default(now())
 
-  @@index([receipt_id])
+  @@index([receiptId])
 }
 
 // ============================================================================
-// PAYSLIP MODEL
+// PAYSLIP
 // ============================================================================
 
 model Payslip {
-  id                    String    @id @default(cuid())
-  user_id               String
+  id                  String   @id @default(uuid())
+  userId              String
 
-  payslip_number        String
+  payslipNumber       String
 
-  // Employee info
-  employee_name         String
-  employee_id           String?
-  employee_department   String?
-  employee_position     String?
+  employeeName        String
+  employeeId          String?
+  employeeDepartment  String?
+  employeePosition    String?
 
-  // Pay period
-  pay_period_start      DateTime
-  pay_period_end        DateTime
-  payment_date          DateTime
+  payPeriodStart      DateTime
+  payPeriodEnd        DateTime
+  paymentDate         DateTime
 
-  // Earnings (all in kobo)
-  basic_salary          BigInt
-  housing_allowance     BigInt    @default(0)
-  transport_allowance   BigInt    @default(0)
-  other_allowances      BigInt    @default(0)
-  bonus                 BigInt    @default(0)
-  overtime              BigInt    @default(0)
-  gross_earnings        BigInt
+  // Earnings (in Naira kobo)
+  basicSalary         BigInt
+  housingAllowance    BigInt   @default(0)
+  transportAllowance  BigInt   @default(0)
+  otherAllowances     BigInt   @default(0)
+  bonus               BigInt   @default(0)
+  overtime            BigInt   @default(0)
+  grossEarnings       BigInt
 
-  // Deductions (all in kobo)
-  paye_tax              BigInt    @default(0)
-  pension               BigInt    @default(0)
-  nhf                   BigInt    @default(0)
-  loans                 BigInt    @default(0)
-  other_deductions      BigInt    @default(0)
-  total_deductions      BigInt
+  // Deductions (in Naira kobo)
+  payeTax             BigInt   @default(0)
+  pension             BigInt   @default(0)
+  nhf                 BigInt   @default(0)
+  loans               BigInt   @default(0)
+  otherDeductions     BigInt   @default(0)
+  totalDeductions     BigInt
 
-  // Net pay
-  net_pay               BigInt
+  netPay              BigInt
+  currency            String   @default("NGN")
 
-  currency              String    @default("NGN")
+  documentData        Json?
 
-  // Full document data (JSON)
-  document_data         Json?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
-  created_at            DateTime  @default(now())
-  updated_at            DateTime  @updatedAt
-
-  @@unique([user_id, payslip_number])
-  @@index([user_id])
-  @@index([payment_date])
+  @@unique([userId, payslipNumber])
+  @@index([userId])
+  @@index([paymentDate])
 }
 
 // ============================================================================
-// SOCIAL MEDIA PLANNER MODELS
+// SOCIAL MEDIA PLANNER
 // ============================================================================
 
 model SocialPost {
-  id                    String    @id @default(cuid())
-  user_id               String
+  id           String   @id @default(uuid())
+  userId       String
 
-  // Content
-  content               String
-  media_urls            Json?     // JSON array of media URLs
+  content      String
+  mediaUrls    Json?
 
-  // Platforms
-  platforms             Json      // JSON array: "twitter", "facebook", "instagram", "linkedin"
+  platforms    Json     // ["twitter", "facebook", "instagram", "linkedin"]
 
-  // Scheduling
-  scheduled_at          DateTime?
-  published_at          DateTime?
-  status                String    @default("draft") // "draft", "scheduled", "published", "failed"
+  scheduledAt  DateTime?
+  publishedAt  DateTime?
+  status       String   @default("draft") // "draft" | "scheduled" | "published" | "failed"
 
-  // Analytics (populated after publishing)
-  likes                 Int       @default(0)
-  shares                Int       @default(0)
-  comments              Int       @default(0)
-  reach                 Int       @default(0)
+  likes        Int      @default(0)
+  shares       Int      @default(0)
+  comments     Int      @default(0)
+  reach        Int      @default(0)
 
-  // Error tracking
-  error_message         String?
+  errorMessage String?
 
-  created_at            DateTime  @default(now())
-  updated_at            DateTime  @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  @@index([user_id])
+  @@index([userId])
   @@index([status])
-  @@index([scheduled_at])
+  @@index([scheduledAt])
 }
 
 // ============================================================================
-// AI CHAT (DEDA) MODELS
+// AI CHAT (DEDA)
 // ============================================================================
 
 model ChatConversation {
-  id                    String    @id @default(cuid())
-  user_id               String
+  id           String   @id @default(uuid())
+  userId       String
 
-  title                 String?
-  context               String?   // Business context for the AI
+  title        String?
+  context      String?
 
-  // Stats
-  message_count         Int       @default(0)
-  token_usage           Int       @default(0)
+  messageCount Int      @default(0)
+  tokenUsage   Int      @default(0)
 
-  is_archived           Boolean   @default(false)
+  isArchived   Boolean  @default(false)
 
-  created_at            DateTime  @default(now())
-  updated_at            DateTime  @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  // Relations
-  messages              ChatMessage[]
+  messages     ChatMessage[]
 
-  @@index([user_id])
-  @@index([is_archived])
+  @@index([userId])
+  @@index([isArchived])
 }
 
 model ChatMessage {
-  id                    String    @id @default(cuid())
-  conversation_id       String
-  conversation          ChatConversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+  id             String           @id @default(uuid())
+  conversationId String
+  conversation   ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
-  role                  String    // "user", "assistant", "system"
-  content               String
+  role           String   // "user" | "assistant" | "system"
+  content        String
 
-  // Token tracking
-  tokens_used           Int       @default(0)
+  tokensUsed     Int      @default(0)
+  feedback       String?  // "helpful" | "not_helpful"
 
-  // Feedback
-  feedback              String?   // "helpful", "not_helpful"
+  createdAt      DateTime @default(now())
 
-  created_at            DateTime  @default(now())
-
-  @@index([conversation_id])
-  @@index([created_at])
+  @@index([conversationId])
+  @@index([createdAt])
 }
 
 // ============================================================================
-// SUPPORT TICKET MODELS
+// SUPPORT TICKETS
 // ============================================================================
 
 model SupportTicket {
-  id                    String    @id @default(cuid())
-  user_id               String
+  id              String   @id @default(uuid())
+  userId          String
 
-  // Ticket info
-  ticket_number         String    @unique
-  subject               String
-  message               String
+  ticketNumber    String   @unique
+  subject         String
+  message         String
 
-  // Contact info
-  customer_name         String
-  customer_email        String
-  customer_phone        String?
+  customerName    String
+  customerEmail   String
+  customerPhone   String?
 
-  // Channel
-  channel               String    @default("email") // "email", "whatsapp", "sms"
+  channel         String   @default("email") // "email" | "whatsapp" | "sms"
 
-  // Status
-  status                String    @default("open") // "open", "in_progress", "resolved", "closed"
-  priority              String    @default("medium") // "low", "medium", "high", "urgent"
+  status          String   @default("open") // "open" | "in_progress" | "resolved" | "closed"
+  priority        String   @default("medium") // "low" | "medium" | "high" | "urgent"
 
-  // Assignment
-  assigned_to           String?   // Admin ID
-  assigned_name         String?   // Admin name
+  assignedTo      String?
+  assignedName    String?
 
-  // Response tracking
-  first_response_at     DateTime?
-  resolved_at           DateTime?
+  firstResponseAt DateTime?
+  resolvedAt      DateTime?
 
-  created_at            DateTime  @default(now())
-  updated_at            DateTime  @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  // Relations
-  responses             SupportTicketResponse[]
+  responses       SupportTicketResponse[]
 
-  @@index([user_id])
+  @@index([userId])
   @@index([status])
   @@index([priority])
   @@index([channel])
-  @@index([assigned_to])
+  @@index([assignedTo])
 }
 
 model SupportTicketResponse {
-  id                    String    @id @default(cuid())
-  ticket_id             String
-  ticket                SupportTicket @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
+  id          String        @id @default(uuid())
+  ticketId    String
+  ticket      SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
-  // Response
-  message               String
-  channel               String    // "email", "whatsapp", "sms" - channel used to respond
+  message     String
+  channel     String   // "email" | "whatsapp" | "sms"
 
-  // Sender
-  sender_type           String    // "admin", "customer"
-  sender_id             String?   // Admin ID or null for customer
-  sender_name           String
+  senderType  String   // "admin" | "customer"
+  senderId    String?
+  senderName  String
 
-  // Delivery status
-  delivered             Boolean   @default(false)
-  delivered_at          DateTime?
+  delivered   Boolean  @default(false)
+  deliveredAt DateTime?
 
-  created_at            DateTime  @default(now())
+  createdAt   DateTime @default(now())
 
-  @@index([ticket_id])
-  @@index([sender_type])
+  @@index([ticketId])
+  @@index([senderType])
 }
