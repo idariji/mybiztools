@@ -18,7 +18,11 @@ export function QuotationGeneratorPage() {
   const navigate = useNavigate();
   const { toasts, addToast, removeToast } = useToast();
   const showWatermark = hasWatermark(authService.getCurrentUser()?.current_plan);
-  const [quotation, setQuotation] = useState<Quotation>({
+
+  // Check if editing an existing quotation (set by QuotationPage handleView)
+  const initialQuotation = safeGetJSON<Quotation | null>('current-quotation', null);
+
+  const [quotation, setQuotation] = useState<Quotation>(initialQuotation || {
     quotationNumber: generateQuotationNumber(),
     issueDate: new Date().toISOString().split('T')[0],
     validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -51,6 +55,11 @@ export function QuotationGeneratorPage() {
     paymentInstructions: '',
     status: 'draft',
   });
+
+  // Clear the stored quotation after loading
+  useEffect(() => {
+    localStorage.removeItem('current-quotation');
+  }, []);
 
   const [showPreview, setShowPreview] = useState(false);
 

@@ -4,10 +4,18 @@ import { authService } from '../services/authService';
 
 export const AccountPage: React.FC = () => {
   const [user, setUser] = useState<any>(null);
+  const [docCounts, setDocCounts] = useState({ invoices: 0, quotations: 0, receipts: 0, payslips: 0 });
 
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
     setUser(currentUser);
+
+    // Load document counts from localStorage
+    const invoices = JSON.parse(localStorage.getItem('invoice-drafts') || '[]').length;
+    const quotations = JSON.parse(localStorage.getItem('quotation-drafts') || '[]').length;
+    const receipts = JSON.parse(localStorage.getItem('receipt-drafts') || '[]').length;
+    const payslips = JSON.parse(localStorage.getItem('payslip-drafts') || '[]').length;
+    setDocCounts({ invoices, quotations, receipts, payslips });
   }, []);
 
   return (
@@ -87,20 +95,20 @@ export const AccountPage: React.FC = () => {
             <h3 className="text-lg font-semibold mb-4">Account Statistics</h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 bg-blue-50 rounded-lg">
-                <p className="text-sm text-gray-600">Documents Created</p>
-                <p className="text-2xl font-bold text-blue-600">0</p>
+                <p className="text-sm text-gray-600">Total Documents</p>
+                <p className="text-2xl font-bold text-blue-600">{docCounts.invoices + docCounts.quotations + docCounts.receipts + docCounts.payslips}</p>
               </div>
               <div className="p-4 bg-green-50 rounded-lg">
-                <p className="text-sm text-gray-600">Total Invoices</p>
-                <p className="text-2xl font-bold text-green-600">0</p>
+                <p className="text-sm text-gray-600">Invoices</p>
+                <p className="text-2xl font-bold text-green-600">{docCounts.invoices}</p>
               </div>
               <div className="p-4 bg-orange-50 rounded-lg">
-                <p className="text-sm text-gray-600">Active Projects</p>
-                <p className="text-2xl font-bold text-orange-600">0</p>
+                <p className="text-sm text-gray-600">Quotations</p>
+                <p className="text-2xl font-bold text-orange-600">{docCounts.quotations}</p>
               </div>
               <div className="p-4 bg-purple-50 rounded-lg">
-                <p className="text-sm text-gray-600">Storage Used</p>
-                <p className="text-2xl font-bold text-purple-600">0 MB</p>
+                <p className="text-sm text-gray-600">Receipts & Payslips</p>
+                <p className="text-2xl font-bold text-purple-600">{docCounts.receipts + docCounts.payslips}</p>
               </div>
             </div>
           </div>

@@ -1,6 +1,29 @@
 import React from 'react';
 import { Facebook, Twitter, Linkedin, Instagram, Hexagon, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+const SOCIAL_LINKS = [
+  { Icon: Twitter, href: 'https://twitter.com/mybiztools', label: 'Twitter' },
+  { Icon: Linkedin, href: 'https://linkedin.com/company/mybiztools', label: 'LinkedIn' },
+  { Icon: Instagram, href: 'https://instagram.com/mybiztools', label: 'Instagram' },
+  { Icon: Facebook, href: 'https://facebook.com/mybiztools', label: 'Facebook' },
+];
+
+const QUICK_LINKS = [
+  { label: 'Home', to: '/', external: false },
+  { label: 'Features', to: '/#features', external: false },
+  { label: 'Pricing', to: '/#pricing', external: false },
+  { label: 'Contact', to: 'mailto:support@mybiztools.app', external: true },
+];
+
+const TOOL_LINKS = [
+  { label: 'Invoice Generator', to: '/login' },
+  { label: 'Receipt Maker', to: '/login' },
+  { label: 'Tax Calculator', to: '/login' },
+  { label: 'Budget Tracker', to: '/login' },
+  { label: 'DEDA AI Assistant', to: '/login' },
+];
+
 export function Footer() {
   return <footer className="bg-slate-950 text-slate-300 pt-24 pb-12 border-t border-slate-800 relative overflow-hidden">
       {/* Top Gradient Line */}
@@ -23,9 +46,12 @@ export function Footer() {
               professionally.
             </p>
             <div className="flex gap-4">
-              {[Twitter, Linkedin, Instagram, Facebook].map((Icon, i) => <a key={i} href="#" className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-slate-400 hover:bg-[#FF8A2B] hover:text-white transition-all duration-300 hover:-translate-y-1">
+              {SOCIAL_LINKS.map(({ Icon, href, label }) => (
+                <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label}
+                  className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-slate-400 hover:bg-[#FF8A2B] hover:text-white transition-all duration-300 hover:-translate-y-1">
                   <Icon size={18} />
-                </a>)}
+                </a>
+              ))}
             </div>
           </div>
 
@@ -33,12 +59,21 @@ export function Footer() {
           <div>
             <h3 className="text-white font-bold mb-6 text-lg">Quick Links</h3>
             <ul className="space-y-4 text-sm">
-              {['Home', 'About Us', 'Pricing', 'Contact', 'Blog'].map(item => <li key={item}>
-                    <a href="#" className="hover:text-[#FF8A2B] transition-colors flex items-center gap-2 group">
+              {QUICK_LINKS.map(({ label, to, external }) => (
+                <li key={label}>
+                  {external ? (
+                    <a href={to} className="hover:text-[#FF8A2B] transition-colors flex items-center gap-2 group">
                       <span className="w-1 h-1 rounded-full bg-[#FF8A2B] opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                      {item}
+                      {label}
                     </a>
-                  </li>)}
+                  ) : (
+                    <Link to={to} className="hover:text-[#FF8A2B] transition-colors flex items-center gap-2 group">
+                      <span className="w-1 h-1 rounded-full bg-[#FF8A2B] opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                      {label}
+                    </Link>
+                  )}
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -46,12 +81,14 @@ export function Footer() {
           <div>
             <h3 className="text-white font-bold mb-6 text-lg">Popular Tools</h3>
             <ul className="space-y-4 text-sm">
-              {['Invoice Generator', 'Receipt Maker', 'Tax Calculator', 'Budget Tracker', 'DEDA AI Assistant'].map(item => <li key={item}>
-                  <a href="#" className="hover:text-[#FF8A2B] transition-colors flex items-center gap-2 group">
+              {TOOL_LINKS.map(({ label, to }) => (
+                <li key={label}>
+                  <Link to={to} className="hover:text-[#FF8A2B] transition-colors flex items-center gap-2 group">
                     <span className="w-1 h-1 rounded-full bg-[#FF8A2B] opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                    {item}
-                  </a>
-                </li>)}
+                    {label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 

@@ -48,9 +48,47 @@ export function QuotationPage() {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const STATUS_CLASS_MAP: Record<string, string> = {
+    gray: 'bg-gray-100 text-gray-700',
+    blue: 'bg-blue-100 text-blue-700',
+    green: 'bg-green-100 text-green-700',
+    red: 'bg-red-100 text-red-700',
+    orange: 'bg-orange-100 text-orange-700',
+    yellow: 'bg-yellow-100 text-yellow-700',
+    purple: 'bg-purple-100 text-purple-700',
+  };
+
+  const getStatusClasses = (status: string) => {
     const statusObj = QUOTATION_STATUSES.find(s => s.value === status);
-    return statusObj?.color || 'gray';
+    return STATUS_CLASS_MAP[statusObj?.color || 'gray'] || STATUS_CLASS_MAP.gray;
+  };
+
+  const handleView = (quotation: Quotation) => {
+    localStorage.setItem('current-quotation', JSON.stringify(quotation));
+    navigate('/dashboard/quotations/create');
+  };
+
+  const handleConvertToInvoice = (quotation: Quotation) => {
+    const invoiceData = {
+      invoiceNumber: `INV-${Date.now()}`,
+      invoiceDate: new Date().toISOString().split('T')[0],
+      dueDate: quotation.validUntil,
+      currency: quotation.currency,
+      businessInfo: quotation.businessInfo,
+      clientInfo: quotation.clientInfo,
+      items: quotation.items,
+      summary: {
+        subtotal: quotation.summary.subtotal,
+        tax: quotation.summary.totalVat,
+        discount: quotation.summary.discount,
+        total: quotation.summary.total,
+      },
+      notes: quotation.notes,
+      terms: quotation.terms,
+      status: 'draft',
+    };
+    localStorage.setItem('current-invoice', JSON.stringify(invoiceData));
+    navigate('/dashboard/invoices/create');
   };
 
   return (
@@ -142,40 +180,42 @@ export function QuotationPage() {
                         {new Date(quotation.validUntil).toLocaleDateString()}
                       </td>
                       <td className="py-4 px-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold bg-${getStatusColor(quotation.status)}-100 text-${getStatusColor(quotation.status)}-700`}>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusClasses(quotation.status)}`}>
                           {QUOTATION_STATUSES.find(s => s.value === quotation.status)?.label}
                         </span>
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-2">
-                          <button 
+                          <button
+                            onClick={() => handleView(quotation)}
                             className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                            title="View"
+                            title="View / Edit"
                           >
                             <Eye className="w-4 h-4 text-slate-600" />
                           </button>
-                          <button 
-                            onClick={() => navigate('/dashboard/quotations/create')}
+                          <button
+                            onClick={() => handleView(quotation)}
                             className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                             title="Edit"
                           >
                             <Edit className="w-4 h-4 text-slate-600" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => handleDuplicate(quotation)}
                             className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                             title="Duplicate"
                           >
                             <Copy className="w-4 h-4 text-slate-600" />
                           </button>
-                          <button 
+                          <button
+                            onClick={() => handleView(quotation)}
                             className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                            title="Download"
+                            title="Download (opens editor)"
                           >
                             <Download className="w-4 h-4 text-slate-600" />
                           </button>
-                          <button 
-                            onClick={() => navigate('/dashboard/invoices/create')}
+                          <button
+                            onClick={() => handleConvertToInvoice(quotation)}
                             className="p-2 hover:bg-blue-100 rounded-lg transition-colors"
                             title="Convert to Invoice"
                           >
