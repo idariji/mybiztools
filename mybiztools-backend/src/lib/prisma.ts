@@ -73,11 +73,15 @@ declare global {
   var __prisma: PrismaClient | undefined;
 }
 
-const createPrismaClient = () =>
-  new PrismaClient({
-    // datasourceUrl: env.databaseUrl,
-    log: env.nodeEnv === 'development' ? ['error', 'warn'] : ['error'],
-  });
+// const createPrismaClient = () =>
+//   new PrismaClient({
+//     // datasourceUrl: env.databaseUrl,
+//     log: env.nodeEnv === 'development' ? ['error', 'warn'] : ['error'],
+//   });
+
+const createPrismaClient = () => new PrismaClient({
+  log: env.nodeEnv === 'development' ? ['error', 'warn'] : ['error'],
+});
 
 export const prisma = globalThis.__prisma ?? createPrismaClient();
 

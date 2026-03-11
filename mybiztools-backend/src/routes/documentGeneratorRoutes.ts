@@ -398,7 +398,7 @@
 // export default router;
 
 import { Router, Request, Response } from 'express';
-import { authenticateUser } from '../middleware/authMiddleware.js';
+import { authenticateUser, requirePlan } from '../middleware/authMiddleware.js';
 import {
   InvoiceService,
   QuotationService,
