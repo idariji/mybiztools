@@ -7,7 +7,7 @@ dotenv.config();
 export const env = {
   nodeEnv: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT || '3001', 10),
-  host: process.env.HOST || 'localhost',
+  host: process.env.HOST || '0.0.0.0',
 
   // JWT
   jwtSecret: process.env.JWT_SECRET || 'mybiztools-jwt-secret-change-in-production',
