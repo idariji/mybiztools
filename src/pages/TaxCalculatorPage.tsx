@@ -45,8 +45,8 @@ function PayeTab() {
   const result: PayeCalculation | null = gross && Number(gross) > 0 ? calculatePaye(Number(gross)) : null;
 
   return (
-    <div className="grid lg:grid-cols-2 gap-6">
-      <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-5">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 space-y-4 sm:space-y-5">
         <h3 className="font-semibold text-slate-900">Annual Gross Income</h3>
         <div>
           <label className="block text-xs font-medium text-slate-500 mb-1">Enter annual gross income (₦)</label>
@@ -70,7 +70,7 @@ function PayeTab() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 p-6">
+      <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6">
         <h3 className="font-semibold text-slate-900 mb-4">PAYE Breakdown</h3>
         {!result ? (
           <p className="text-slate-400 text-sm text-center mt-10">Enter income to see calculation</p>
@@ -117,8 +117,8 @@ function CitTab() {
                      'Large company (> ₦100m) — 30% CIT';
 
   return (
-    <div className="grid lg:grid-cols-2 gap-6">
-      <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-5">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 space-y-4 sm:space-y-5">
         <h3 className="font-semibold text-slate-900">Company Details</h3>
         <div>
           <label className="block text-xs font-medium text-slate-500 mb-1">Annual Turnover (₦)</label>
@@ -142,7 +142,7 @@ function CitTab() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 p-6">
+      <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6">
         <h3 className="font-semibold text-slate-900 mb-4">CIT Breakdown</h3>
         {!result ? (
           <p className="text-slate-400 text-sm text-center mt-10">Enter company figures to see calculation</p>
@@ -179,8 +179,8 @@ function VatTab() {
   }
 
   return (
-    <div className="grid lg:grid-cols-2 gap-6">
-      <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-5">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 space-y-4 sm:space-y-5">
         <h3 className="font-semibold text-slate-900">VAT Calculator</h3>
         <div className="grid grid-cols-2 gap-2">
           {(['exclusive', 'inclusive'] as const).map(m => (
@@ -205,7 +205,7 @@ function VatTab() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 p-6">
+      <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6">
         <h3 className="font-semibold text-slate-900 mb-4">VAT Breakdown</h3>
         {!amount || Number(amount) <= 0 ? (
           <p className="text-slate-400 text-sm text-center mt-10">Enter amount to calculate</p>
@@ -229,8 +229,8 @@ function WhtTab() {
     amount && Number(amount) > 0 ? calculateWht(type, Number(amount)) : null;
 
   return (
-    <div className="grid lg:grid-cols-2 gap-6">
-      <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-5">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6 space-y-4 sm:space-y-5">
         <h3 className="font-semibold text-slate-900">Withholding Tax</h3>
         <div>
           <label className="block text-xs font-medium text-slate-500 mb-1">Payment Type</label>
@@ -254,7 +254,7 @@ function WhtTab() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 p-6">
+      <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-6">
         <h3 className="font-semibold text-slate-900 mb-4">WHT Breakdown</h3>
         {!result ? (
           <p className="text-slate-400 text-sm text-center mt-10">Enter amount to calculate</p>

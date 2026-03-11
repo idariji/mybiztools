@@ -212,57 +212,62 @@ export function QuotationGeneratorPage() {
       <div className="min-h-screen bg-[#F0F3F5]">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4 sticky top-0 z-10">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
-            <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
               <button
                 onClick={() => navigate('/dashboard/quotations')}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
                 title="Back to Quotations"
               >
                 <ArrowLeft className="w-5 h-5 text-gray-600" />
               </button>
-              <div>
-                <h1 className="text-lg sm:text-2xl font-bold text-gray-900">Create Quotation</h1>
-                <p className="text-xs sm:text-sm text-gray-600 mt-1">Quotation #{quotation.quotationNumber}</p>
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-2xl font-bold text-gray-900 truncate">Create Quotation</h1>
+                <p className="text-xs sm:text-sm text-gray-600 truncate">Quotation #{quotation.quotationNumber}</p>
               </div>
             </div>
-            
-            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
               <button
                 onClick={handleSaveDraft}
-                className="flex items-center justify-center gap-1 px-2 sm:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-xs sm:text-sm font-medium flex-1 sm:flex-none"
+                className="flex items-center justify-center gap-1 p-2 sm:px-3 sm:py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-xs sm:text-sm font-medium"
+                title="Save Draft"
               >
                 <Save className="w-4 h-4" />
                 <span className="hidden sm:inline">Save</span>
               </button>
-              
+
               <button
                 onClick={handlePrint}
-                className="flex items-center justify-center gap-1 px-2 sm:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-xs sm:text-sm font-medium flex-1 sm:flex-none"
+                className="flex items-center justify-center gap-1 p-2 sm:px-3 sm:py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-xs sm:text-sm font-medium"
+                title="Print"
               >
                 <Printer className="w-4 h-4" />
                 <span className="hidden sm:inline">Print</span>
               </button>
-              
+
               <button
                 onClick={handleDownloadPDF}
-                className="flex items-center justify-center gap-1 px-2 sm:px-4 py-2 bg-[#1e3a8a] text-white rounded-lg hover:bg-[#1e40af] transition-colors text-xs sm:text-sm font-medium flex-1 sm:flex-none"
+                className="flex items-center justify-center gap-1 p-2 sm:px-3 sm:py-2 bg-[#1e3a8a] text-white rounded-lg hover:bg-[#1e40af] transition-colors text-xs sm:text-sm font-medium"
+                title="Download PDF"
               >
                 <Download className="w-4 h-4" />
                 <span className="hidden sm:inline">PDF</span>
               </button>
-              
+
               <button
                 onClick={handleGenerateLink}
-                className="flex items-center justify-center gap-1 px-2 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm font-medium flex-1 sm:flex-none"
+                className="flex items-center justify-center gap-1 p-2 sm:px-3 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm font-medium"
+                title="Generate Link"
               >
                 <LinkIcon className="w-4 h-4" />
                 <span className="hidden sm:inline">Link</span>
               </button>
-              
+
               <button
                 onClick={handleConvertToInvoice}
-                className="flex items-center justify-center gap-1 px-2 sm:px-4 py-2 bg-[#FF8A2B] text-white rounded-lg hover:bg-[#FF6B00] transition-colors text-xs sm:text-sm font-medium flex-1 sm:flex-none"
+                className="flex items-center justify-center gap-1 p-2 sm:px-3 sm:py-2 bg-[#FF8A2B] text-white rounded-lg hover:bg-[#FF6B00] transition-colors text-xs sm:text-sm font-medium"
+                title="Convert to Invoice"
               >
                 <FileText className="w-4 h-4" />
                 <span className="hidden sm:inline">Invoice</span>
@@ -282,7 +287,7 @@ export function QuotationGeneratorPage() {
         </div>
 
         {/* Two Column Layout */}
-        <div className="grid lg:grid-cols-2 gap-6 p-6">
+        <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 p-3 sm:p-6">
           {/* Left: Form */}
           <div className={`${showPreview ? 'hidden lg:block' : 'block'}`}>
             <QuotationForm quotation={quotation} onChange={setQuotation} />

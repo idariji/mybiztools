@@ -107,15 +107,15 @@ export function PayslipGeneratorPage() {
       <div className="min-h-screen bg-[#F0F3F5]">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4 sticky top-0 z-10">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
-            <div>
-              <h1 className="text-lg sm:text-3xl font-bold text-gray-900">Generate Payslip</h1>
-              <p className="text-xs sm:text-base text-gray-600 mt-1">{payslip.payslipNumber || 'Enter employee ID to generate number'}</p>
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-3xl font-bold text-gray-900 truncate">Generate Payslip</h1>
+              <p className="text-xs sm:text-base text-gray-600 truncate">{payslip.payslipNumber || 'Enter employee ID to generate number'}</p>
             </div>
-            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-              <button onClick={handleSaveDraft} className="flex items-center justify-center gap-1 px-2 sm:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-xs sm:text-sm font-medium flex-1 sm:flex-none" title="Save Draft"><Save className="w-4 h-4" /><span className="hidden sm:inline">Save</span></button>
-              <button onClick={() => window.print()} className="flex items-center justify-center gap-1 px-2 sm:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-xs sm:text-sm font-medium flex-1 sm:flex-none" title="Print"><Printer className="w-4 h-4" /><span className="hidden sm:inline">Print</span></button>
-              <button onClick={handleDownloadPDF} className="flex items-center justify-center gap-1 px-2 sm:px-4 py-2 bg-[#FF8A2B] text-white rounded-lg hover:bg-[#FF6B00] transition-colors text-xs sm:text-sm font-medium flex-1 sm:flex-none" title="Download PDF"><Download className="w-4 h-4" /><span className="hidden sm:inline">PDF</span></button>
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+              <button onClick={handleSaveDraft} className="flex items-center justify-center gap-1 p-2 sm:px-3 sm:py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-xs sm:text-sm font-medium" title="Save Draft"><Save className="w-4 h-4" /><span className="hidden sm:inline">Save</span></button>
+              <button onClick={() => window.print()} className="flex items-center justify-center gap-1 p-2 sm:px-3 sm:py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-xs sm:text-sm font-medium" title="Print"><Printer className="w-4 h-4" /><span className="hidden sm:inline">Print</span></button>
+              <button onClick={handleDownloadPDF} className="flex items-center justify-center gap-1 p-2 sm:px-3 sm:py-2 bg-[#FF8A2B] text-white rounded-lg hover:bg-[#FF6B00] transition-colors text-xs sm:text-sm font-medium" title="Download PDF"><Download className="w-4 h-4" /><span className="hidden sm:inline">PDF</span></button>
             </div>
           </div>
         </div>

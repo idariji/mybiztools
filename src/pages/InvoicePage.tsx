@@ -87,7 +87,9 @@ export function InvoicePage() {
               </button>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+            {/* Desktop table - hidden on mobile */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-200">
@@ -144,14 +146,58 @@ export function InvoicePage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Mobile card list - hidden on desktop */}
+            <div className="md:hidden space-y-3">
+              {invoices.map((invoice) => (
+                <div key={invoice.invoiceNumber} className="bg-white border border-slate-200 rounded-xl p-4 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-sm font-bold text-slate-900">{invoice.invoiceNumber}</span>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold shrink-0 ${
+                      invoice.status === 'paid' ? 'bg-green-100 text-green-700' :
+                      invoice.status === 'sent' ? 'bg-blue-100 text-blue-700' :
+                      'bg-orange-100 text-orange-700'
+                    }`}>
+                      {invoice.status === 'paid' ? 'Paid' :
+                       invoice.status === 'sent' ? 'Sent' : 'Draft'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-slate-600">{invoice.clientInfo.name || 'N/A'}</p>
+                  <p className={`text-base font-semibold ${
+                    invoice.status === 'paid' ? 'text-green-600' :
+                    invoice.status === 'sent' ? 'text-blue-600' :
+                    'text-slate-900'
+                  }`}>
+                    {invoice.currency === 'NGN' ? '₦' : invoice.currency === 'USD' ? '$' : invoice.currency}
+                    {invoice.summary.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                  <p className="text-xs text-slate-500">Due: {new Date(invoice.invoiceDate).toLocaleDateString()}</p>
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      onClick={() => handleView(invoice)}
+                      className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
+                    >
+                      <Eye className="w-3.5 h-3.5" /> View
+                    </button>
+                    <button
+                      onClick={() => handleDelete(invoice.invoiceNumber)}
+                      className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            </>
           )}
         </div>
         </div>
       </DashboardLayout>
 
       {showUpgrade && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowUpgrade(false)}>
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4" onClick={() => setShowUpgrade(false)}>
+          <div className="bg-white rounded-2xl p-4 sm:p-8 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="w-14 h-14 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-4">
               <Lock className="w-7 h-7 text-[#FF8A2B]" />
             </div>

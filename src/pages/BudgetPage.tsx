@@ -26,37 +26,37 @@ export function BudgetPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Budget Tracker</h1>
+          <h1 className="text-xl sm:text-3xl font-bold text-slate-900">Budget Tracker</h1>
           <p className="text-slate-600 mt-1">Track income and expenses</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 bg-green-100 rounded-lg"><TrendingUp className="w-5 h-5 text-green-600" /></div>
               <h3 className="text-sm font-semibold text-slate-600">Total Income</h3>
             </div>
-            <p className="text-3xl font-bold text-green-600">{fmt(totalIncome)}</p>
+            <p className="text-xl sm:text-3xl font-bold text-green-600">{fmt(totalIncome)}</p>
           </div>
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 bg-red-100 rounded-lg"><TrendingDown className="w-5 h-5 text-red-600" /></div>
               <h3 className="text-sm font-semibold text-slate-600">Total Expenses</h3>
             </div>
-            <p className="text-3xl font-bold text-red-600">{fmt(totalExpenses)}</p>
+            <p className="text-xl sm:text-3xl font-bold text-red-600">{fmt(totalExpenses)}</p>
           </div>
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 bg-orange-100 rounded-lg"><DollarSign className="w-5 h-5 text-[#FF8A2B]" /></div>
               <h3 className="text-sm font-semibold text-slate-600">Net Balance</h3>
             </div>
-            <p className={`text-3xl font-bold ${netBalance >= 0 ? 'text-[#FF8A2B]' : 'text-red-600'}`}>{fmt(netBalance)}</p>
+            <p className={`text-xl sm:text-3xl font-bold ${netBalance >= 0 ? 'text-[#FF8A2B]' : 'text-red-600'}`}>{fmt(netBalance)}</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-slate-900">Transactions</h2>
             <span className="text-sm text-slate-500 flex items-center gap-1">
@@ -70,7 +70,9 @@ export function BudgetPage() {
               <p className="text-slate-500 text-sm">Your income and expense entries will appear here once you start tracking.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+            {/* Desktop table - hidden on mobile */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-200">
@@ -100,6 +102,26 @@ export function BudgetPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Mobile card list - hidden on desktop */}
+            <div className="md:hidden space-y-3">
+              {entries.map(entry => (
+                <div key={entry.id} className="bg-white border border-slate-200 rounded-xl p-4 space-y-1.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-xs text-slate-500">{new Date(entry.date).toLocaleDateString()}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold shrink-0 ${entry.type === 'income' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                      {entry.type}
+                    </span>
+                  </div>
+                  <p className="text-sm font-medium text-slate-900">{entry.description}</p>
+                  <p className="text-xs text-slate-500">{entry.category}</p>
+                  <p className={`text-base font-semibold ${entry.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                    {entry.type === 'income' ? '+' : '-'}{fmt(entry.amount)}
+                  </p>
+                </div>
+              ))}
+            </div>
+            </>
           )}
         </div>
       </div>

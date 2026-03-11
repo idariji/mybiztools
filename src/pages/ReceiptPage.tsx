@@ -84,7 +84,8 @@ export function ReceiptPage() {
           <h2 className="text-xl font-bold text-slate-900 mb-4">
             Receipts ({filteredReceipts.length})
           </h2>
-          <div className="overflow-x-auto">
+          {/* Desktop table - hidden on mobile */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-200">
@@ -123,7 +124,7 @@ export function ReceiptPage() {
                           <button onClick={() => handleView(receipt)} className="p-2 hover:bg-slate-100 rounded-lg transition-colors" title="Download (opens editor)">
                             <Download className="w-4 h-4 text-slate-600" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => handleDelete(receipt.receiptNumber)}
                             className="p-2 hover:bg-red-100 rounded-lg transition-colors"
                             title="Delete"
@@ -138,13 +139,56 @@ export function ReceiptPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile card list - hidden on desktop */}
+          {filteredReceipts.length === 0 ? (
+            <div className="md:hidden py-8 text-center text-gray-500">
+              No receipts found. Create your first receipt!
+            </div>
+          ) : (
+            <div className="md:hidden space-y-3">
+              {filteredReceipts.map((receipt) => (
+                <div key={receipt.receiptNumber} className="bg-white border border-slate-200 rounded-xl p-4 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-sm font-bold text-slate-900">{receipt.receiptNumber}</span>
+                    <span className="text-xs text-slate-500 shrink-0">{receipt.paymentMethod}</span>
+                  </div>
+                  <p className="text-sm text-slate-600">{receipt.customerInfo.name}</p>
+                  <p className="text-base font-semibold text-green-600">
+                    {receipt.summary.total.toLocaleString()} {receipt.currency}
+                  </p>
+                  <p className="text-xs text-slate-500">{new Date(receipt.receiptDate).toLocaleDateString()}</p>
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      onClick={() => handleView(receipt)}
+                      className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
+                    >
+                      <Eye className="w-3.5 h-3.5" /> View
+                    </button>
+                    <button
+                      onClick={() => handleView(receipt)}
+                      className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
+                    >
+                      <Download className="w-3.5 h-3.5" /> Download
+                    </button>
+                    <button
+                      onClick={() => handleDelete(receipt.receiptNumber)}
+                      className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Upgrade Modal */}
       {showUpgrade && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl p-4 sm:p-8 max-w-md w-full shadow-2xl">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-3 bg-orange-100 rounded-xl">
                 <Zap className="w-6 h-6 text-[#FF8A2B]" />

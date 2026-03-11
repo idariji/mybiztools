@@ -89,7 +89,9 @@ export function PayslipPage() {
                 </button>
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <>
+              {/* Desktop table - hidden on mobile */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-slate-200">
@@ -145,6 +147,46 @@ export function PayslipPage() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Mobile card list - hidden on desktop */}
+              <div className="md:hidden space-y-3">
+                {payslips.map((payslip) => (
+                  <div key={payslip.payslipNumber} className="bg-white border border-slate-200 rounded-xl p-4 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-sm font-bold text-slate-900">{payslip.payslipNumber}</span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold shrink-0 ${
+                        payslip.status === 'paid' ? 'bg-green-100 text-green-700' :
+                        payslip.status === 'issued' ? 'bg-blue-100 text-blue-700' :
+                        'bg-orange-100 text-orange-700'
+                      }`}>
+                        {payslip.status === 'paid' ? 'Paid' :
+                         payslip.status === 'issued' ? 'Issued' : 'Draft'}
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-700 font-medium">{payslip.employeeInfo?.name || 'N/A'}</p>
+                    <p className="text-xs text-slate-500">{payslip.employeeInfo?.department || 'N/A'}</p>
+                    <p className="text-base font-semibold text-green-600">
+                      ₦{(payslip.summary?.netPay || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </p>
+                    <p className="text-xs text-slate-500">{payslip.month} {payslip.year}</p>
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        onClick={() => handleView(payslip)}
+                        className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors"
+                      >
+                        <Eye className="w-3.5 h-3.5" /> View
+                      </button>
+                      <button
+                        onClick={() => handleDelete(payslip.payslipNumber)}
+                        className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              </>
             )}
           </div>
         </div>
@@ -152,8 +194,8 @@ export function PayslipPage() {
 
       {/* Upgrade Modal */}
       {showUpgrade && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl p-4 sm:p-8 max-w-md w-full shadow-2xl">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-3 bg-orange-100 rounded-xl">
                 <Zap className="w-6 h-6 text-[#FF8A2B]" />

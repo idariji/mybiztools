@@ -143,17 +143,17 @@ export function SubscriptionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F0F3F5] py-12 px-4">
+    <div className="min-h-screen bg-[#F0F3F5] py-8 sm:py-12 px-4">
       <div className="max-w-6xl mx-auto">
 
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-8 sm:mb-12">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Hexagon className="w-8 h-8 fill-[#FF8A2B] text-[#FF8A2B]" />
             <span className="font-bold text-xl text-slate-900">MyBizTools</span>
           </div>
-          <h1 className="text-4xl font-bold text-slate-900 mb-3">Choose Your Plan</h1>
-          <p className="text-lg text-slate-600 max-w-xl mx-auto">
+          <h1 className="text-2xl sm:text-4xl font-bold text-slate-900 mb-3">Choose Your Plan</h1>
+          <p className="text-base sm:text-lg text-slate-600 max-w-xl mx-auto">
             Start free, upgrade when you're ready. All paid plans include full feature access.
           </p>
 
@@ -161,7 +161,7 @@ export function SubscriptionPage() {
           <div className="mt-8 inline-flex items-center bg-white rounded-xl p-1 shadow-sm border border-slate-200">
             <button
               onClick={() => setBillingCycle('monthly')}
-              className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${
+              className={`px-3 sm:px-6 py-1.5 sm:py-2 rounded-lg text-sm font-semibold transition-all ${
                 billingCycle === 'monthly'
                   ? 'bg-[#FF8A2B] text-white shadow'
                   : 'text-slate-600 hover:text-slate-900'
@@ -171,7 +171,7 @@ export function SubscriptionPage() {
             </button>
             <button
               onClick={() => setBillingCycle('yearly')}
-              className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${
+              className={`px-3 sm:px-6 py-1.5 sm:py-2 rounded-lg text-sm font-semibold transition-all ${
                 billingCycle === 'yearly'
                   ? 'bg-[#FF8A2B] text-white shadow'
                   : 'text-slate-600 hover:text-slate-900'
@@ -183,7 +183,7 @@ export function SubscriptionPage() {
         </div>
 
         {/* Free tier banner */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <p className="font-semibold text-slate-900">No plan (Free)</p>
             <p className="text-sm text-slate-500 mt-0.5">
@@ -196,7 +196,7 @@ export function SubscriptionPage() {
         </div>
 
         {/* Paid plan cards */}
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {PLAN_CONFIG.map((plan) => {
             const price = getPrice(plan.key);
             const isCurrent = currentTier === plan.key || (plan.key === 'pro' && currentTier === 'pro');
@@ -219,7 +219,7 @@ export function SubscriptionPage() {
                   </div>
                 )}
 
-                <div className="p-7 flex-1 flex flex-col">
+                <div className="p-4 sm:p-7 flex-1 flex flex-col">
                   <div className="mb-6">
                     <h3 className="text-xl font-bold text-slate-900 mb-1">{plan.displayName}</h3>
                     <p className="text-sm text-slate-500">{plan.description}</p>
@@ -228,7 +228,7 @@ export function SubscriptionPage() {
                   <div className="mb-6">
                     {price != null ? (
                       <>
-                        <span className="text-4xl font-bold text-slate-900">
+                        <span className="text-2xl sm:text-4xl font-bold text-slate-900">
                           ₦{price.toLocaleString()}
                         </span>
                         <span className="text-slate-500 text-sm ml-1">

@@ -271,61 +271,66 @@ export function InvoiceGeneratorPage() {
       <div className="min-h-screen bg-[#F0F3F5]">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4 sticky top-0 z-10">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
-          <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <button
               onClick={() => navigate('/dashboard/invoices')}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
               title="Back to Invoices"
             >
               <ArrowLeft className="w-5 h-5 text-gray-600" />
             </button>
-            <div>
-              <h1 className="text-lg sm:text-2xl font-bold text-gray-900">Create Invoice</h1>
-              <p className="text-xs sm:text-sm text-gray-600 mt-1">Invoice #{invoice.invoiceNumber}</p>
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-900 truncate">Create Invoice</h1>
+              <p className="text-xs sm:text-sm text-gray-600 truncate">Invoice #{invoice.invoiceNumber}</p>
             </div>
           </div>
-          
-          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
             <button
               onClick={handleGenerateWithDEDA}
-              className="flex items-center justify-center gap-1 px-2 sm:px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all text-xs sm:text-sm font-medium flex-1 sm:flex-none"
+              className="flex items-center justify-center gap-1 p-2 sm:px-3 sm:py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all text-xs sm:text-sm font-medium"
+              title="Generate with DEDA"
             >
               <Sparkles className="w-4 h-4" />
               <span className="hidden sm:inline">Generate with DEDA</span>
             </button>
-            
+
             <button
               onClick={handleSaveDraft}
-              className="flex items-center justify-center gap-1 px-2 sm:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-xs sm:text-sm font-medium flex-1 sm:flex-none"
+              className="flex items-center justify-center gap-1 p-2 sm:px-3 sm:py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-xs sm:text-sm font-medium"
+              title="Save Draft"
             >
               <Save className="w-4 h-4" />
               <span className="hidden sm:inline">Save</span>
             </button>
-            
+
             <button
               onClick={handlePrint}
-              className="flex items-center justify-center gap-1 px-2 sm:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-xs sm:text-sm font-medium flex-1 sm:flex-none"
+              className="flex items-center justify-center gap-1 p-2 sm:px-3 sm:py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-xs sm:text-sm font-medium"
+              title="Print"
             >
               <Printer className="w-4 h-4" />
               <span className="hidden sm:inline">Print</span>
             </button>
-            
+
             <button
               onClick={() => {
                 if (validateInvoice()) {
                   handleDownloadPDF();
                 }
               }}
-              className="flex items-center justify-center gap-1 px-2 sm:px-4 py-2 bg-[#1e3a8a] text-white rounded-lg hover:bg-[#1e40af] transition-colors text-xs sm:text-sm font-medium flex-1 sm:flex-none"
+              className="flex items-center justify-center gap-1 p-2 sm:px-3 sm:py-2 bg-[#1e3a8a] text-white rounded-lg hover:bg-[#1e40af] transition-colors text-xs sm:text-sm font-medium"
+              title="Download PDF"
             >
               <Download className="w-4 h-4" />
               <span className="hidden sm:inline">PDF</span>
             </button>
-            
+
             <button
               onClick={handleSendInvoice}
-              className="flex items-center justify-center gap-1 px-2 sm:px-4 py-2 bg-[#FF8A2B] text-white rounded-lg hover:bg-[#FF6B00] transition-colors text-xs sm:text-sm font-medium flex-1 sm:flex-none"
+              className="flex items-center justify-center gap-1 p-2 sm:px-3 sm:py-2 bg-[#FF8A2B] text-white rounded-lg hover:bg-[#FF6B00] transition-colors text-xs sm:text-sm font-medium"
+              title="Send Invoice"
             >
               <Send className="w-4 h-4" />
               <span className="hidden sm:inline">Send</span>
@@ -345,7 +350,7 @@ export function InvoiceGeneratorPage() {
       </div>
 
       {/* Two Column Layout */}
-      <div className="grid lg:grid-cols-2 gap-6 p-6">
+      <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 p-3 sm:p-6">
         {/* Left: Form */}
         <div className={`${showPreview ? 'hidden lg:block' : 'block'}`}>
           <InvoiceForm invoice={invoice} onChange={setInvoice} />

@@ -388,7 +388,7 @@ export function DashboardHome() {
                 <div className={`inline-flex p-2.5 rounded-xl ${stat.color} shadow-sm mb-3`}>
                   <stat.icon className="w-5 h-5 text-white" />
                 </div>
-                <p className="text-xl sm:text-2xl font-bold text-slate-900">{stat.value}</p>
+                <p className="text-lg sm:text-2xl font-bold text-slate-900 truncate">{stat.value}</p>
                 <p className="text-xs sm:text-sm text-slate-500 mt-0.5">{stat.label}</p>
               </motion.div>
             ))}
@@ -406,7 +406,8 @@ export function DashboardHome() {
                 <h2 className="text-base sm:text-lg font-bold text-slate-900">Monthly Overview</h2>
               </div>
               {hasChartData ? (
-                <ResponsiveContainer width="100%" height={220}>
+                <div className="h-40 sm:h-56">
+                <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                     <XAxis
@@ -432,6 +433,7 @@ export function DashboardHome() {
                     <Bar dataKey="receipts" name="Receipts" fill="#10B981" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
+                </div>
               ) : (
                 <div className="flex flex-col items-center justify-center h-48 text-gray-400">
                   <BarChart2 className="w-10 h-10 mb-3 opacity-30" />

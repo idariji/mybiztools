@@ -32,13 +32,13 @@ export const SettingsPage: React.FC = () => {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Settings</h1>
         <p className="text-gray-600 mt-1">Manage your application preferences</p>
       </div>
 
-      <div className="space-y-6">
-        <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Bell className="w-5 h-5" />
             Notifications
@@ -103,7 +103,7 @@ export const SettingsPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Globe className="w-5 h-5" />
             Preferences
@@ -140,7 +140,7 @@ export const SettingsPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Palette className="w-5 h-5" />
             Appearance
@@ -159,7 +159,7 @@ export const SettingsPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Database className="w-5 h-5" />
             Data & Storage
@@ -202,7 +202,7 @@ export const SettingsPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Shield className="w-5 h-5" />
             Security

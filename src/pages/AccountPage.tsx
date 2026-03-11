@@ -161,17 +161,17 @@ export const AccountPage: React.FC = () => {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Account</h1>
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Account</h1>
         <p className="text-gray-600 mt-1">View and manage your account information</p>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* ── Left Column ── */}
-        <div className="lg:col-span-1 space-y-6">
+        <div className="lg:col-span-1 space-y-4 sm:space-y-6">
           {/* Profile Card */}
-          <div className="bg-white rounded-xl shadow-sm p-6 text-center">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-3xl font-bold mx-auto mb-4">
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 text-center">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold mx-auto mb-4">
               {fullName !== 'Not set' ? fullName.charAt(0).toUpperCase() : 'U'}
             </div>
             <h2 className="text-xl font-bold text-gray-900">{fullName}</h2>
@@ -213,7 +213,7 @@ export const AccountPage: React.FC = () => {
           </div>
 
           {/* Document Usage Card */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
             <h3 className="text-base font-semibold text-gray-900 mb-3">Document Usage</h3>
             {plan === 'free' ? (
               <div>
@@ -251,9 +251,9 @@ export const AccountPage: React.FC = () => {
         </div>
 
         {/* ── Right Column ── */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {/* Account Information Card */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
             <h3 className="text-lg font-semibold mb-4">Account Information</h3>
             <div className="space-y-4">
               <div className="flex items-start gap-3">
@@ -314,9 +314,9 @@ export const AccountPage: React.FC = () => {
           </div>
 
           {/* Account Statistics Card */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
             <h3 className="text-lg font-semibold mb-4">Account Statistics</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               {statCards.map((card) => (
                 <div
                   key={card.label}
@@ -333,7 +333,7 @@ export const AccountPage: React.FC = () => {
           </div>
 
           {/* Recent Documents Card */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
             <h3 className="text-lg font-semibold mb-4">Recent Documents</h3>
             {allDocs.length === 0 ? (
               <div className="text-center py-8 text-gray-400">
@@ -346,17 +346,20 @@ export const AccountPage: React.FC = () => {
                   <button
                     key={idx}
                     onClick={() => navigate(doc.path)}
-                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors text-left"
+                    className="w-full flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors text-left"
                   >
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${doc.badgeClass} shrink-0`}
-                    >
-                      {doc.type}
-                    </span>
-                    <span className="flex-1 text-sm font-medium text-gray-800 truncate">
-                      #{doc.number}
-                    </span>
-                    <span className="text-xs text-gray-400 shrink-0">
+                    <div className="flex items-center gap-2 w-full sm:contents">
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${doc.badgeClass} shrink-0`}
+                      >
+                        {doc.type}
+                      </span>
+                      <span className="flex-1 text-sm font-medium text-gray-800 truncate">
+                        #{doc.number}
+                      </span>
+                      <ArrowRight className="w-4 h-4 text-gray-300 shrink-0 sm:hidden" />
+                    </div>
+                    <span className="text-xs text-gray-400 sm:shrink-0 sm:ml-auto pl-0">
                       {doc.createdAt
                         ? new Date(doc.createdAt).toLocaleDateString('en-GB', {
                             day: 'numeric',
@@ -365,7 +368,7 @@ export const AccountPage: React.FC = () => {
                           })
                         : '—'}
                     </span>
-                    <ArrowRight className="w-4 h-4 text-gray-300 shrink-0" />
+                    <ArrowRight className="w-4 h-4 text-gray-300 shrink-0 hidden sm:block" />
                   </button>
                 ))}
               </div>
