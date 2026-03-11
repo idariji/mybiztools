@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { PaymentGatewayService } from '../services/paymentGatewayService.js';
-import { authenticateUser, AuthenticatedRequest } from '../middleware/authMiddleware.js';
+import { authenticateUser } from '../middleware/authMiddleware.js';
 
 const router = Router();
 
@@ -20,7 +20,7 @@ router.get('/plans', (req: Request, res: Response) => {
 });
 
 // POST /api/payments/initialize - Initialize payment (requires auth)
-router.post('/initialize', authenticateUser, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/initialize', authenticateUser, async (req: Request, res: Response) => {
   try {
     const { plan, billingCycle, callbackUrl } = req.body;
 
@@ -64,7 +64,7 @@ router.post('/initialize', authenticateUser, async (req: AuthenticatedRequest, r
 });
 
 // POST /api/payments/verify - Verify payment after callback
-router.post('/verify', authenticateUser, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/verify', authenticateUser, async (req: Request, res: Response) => {
   try {
     const { reference } = req.body;
 
@@ -97,7 +97,7 @@ router.post('/verify', authenticateUser, async (req: AuthenticatedRequest, res: 
 });
 
 // POST /api/payments/confirm - Manually confirm a payment (for testing/admin)
-router.post('/confirm', authenticateUser, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/confirm', authenticateUser, async (req: Request, res: Response) => {
   try {
     const { reference, plan, billingCycle } = req.body;
 

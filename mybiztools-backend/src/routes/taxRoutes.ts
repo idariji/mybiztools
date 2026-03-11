@@ -212,7 +212,7 @@
 
 import { Router } from 'express';
 import { TaxController } from '../controllers/taxController.js';
-import { authenticateUser } from '../middleware/authMiddleware.js';
+import { authenticateUser, requirePlan } from '../middleware/authMiddleware.js';
 import { validate } from '../middleware/validate.js';
 import {
   calculateCITSchema,

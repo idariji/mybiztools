@@ -366,7 +366,7 @@
 
 import { Router } from 'express';
 import { BudgetController } from '../controllers/budgetController.js';
-import { authenticateUser } from '../middleware/authMiddleware.js';
+import { authenticateUser, requirePlan } from '../middleware/authMiddleware.js';
 import { validate } from '../middleware/validate.js';
 import {
   createBudgetSchema,

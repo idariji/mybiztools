@@ -148,11 +148,11 @@ export class PaymentGatewayService {
       // Store pending payment
       await prisma.payment.create({
         data: {
-          user_id: userId,
+          userId: userId,
           amount: BigInt(amount * 100),
           currency: 'NGN',
           status: 'pending',
-          stripe_payment_id: reference,
+          stripePaymentId: reference,
         },
       });
 
@@ -182,7 +182,7 @@ export class PaymentGatewayService {
       const { reference, userId } = input;
 
       const payment = await prisma.payment.findFirst({
-        where: { stripe_payment_id: reference, user_id: userId, status: 'pending' },
+        where: { stripePaymentId: reference, userId: userId, status: 'pending' },
       });
 
       if (!payment) {
@@ -238,7 +238,7 @@ export class PaymentGatewayService {
     try {
       // Find the payment
       const payment = await prisma.payment.findFirst({
-        where: { stripe_payment_id: reference },
+        where: { stripePaymentId: reference },
       });
 
       if (!payment) {
@@ -270,39 +270,39 @@ export class PaymentGatewayService {
           where: { id: payment.id },
           data: {
             status: 'succeeded',
-            billing_period_start: now,
-            billing_period_end: periodEnd,
+            billingPeriodStart: now,
+            billingPeriodEnd: periodEnd,
           },
         }),
         // Update or create subscription
         prisma.subscription.upsert({
-          where: { user_id: payment.user_id },
+          where: { userId: payment.userId },
           create: {
-            user_id: payment.user_id,
-            plan_name: plan,
+            userId: payment.userId,
+            planName: plan,
             status: 'active',
-            current_period_start: now,
-            current_period_end: periodEnd,
-            mrr_value: BigInt(mrrValue),
-            annual_value: BigInt(planPricing.yearly * 100),
-            last_payment_id: payment.id,
+            currentPeriodStart: now,
+            currentPeriodEnd: periodEnd,
+            mrrValue: BigInt(mrrValue),
+            annualValue: BigInt(planPricing.yearly * 100),
+            lastPaymentId: payment.id,
           },
           update: {
-            plan_name: plan,
+            planName: plan,
             status: 'active',
-            current_period_start: now,
-            current_period_end: periodEnd,
-            mrr_value: BigInt(mrrValue),
-            annual_value: BigInt(planPricing.yearly * 100),
-            last_payment_id: payment.id,
+            currentPeriodStart: now,
+            currentPeriodEnd: periodEnd,
+            mrrValue: BigInt(mrrValue),
+            annualValue: BigInt(planPricing.yearly * 100),
+            lastPaymentId: payment.id,
           },
         }),
         // Update user's current plan
         prisma.user.update({
-          where: { id: payment.user_id },
+          where: { id: payment.userId },
           data: {
-            current_plan: plan,
-            subscription_status: 'active',
+            currentPlan: plan,
+            subscriptionStatus: 'active',
           },
         }),
       ]);
@@ -364,8 +364,8 @@ export class PaymentGatewayService {
         }
       } else if (event === 'FAILED_TRANSACTION') {
         await prisma.payment.updateMany({
-          where: { stripe_payment_id: data.paymentReference },
-          data: { status: 'failed', failure_reason: data.paymentStatusDescription },
+          where: { stripePaymentId: data.paymentReference },
+          data: { status: 'failed', failureReason: data.paymentStatusDescription },
         });
       }
 

@@ -23,9 +23,9 @@ export interface UserFilters {
 }
 
 export interface SubscriptionUpdateInput {
-  plan_name?: string;
+  planName?: string;
   status?: string;
-  expires_at?: Date;
+  expiresAt?: Date;
 }
 
 export class AdminService {
@@ -54,7 +54,7 @@ export class AdminService {
         };
       }
 
-      if (!admin.is_active) {
+      if (!admin.isActive) {
         return {
           success: false,
           message: 'Admin account is deactivated',
@@ -65,7 +65,7 @@ export class AdminService {
       // Update last login
       await prisma.admin.update({
         where: { id: admin.id },
-        data: { last_login_at: new Date() },
+        data: { lastLoginAt: new Date() },
       });
 
       // Generate token
@@ -160,11 +160,11 @@ export class AdminService {
       }
 
       if (filters.plan) {
-        where.current_plan = filters.plan;
+        where.currentPlan = filters.plan;
       }
 
       if (filters.status) {
-        where.subscription_status = filters.status;
+        where.subscriptionStatus = filters.status;
       }
 
       const [users, total] = await Promise.all([
@@ -172,7 +172,7 @@ export class AdminService {
           where,
           skip,
           take: limit,
-          orderBy: { created_at: 'desc' },
+          orderBy: { createdAt: 'desc' },
           select: {
             id: true,
             email: true,
@@ -181,19 +181,19 @@ export class AdminService {
             businessName: true,
             phone: true,
             emailVerified: true,
-            current_plan: true,
-            subscription_status: true,
-            created_at: true,
-            last_login_at: true,
+            currentPlan: true,
+            subscriptionStatus: true,
+            createdAt: true,
+            lastLoginAt: true,
             subscription: {
               select: {
                 id: true,
-                plan_name: true,
+                planName: true,
                 status: true,
-                current_period_start: true,
-                current_period_end: true,
-                expires_at: true,
-                mrr_value: true,
+                currentPeriodStart: true,
+                currentPeriodEnd: true,
+                expiresAt: true,
+                mrrValue: true,
               },
             },
           },
@@ -231,16 +231,16 @@ export class AdminService {
         include: {
           subscription: true,
           payments: {
-            orderBy: { created_at: 'desc' },
+            orderBy: { createdAt: 'desc' },
             take: 10,
           },
-          usage_tracking: true,
-          abuse_reports: {
-            orderBy: { created_at: 'desc' },
+          usageTracking: true,
+          abuseReports: {
+            orderBy: { createdAt: 'desc' },
             take: 5,
           },
           overrides: {
-            where: { is_active: true },
+            where: { isActive: true },
           },
         },
       });
@@ -274,10 +274,10 @@ export class AdminService {
   static async getUserSubscriptions(userId: string) {
     try {
       const subscription = await prisma.subscription.findUnique({
-        where: { user_id: userId },
+        where: { userId: userId },
         include: {
-          manual_changes: {
-            orderBy: { created_at: 'desc' },
+          manualChanges: {
+            orderBy: { createdAt: 'desc' },
             take: 10,
           },
         },
@@ -320,7 +320,7 @@ export class AdminService {
         };
       }
 
-      const oldPlan = user.current_plan;
+      const oldPlan = user.currentPlan;
       const now = new Date();
       const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
 
@@ -329,54 +329,54 @@ export class AdminService {
         await prisma.subscription.update({
           where: { id: user.subscription.id },
           data: {
-            plan_name: newPlan,
-            current_period_start: now,
-            current_period_end: periodEnd,
+            planName: newPlan,
+            currentPeriodStart: now,
+            currentPeriodEnd: periodEnd,
           },
         });
 
         // Log the change
         await prisma.manualSubscriptionChange.create({
           data: {
-            subscription_id: user.subscription.id,
-            user_id: userId,
-            admin_id: adminId,
-            admin_name: adminName,
-            admin_role: adminRole,
+            subscriptionId: user.subscription.id,
+            userId: userId,
+            adminId: adminId,
+            adminName: adminName,
+            adminRole: adminRole,
             action: oldPlan < newPlan ? 'upgrade' : 'downgrade',
-            from_plan: oldPlan,
-            to_plan: newPlan,
-            effective_date: now,
+            fromPlan: oldPlan,
+            toPlan: newPlan,
+            effectiveDate: now,
             reason,
             status: 'completed',
-            completed_at: now,
+            completedAt: now,
           },
         });
       } else {
         const newSubscription = await prisma.subscription.create({
           data: {
-            user_id: userId,
-            plan_name: newPlan,
+            userId: userId,
+            planName: newPlan,
             status: 'active',
-            current_period_start: now,
-            current_period_end: periodEnd,
+            currentPeriodStart: now,
+            currentPeriodEnd: periodEnd,
           },
         });
 
         await prisma.manualSubscriptionChange.create({
           data: {
-            subscription_id: newSubscription.id,
-            user_id: userId,
-            admin_id: adminId,
-            admin_name: adminName,
-            admin_role: adminRole,
+            subscriptionId: newSubscription.id,
+            userId: userId,
+            adminId: adminId,
+            adminName: adminName,
+            adminRole: adminRole,
             action: 'upgrade',
-            from_plan: 'free',
-            to_plan: newPlan,
-            effective_date: now,
+            fromPlan: 'free',
+            toPlan: newPlan,
+            effectiveDate: now,
             reason,
             status: 'completed',
-            completed_at: now,
+            completedAt: now,
           },
         });
       }
@@ -384,19 +384,19 @@ export class AdminService {
       // Update user's current plan
       await prisma.user.update({
         where: { id: userId },
-        data: { current_plan: newPlan },
+        data: { currentPlan: newPlan },
       });
 
       // Log admin action
       await prisma.adminAuditLog.create({
         data: {
-          admin_id: adminId,
-          admin_name: adminName,
-          admin_role: adminRole,
-          target_user_id: userId,
+          adminId: adminId,
+          adminName: adminName,
+          adminRole: adminRole,
+          targetUserId: userId,
           action: 'update',
           resource: 'subscription',
-          resource_id: userId,
+          resourceId: userId,
           changes: { from_plan: oldPlan, to_plan: newPlan },
           reason,
         },
@@ -443,26 +443,26 @@ export class AdminService {
 
       await prisma.user.update({
         where: { id: userId },
-        data: { subscription_status: newStatus },
+        data: { subscriptionStatus: newStatus },
       });
 
       // Update subscription status if exists
       await prisma.subscription.updateMany({
-        where: { user_id: userId },
+        where: { userId: userId },
         data: { status: newStatus },
       });
 
       // Log admin action
       await prisma.adminAuditLog.create({
         data: {
-          admin_id: adminId,
-          admin_name: adminName,
-          admin_role: adminRole,
-          target_user_id: userId,
+          adminId: adminId,
+          adminName: adminName,
+          adminRole: adminRole,
+          targetUserId: userId,
           action: 'update',
           resource: 'user',
-          resource_id: userId,
-          changes: { subscription_status: newStatus, suspended: suspend },
+          resourceId: userId,
+          changes: { subscriptionStatus: newStatus, suspended: suspend },
           reason,
         },
       });
@@ -513,41 +513,41 @@ export class AdminService {
         };
       }
 
-      const currentEnd = user.subscription.current_period_end;
+      const currentEnd = user.subscription.currentPeriodEnd;
       const newEnd = new Date(currentEnd.getTime() + days * 24 * 60 * 60 * 1000);
 
       await prisma.subscription.update({
         where: { id: user.subscription.id },
-        data: { current_period_end: newEnd },
+        data: { currentPeriodEnd: newEnd },
       });
 
       // Log the change
       await prisma.manualSubscriptionChange.create({
         data: {
-          subscription_id: user.subscription.id,
-          user_id: userId,
-          admin_id: adminId,
-          admin_name: adminName,
-          admin_role: adminRole,
+          subscriptionId: user.subscription.id,
+          userId: userId,
+          adminId: adminId,
+          adminName: adminName,
+          adminRole: adminRole,
           action: 'extend',
-          effective_date: new Date(),
+          effectiveDate: new Date(),
           reason,
           notes: `Extended by ${days} days`,
           status: 'completed',
-          completed_at: new Date(),
+          completedAt: new Date(),
         },
       });
 
       // Log admin action
       await prisma.adminAuditLog.create({
         data: {
-          admin_id: adminId,
-          admin_name: adminName,
-          admin_role: adminRole,
-          target_user_id: userId,
+          adminId: adminId,
+          adminName: adminName,
+          adminRole: adminRole,
+          targetUserId: userId,
           action: 'update',
           resource: 'subscription',
-          resource_id: user.subscription.id,
+          resourceId: user.subscription.id,
           changes: { extended_days: days, new_end: newEnd.toISOString() },
           reason,
         },

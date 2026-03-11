@@ -195,7 +195,7 @@
 
 import { Router } from 'express';
 import { SocialController } from '../controllers/socialController.js';
-import { authenticateUser } from '../middleware/authMiddleware.js';
+import { authenticateUser, requirePlan } from '../middleware/authMiddleware.js';
 import { validate } from '../middleware/validate.js';
 import { createPostSchema, updatePostSchema } from '../validators/socialValidator.js';
 

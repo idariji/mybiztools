@@ -32,16 +32,16 @@ export class PaymentService {
       }
 
       if (filters.userId) {
-        where.user_id = filters.userId;
+        where.userId = filters.userId;
       }
 
       if (filters.dateFrom || filters.dateTo) {
-        where.created_at = {};
+        where.createdAt = {};
         if (filters.dateFrom) {
-          where.created_at.gte = new Date(filters.dateFrom);
+          where.createdAt.gte = new Date(filters.dateFrom);
         }
         if (filters.dateTo) {
-          where.created_at.lte = new Date(filters.dateTo);
+          where.createdAt.lte = new Date(filters.dateTo);
         }
       }
 
@@ -50,7 +50,7 @@ export class PaymentService {
           where,
           skip,
           take: limit,
-          orderBy: { created_at: 'desc' },
+          orderBy: { createdAt: 'desc' },
           include: {
             user: {
               select: {
@@ -61,7 +61,7 @@ export class PaymentService {
                 businessName: true,
               },
             },
-            refund_logs: true,
+            refundLogs: true,
           },
         }),
         prisma.payment.count({ where }),
@@ -104,7 +104,7 @@ export class PaymentService {
               businessName: true,
             },
           },
-          refund_logs: true,
+          refundLogs: true,
         },
       });
 
@@ -153,7 +153,7 @@ export class PaymentService {
         };
       }
 
-      const currentRefunded = Number(payment.refunded_amount);
+      const currentRefunded = Number(payment.refundedAmount);
       const paymentAmount = Number(payment.amount);
       const refundAmount = input.amount;
 
@@ -177,9 +177,9 @@ export class PaymentService {
       await prisma.payment.update({
         where: { id: input.paymentId },
         data: {
-          refunded_amount: BigInt(newRefundedTotal),
-          refund_reason: input.reason,
-          refunded_at: new Date(),
+          refundedAmount: BigInt(newRefundedTotal),
+          refundReason: input.reason,
+          refundedAt: new Date(),
           status: newStatus,
         },
       });
@@ -187,24 +187,24 @@ export class PaymentService {
       // Create refund log
       await prisma.refundLog.create({
         data: {
-          payment_id: input.paymentId,
+          paymentId: input.paymentId,
           amount: BigInt(refundAmount),
           reason: input.reason,
-          admin_id: input.adminId,
-          admin_name: input.adminName,
+          adminId: input.adminId,
+          adminName: input.adminName,
         },
       });
 
       // Log admin action
       await prisma.adminAuditLog.create({
         data: {
-          admin_id: input.adminId,
-          admin_name: input.adminName,
-          admin_role: 'billing_admin',
-          target_user_id: payment.user_id,
+          adminId: input.adminId,
+          adminName: input.adminName,
+          adminRole: 'billing_admin',
+          targetUserId: payment.userId,
           action: 'update',
           resource: 'payment',
-          resource_id: input.paymentId,
+          resourceId: input.paymentId,
           changes: {
             refund_amount: refundAmount,
             total_refunded: newRefundedTotal,
@@ -256,7 +256,7 @@ export class PaymentService {
         };
       }
 
-      if (payment.max_retries_reached) {
+      if (payment.maxRetriesReached) {
         return {
           success: false,
           message: 'Maximum retries reached for this payment',
@@ -264,7 +264,7 @@ export class PaymentService {
         };
       }
 
-      const newRetryCount = payment.retry_count + 1;
+      const newRetryCount = payment.retryCount + 1;
       const maxRetries = 3;
 
       // Update payment for retry
@@ -272,22 +272,22 @@ export class PaymentService {
         where: { id: paymentId },
         data: {
           status: 'pending',
-          retry_count: newRetryCount,
-          next_retry_at: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
-          max_retries_reached: newRetryCount >= maxRetries,
+          retryCount: newRetryCount,
+          nextRetryAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+          maxRetriesReached: newRetryCount >= maxRetries,
         },
       });
 
       // Log admin action
       await prisma.adminAuditLog.create({
         data: {
-          admin_id: adminId,
-          admin_name: adminName,
-          admin_role: 'billing_admin',
-          target_user_id: payment.user_id,
+          adminId: adminId,
+          adminName: adminName,
+          adminRole: 'billing_admin',
+          targetUserId: payment.userId,
           action: 'update',
           resource: 'payment',
-          resource_id: paymentId,
+          resourceId: paymentId,
           changes: { action: 'retry', retry_count: newRetryCount },
           reason: 'Manual payment retry',
         },
@@ -332,21 +332,21 @@ export class PaymentService {
         pendingAbuseReports,
       ] = await Promise.all([
         prisma.user.count(),
-        prisma.user.count({ where: { subscription_status: 'active' } }),
-        prisma.user.count({ where: { current_plan: 'free' } }),
-        prisma.user.count({ where: { current_plan: 'pro' } }),
-        prisma.user.count({ where: { current_plan: 'enterprise' } }),
-        prisma.user.count({ where: { subscription_status: 'suspended' } }),
+        prisma.user.count({ where: { subscriptionStatus: 'active' } }),
+        prisma.user.count({ where: { currentPlan: 'free' } }),
+        prisma.user.count({ where: { currentPlan: 'pro' } }),
+        prisma.user.count({ where: { currentPlan: 'enterprise' } }),
+        prisma.user.count({ where: { subscriptionStatus: 'suspended' } }),
         prisma.payment.findMany({
           where: {
             status: 'succeeded',
-            created_at: { gte: startOfMonth },
+            createdAt: { gte: startOfMonth },
           },
         }),
         prisma.payment.findMany({
           where: {
             status: 'succeeded',
-            created_at: { gte: startOfLastMonth, lte: endOfLastMonth },
+            createdAt: { gte: startOfLastMonth, lte: endOfLastMonth },
           },
         }),
         prisma.abuseReport.count({ where: { status: 'pending' } }),
@@ -368,14 +368,14 @@ export class PaymentService {
       });
 
       const mrr = activeSubscriptions.reduce(
-        (sum, s) => sum + Number(s.mrr_value),
+        (sum, s) => sum + Number(s.mrrValue),
         0
       );
 
       // Recent signups (last 7 days)
       const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       const recentSignups = await prisma.user.count({
-        where: { created_at: { gte: weekAgo } },
+        where: { createdAt: { gte: weekAgo } },
       });
 
       // Failed payments count
@@ -448,7 +448,7 @@ export class PaymentService {
           where,
           skip,
           take: limit,
-          orderBy: { created_at: 'desc' },
+          orderBy: { createdAt: 'desc' },
           include: {
             user: {
               select: {
@@ -456,7 +456,7 @@ export class PaymentService {
                 email: true,
                 firstName: true,
                 lastName: true,
-                current_plan: true,
+                currentPlan: true,
               },
             },
           },
@@ -511,31 +511,31 @@ export class PaymentService {
         where: { id: reportId },
         data: {
           status: 'reviewed',
-          reviewed_at: new Date(),
-          reviewed_by: adminId,
-          action_taken: action,
-          action_reason: reason,
+          reviewedAt: new Date(),
+          reviewedBy: adminId,
+          actionTaken: action,
+          actionReason: reason,
         },
       });
 
       // If action is suspend, suspend the user
       if (action === 'suspended') {
         await prisma.user.update({
-          where: { id: report.user_id },
-          data: { subscription_status: 'suspended' },
+          where: { id: report.userId },
+          data: { subscriptionStatus: 'suspended' },
         });
       }
 
       // Log admin action
       await prisma.adminAuditLog.create({
         data: {
-          admin_id: adminId,
-          admin_name: adminName,
-          admin_role: 'support_admin',
-          target_user_id: report.user_id,
+          adminId: adminId,
+          adminName: adminName,
+          adminRole: 'support_admin',
+          targetUserId: report.userId,
           action: 'update',
           resource: 'abuse_report',
-          resource_id: reportId,
+          resourceId: reportId,
           changes: { action_taken: action },
           reason,
         },
