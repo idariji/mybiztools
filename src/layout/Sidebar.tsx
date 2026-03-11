@@ -1,10 +1,11 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../services/authService';
+import { canAccessFeature } from '../utils/planUtils';
 import {
   LayoutDashboard, FileText, FileSpreadsheet, Receipt, CreditCard,
   QrCode, Calendar, PieChart, TrendingDown, Calculator, Bot,
-  Settings, LogOut, ChevronLeft, Hexagon
+  Settings, LogOut, ChevronLeft, Hexagon, Zap, Lock
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -17,20 +18,35 @@ interface SidebarProps {
 export function Sidebar({ collapsed, setCollapsed, mobileMenuOpen, setMobileMenuOpen }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const user = authService.getCurrentUser();
+  const plan = user?.current_plan;
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-    { icon: FileText, label: 'Invoice Generator', path: '/dashboard/invoices' },
-    { icon: FileSpreadsheet, label: 'Quotation Generator', path: '/dashboard/quotations' },
-    { icon: Receipt, label: 'Receipt Generator', path: '/dashboard/receipts' },
-    { icon: CreditCard, label: 'Payslip Generator', path: '/dashboard/payslips/create' },
-    { icon: QrCode, label: 'Business Card & QR', path: '/dashboard/business-card' },
-    { icon: Calendar, label: 'Social Media Planner', path: '/dashboard/social-planner' },
-    { icon: TrendingDown, label: 'Cost Manager', path: '/dashboard/cost-manager' },
-    { icon: PieChart, label: 'Budget Tracker', path: '/dashboard/budget-tracker' },
-    { icon: Calculator, label: 'Tax Calculator', path: '/dashboard/tax-calculator' },
-    { icon: Bot, label: 'DEDAI Assistant', path: '/dashboard/dedai' },
+    { icon: LayoutDashboard, label: 'Dashboard',           path: '/dashboard',                exact: true,  featureKey: '' },
+    { icon: FileText,        label: 'Invoices',            path: '/dashboard/invoices',        exact: false, featureKey: '' },
+    { icon: FileSpreadsheet, label: 'Quotations',          path: '/dashboard/quotations',      exact: false, featureKey: '' },
+    { icon: Receipt,         label: 'Receipts',            path: '/dashboard/receipts',        exact: false, featureKey: '' },
+    { icon: CreditCard,      label: 'Payslips',            path: '/dashboard/payslips',        exact: false, featureKey: '' },
+    { icon: QrCode,          label: 'Business Card & QR', path: '/dashboard/business-card',   exact: false, featureKey: 'business-card' },
+    { icon: Calendar,        label: 'Social Media Planner',path: '/dashboard/social-planner', exact: false, featureKey: 'social-planner' },
+    { icon: TrendingDown,    label: 'Cost Manager',        path: '/dashboard/cost-manager',    exact: false, featureKey: '' },
+    { icon: PieChart,        label: 'Budget Tracker',      path: '/dashboard/budget-tracker',  exact: false, featureKey: 'budget-tracker' },
+    { icon: Calculator,      label: 'Tax Calculator',      path: '/dashboard/tax-calculator',  exact: false, featureKey: 'tax-calculator' },
+    { icon: Bot,             label: 'DEDAI Assistant',     path: '/dashboard/dedai',           exact: false, featureKey: 'dedai' },
+    { icon: Zap,             label: 'Subscription',        path: '/dashboard/subscription',    exact: false, featureKey: '' },
   ];
+
+  const isActive = (item: { path: string; exact?: boolean }) =>
+    item.exact ? location.pathname === item.path : location.pathname.startsWith(item.path);
+
+  const handleNavClick = (item: typeof menuItems[0]) => {
+    if (item.featureKey && !canAccessFeature(plan, item.featureKey)) {
+      navigate('/dashboard/subscription');
+    } else {
+      navigate(item.path);
+    }
+    setMobileMenuOpen(false);
+  };
 
   return (
     <>
@@ -57,22 +73,34 @@ export function Sidebar({ collapsed, setCollapsed, mobileMenuOpen, setMobileMenu
         </div>
 
         <nav className="p-3 lg:p-4 space-y-1.5 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 180px)' }}>
-          {menuItems.map((item) => (
-            <button
-              key={item.path}
-              onClick={() => {
-                navigate(item.path);
-                setMobileMenuOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3.5 lg:py-3 rounded-xl transition-all active:scale-95 ${location.pathname === item.path
-                  ? 'bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] text-white shadow-lg'
-                  : 'hover:bg-slate-100 text-slate-700 active:bg-slate-200'
+          {menuItems.map((item) => {
+            const locked = !!(item.featureKey && !canAccessFeature(plan, item.featureKey));
+            return (
+              <button
+                key={item.path}
+                onClick={() => handleNavClick(item)}
+                title={locked ? 'Upgrade to access this feature' : item.label}
+                className={`w-full flex items-center gap-3 px-4 py-3.5 lg:py-3 rounded-xl transition-all active:scale-95 relative ${
+                  locked
+                    ? 'text-slate-400 hover:bg-slate-50 cursor-pointer'
+                    : isActive(item)
+                    ? 'bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] text-white shadow-lg'
+                    : 'hover:bg-slate-100 text-slate-700 active:bg-slate-200'
                 }`}
-            >
-              <item.icon className="w-5 h-5 lg:w-5 lg:h-5 shrink-0" />
-              {!collapsed && <span className="text-sm lg:text-sm font-medium">{item.label}</span>}
-            </button>
-          ))}
+              >
+                <item.icon className="w-5 h-5 shrink-0" />
+                {!collapsed && (
+                  <span className="text-sm font-medium flex-1 text-left">{item.label}</span>
+                )}
+                {locked && !collapsed && (
+                  <Lock className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+                )}
+                {locked && collapsed && (
+                  <Lock className="w-3 h-3 text-slate-300 absolute top-1 right-1" />
+                )}
+              </button>
+            );
+          })}
         </nav>
 
         <div className="absolute bottom-0 left-0 right-0 p-3 lg:p-4 border-t border-slate-200 space-y-1.5 bg-white">

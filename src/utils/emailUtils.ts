@@ -12,7 +12,7 @@ import {
   sendReceiptEmail,
   sendQuotationEmail,
   sendPayslipEmail,
-} from './emailService';
+} from '../services/emailService';
 import { Invoice } from '../types/invoice';
 import { Receipt } from '../types/receipt';
 import { Quotation } from '../types/quotation';
@@ -220,7 +220,7 @@ export const sendReceiptEmailSafe = async (
   pdfBlob: Blob
 ): Promise<{ success: boolean; message: string }> => {
   try {
-    if (!validateEmail(receipt.clientInfo.email)) {
+    if (!validateEmail(receipt.customerInfo.email || '')) {
       return { success: false, message: 'Invalid client email address' };
     }
 
@@ -275,7 +275,7 @@ export const sendPayslipEmailSafe = async (
   pdfBlob: Blob
 ): Promise<{ success: boolean; message: string }> => {
   try {
-    if (!validateEmail(payslip.employeeEmail)) {
+    if (!validateEmail(payslip.employeeInfo.email)) {
       return { success: false, message: 'Invalid employee email address' };
     }
 

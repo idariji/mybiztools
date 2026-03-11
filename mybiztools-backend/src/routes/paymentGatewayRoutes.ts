@@ -1,144 +1,85 @@
-// import { Router, Request, Response } from 'express';
-// import { PaymentGatewayService } from '../services/paymentGatewayService.js';
-// import { authenticateUser, AuthenticatedRequest } from '../middleware/authMiddleware.js';
+import { Router, Request, Response } from 'express';
+import { PaymentGatewayService } from '../services/paymentGatewayService.js';
+import { authenticateUser } from '../middleware/authMiddleware.js';
 
-// const router = Router();
+// ============================================================================
+// PAYMENT GATEWAY ROUTES
+// ============================================================================
 
-// // GET /api/payments/plans - Public endpoint for plan information
-// router.get('/plans', (req: Request, res: Response) => {
-//   try {
-//     const result = PaymentGatewayService.getPlans();
-//     return res.status(200).json(result);
-//   } catch (error) {
-//     console.error('Get plans route error:', error);
-//     return res.status(500).json({
-//       success: false,
-//       message: 'Internal server error',
-//       error: 'SERVER_ERROR',
-//     });
-//   }
-// });
+const router = Router();
 
-// // POST /api/payments/initialize - Initialize payment (requires auth)
-// router.post('/initialize', authenticateUser, async (req: AuthenticatedRequest, res: Response) => {
-//   try {
-//     const { plan, billingCycle, callbackUrl } = req.body;
+/**
+ * @swagger
+ * tags:
+ *   name: Payments
+ *   description: Payment gateway and plan management
+ */
 
-//     if (!plan || !billingCycle) {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Plan and billing cycle are required',
-//         error: 'MISSING_FIELDS',
-//       });
-//     }
+/** GET /api/payments/plans — Public */
+router.get('/plans', (_req: Request, res: Response) => {
+  const result = PaymentGatewayService.getPlans();
+  res.status(200).json(result);
+});
 
-//     if (!['monthly', 'yearly'].includes(billingCycle)) {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Invalid billing cycle. Must be monthly or yearly',
-//         error: 'INVALID_BILLING_CYCLE',
-//       });
-//     }
+/** POST /api/payments/initialize */
+router.post('/initialize', authenticateUser, async (req: Request, res: Response) => {
+  const { plan, billingCycle, callbackUrl } = req.body;
 
-//     const result = await PaymentGatewayService.initializePayment({
-//       userId: req.user!.id,
-//       email: req.user!.email,
-//       plan,
-//       billingCycle,
-//       callbackUrl,
-//     });
+  if (!plan || !billingCycle) {
+    res.status(400).json({ success: false, message: 'Plan and billing cycle are required', error: 'MISSING_FIELDS' });
+    return;
+  }
 
-//     if (!result.success) {
-//       return res.status(400).json(result);
-//     }
+  if (!['monthly', 'yearly'].includes(billingCycle)) {
+    res.status(400).json({ success: false, message: 'Billing cycle must be monthly or yearly', error: 'INVALID_BILLING_CYCLE' });
+    return;
+  }
 
-//     return res.status(200).json(result);
-//   } catch (error) {
-//     console.error('Initialize payment route error:', error);
-//     return res.status(500).json({
-//       success: false,
-//       message: 'Internal server error',
-//       error: 'SERVER_ERROR',
-//     });
-//   }
-// });
+  const result = await PaymentGatewayService.initializePayment({
+    userId: req.user!.id,
+    email: req.user!.email,
+    plan,
+    billingCycle,
+    callbackUrl,
+  });
 
-// // POST /api/payments/verify - Verify payment after callback
-// router.post('/verify', authenticateUser, async (req: AuthenticatedRequest, res: Response) => {
-//   try {
-//     const { reference } = req.body;
+  res.status(result.success ? 200 : 400).json(result);
+});
 
-//     if (!reference) {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Payment reference is required',
-//         error: 'MISSING_REFERENCE',
-//       });
-//     }
+/** POST /api/payments/verify */
+router.post('/verify', authenticateUser, async (req: Request, res: Response) => {
+  const { reference } = req.body;
 
-//     const result = await PaymentGatewayService.verifyPayment({
-//       reference,
-//       userId: req.user!.id,
-//     });
+  if (!reference) {
+    res.status(400).json({ success: false, message: 'Payment reference is required', error: 'MISSING_REFERENCE' });
+    return;
+  }
 
-//     if (!result.success) {
-//       return res.status(400).json(result);
-//     }
+  const result = await PaymentGatewayService.verifyPayment({
+    reference,
+    userId: req.user!.id,
+  });
 
-//     return res.status(200).json(result);
-//   } catch (error) {
-//     console.error('Verify payment route error:', error);
-//     return res.status(500).json({
-//       success: false,
-//       message: 'Internal server error',
-//       error: 'SERVER_ERROR',
-//     });
-//   }
-// });
+  res.status(result.success ? 200 : 400).json(result);
+});
 
-// // POST /api/payments/confirm - Manually confirm a payment (for testing/admin)
-// router.post('/confirm', authenticateUser, async (req: AuthenticatedRequest, res: Response) => {
-//   try {
-//     const { reference, plan, billingCycle } = req.body;
+/** POST /api/payments/confirm */
+router.post('/confirm', authenticateUser, async (req: Request, res: Response) => {
+  const { reference, plan, billingCycle } = req.body;
 
-//     if (!reference || !plan || !billingCycle) {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Reference, plan, and billing cycle are required',
-//         error: 'MISSING_FIELDS',
-//       });
-//     }
+  if (!reference || !plan || !billingCycle) {
+    res.status(400).json({ success: false, message: 'Reference, plan, and billing cycle are required', error: 'MISSING_FIELDS' });
+    return;
+  }
 
-//     const result = await PaymentGatewayService.processSuccessfulPayment(
-//       reference,
-//       plan,
-//       billingCycle
-//     );
+  const result = await PaymentGatewayService.processSuccessfulPayment(reference, plan, billingCycle);
+  res.status(result.success ? 200 : 400).json(result);
+});
 
-//     if (!result.success) {
-//       return res.status(400).json(result);
-//     }
+/** POST /api/payments/webhook/monnify — Public webhook */
+router.post('/webhook/monnify', async (req: Request, res: Response) => {
+  const result = await PaymentGatewayService.handleWebhook(req.body);
+  res.status(200).json(result);
+});
 
-//     return res.status(200).json(result);
-//   } catch (error) {
-//     console.error('Confirm payment route error:', error);
-//     return res.status(500).json({
-//       success: false,
-//       message: 'Internal server error',
-//       error: 'SERVER_ERROR',
-//     });
-//   }
-// });
-
-// // POST /api/payments/webhook/monipoint - Monipoint webhook
-// router.post('/webhook/monipoint', async (req: Request, res: Response) => {
-//   try {
-//     const result = await PaymentGatewayService.handleWebhook(req.body);
-//     return res.status(200).json(result);
-//   } catch (error) {
-//     console.error('Monipoint webhook route error:', error);
-//     return res.status(200).json({ success: false, message: 'Webhook processing error' });
-//   }
-// });
-
-// export default router;
+export default router;

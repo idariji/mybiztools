@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '../layout/DashboardLayout';
-import { Plus, Download, Eye, Trash2, Search } from 'lucide-react';
+import { Plus, Download, Eye, Trash2, Search, Lock, Zap } from 'lucide-react';
 import { Receipt } from '../types/receipt';
+import { authService } from '../services/authService';
+import { canCreateDocument, FREE_DOCUMENT_LIMIT, normalisePlan } from '../utils/planUtils';
 
 export function ReceiptPage() {
   const navigate = useNavigate();
   const [receipts, setReceipts] = useState<Receipt[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const user = authService.getCurrentUser();
+  const plan = user?.current_plan;
+  const isFree = normalisePlan(plan) === 'free';
 
   useEffect(() => {
     const drafts = JSON.parse(localStorage.getItem('receipt-drafts') || '[]');
@@ -35,13 +41,23 @@ export function ReceiptPage() {
             <h1 className="text-3xl font-bold text-slate-900">Receipt Generator</h1>
             <p className="text-slate-600 mt-1">Create and manage digital receipts</p>
           </div>
-          <button 
-            onClick={() => navigate('/dashboard/receipts/create')}
-            className="flex items-center gap-2 px-6 py-3 bg-[#FF8A2B] text-white rounded-xl font-semibold hover:bg-[#FF6B00] transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            New Receipt
-          </button>
+          <div className="flex items-center gap-3">
+            {isFree && (
+              <span className="text-sm text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg">
+                {receipts.length}/{FREE_DOCUMENT_LIMIT} receipts used
+              </span>
+            )}
+            <button
+              onClick={() => {
+                if (!canCreateDocument(plan, receipts.length)) { setShowUpgrade(true); return; }
+                navigate('/dashboard/receipts/create');
+              }}
+              className="flex items-center gap-2 px-6 py-3 bg-[#FF8A2B] text-white rounded-xl font-semibold hover:bg-[#FF6B00] transition-colors"
+            >
+              {!canCreateDocument(plan, receipts.length) ? <Lock className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+              New Receipt
+            </button>
+          </div>
         </div>
 
         {/* Search */}
@@ -119,6 +135,40 @@ export function ReceiptPage() {
           </div>
         </div>
       </div>
+
+      {/* Upgrade Modal */}
+      {showUpgrade && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-orange-100 rounded-xl">
+                <Zap className="w-6 h-6 text-[#FF8A2B]" />
+              </div>
+              <h2 className="text-xl font-bold text-slate-900">Upgrade Required</h2>
+            </div>
+            <p className="text-slate-600 mb-2">
+              You've reached the <strong>{FREE_DOCUMENT_LIMIT} receipt limit</strong> on the Free plan.
+            </p>
+            <p className="text-slate-600 mb-6">
+              Upgrade to <strong>Starter, Business Pro, or Enterprise Suite</strong> for unlimited receipts and full access to all features.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowUpgrade(false)}
+                className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => { setShowUpgrade(false); navigate('/dashboard/subscription'); }}
+                className="flex-1 px-4 py-2 bg-[#FF8A2B] text-white rounded-xl font-semibold hover:bg-[#FF6B00] transition-colors"
+              >
+                Upgrade Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

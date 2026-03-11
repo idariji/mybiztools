@@ -9,10 +9,13 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useToast } from '../utils/useToast';
 import { ToastContainer } from '../components/ui/Toast';
+import { authService } from '../services/authService';
+import { hasWatermark } from '../utils/planUtils';
 
 export function PayslipGeneratorPage() {
   const navigate = useNavigate();
   const { toasts, addToast, removeToast } = useToast();
+  const showWatermark = hasWatermark(authService.getCurrentUser()?.current_plan);
   const [payslip, setPayslip] = useState<Payslip>({
     payslipNumber: '',
     month: new Date().toLocaleString('default', { month: 'long' }),
@@ -136,7 +139,7 @@ export function PayslipGeneratorPage() {
                 <p className="text-xs sm:text-sm text-gray-600">Nigerian PAYE 2026 compliant</p>
               </div>
               <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-auto max-h-[calc(100vh-200px)]">
-                <PayslipPreview payslip={payslip} />
+                <PayslipPreview payslip={payslip} showWatermark={showWatermark} />
               </div>
             </div>
           </div>

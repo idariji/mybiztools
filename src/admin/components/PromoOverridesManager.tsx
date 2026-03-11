@@ -57,7 +57,6 @@ export function PromoOverridesManager({ overrides = [], onAddOverride, onRemoveO
       startDate: now.toISOString().split('T')[0],
       endDate: endDate.toISOString().split('T')[0],
       appliedBy: 'admin@company.com', // In production, use actual admin email
-      isActive: true,
     });
 
     setFormData({

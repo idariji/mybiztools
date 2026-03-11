@@ -11,10 +11,13 @@ import { useToast } from '../utils/useToast';
 import { ToastContainer } from '../components/ui/Toast';
 import { safeGetJSON, safeSetJSON } from '../utils/storage';
 import { safePrint } from '../utils/printUtils';
+import { authService } from '../services/authService';
+import { hasWatermark } from '../utils/planUtils';
 
 export function ReceiptGeneratorPage() {
   const navigate = useNavigate();
   const { toasts, addToast, removeToast } = useToast();
+  const showWatermark = hasWatermark(authService.getCurrentUser()?.current_plan);
   const [receipt, setReceipt] = useState<Receipt>({
     receiptNumber: generateReceiptNumber(),
     receiptDate: new Date().toISOString().split('T')[0],
@@ -259,7 +262,7 @@ export function ReceiptGeneratorPage() {
                 <p className="text-xs sm:text-sm text-gray-600">This is how your receipt will look</p>
               </div>
               <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
-                <ReceiptPreview receipt={receipt} />
+                <ReceiptPreview receipt={receipt} showWatermark={showWatermark} />
               </div>
             </div>
           </div>

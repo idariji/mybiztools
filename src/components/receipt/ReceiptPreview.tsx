@@ -5,14 +5,20 @@ import { formatCurrency, formatDate } from '../../utils/invoiceUtils';
 
 interface ReceiptPreviewProps {
   receipt: Receipt;
+  showWatermark?: boolean;
 }
 
-export function ReceiptPreview({ receipt }: ReceiptPreviewProps) {
+export function ReceiptPreview({ receipt, showWatermark }: ReceiptPreviewProps) {
   const currency = CURRENCIES.find(c => c.code === receipt.currency);
   const currencySymbol = currency?.symbol || '$';
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-8 max-w-2xl mx-auto" id="receipt-preview">
+    <div className="bg-white rounded-xl shadow-lg p-8 max-w-2xl mx-auto relative overflow-hidden" id="receipt-preview">
+      {showWatermark && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-10 rotate-[-35deg] opacity-10 select-none">
+          <span className="text-[80px] font-black text-gray-800 whitespace-nowrap tracking-widest">MYBIZTOOLS FREE</span>
+        </div>
+      )}
       {/* Header */}
       <div className="text-center mb-8 border-b-2 border-[#1e3a8a] pb-6">
         {receipt.businessInfo.logo && (

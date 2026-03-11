@@ -14,18 +14,18 @@ const swaggerUi = require('swagger-ui-express');
 // ROUTE IMPORTS
 // Add new route files here as the project grows
 import authRoutes from './routes/authRoutes.js';
-// import adminRoutes from './routes/adminRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import documentRoutes from './routes/documentRoutes.js';
 import budgetRoutes from './routes/budgetRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
-// import paymentGatewayRoutes from './routes/paymentGatewayRoutes.js';
-// import dedaRoutes from './routes/dedaRoutes.js';
+import paymentGatewayRoutes from './routes/paymentGatewayRoutes.js';
+import dedaRoutes from './routes/dedaRoutes.js';
 import socialRoutes from './routes/socialRoutes.js';
 import taxRoutes from './routes/taxRoutes.js';
 import documentGeneratorRoutes from './routes/documentGeneratorRoutes.js';
-// import supportRoutes from './routes/supportRoutes.js';
-// import smsRoutes from './routes/smsRoutes.js';
+import supportRoutes from './routes/supportRoutes.js';
+import smsRoutes from './routes/smsRoutes.js';
 
 // APP INIT
 const app = express();
@@ -108,18 +108,18 @@ app.get('/health', (_req: Request, res: Response) => {
 
 // ROUTES
 app.use('/api/auth', authRoutes);
-// app.use('/api/admin', adminRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/budgets', budgetRoutes);
 app.use('/api/contacts', contactRoutes);
-// app.use('/api/payments', paymentGatewayRoutes);
-// app.use('/api/deda', dedaRoutes);
+app.use('/api/payments', paymentGatewayRoutes);
+app.use('/api/deda', dedaRoutes);
 app.use('/api/social', socialRoutes);
 app.use('/api/tax', taxRoutes);
 app.use('/api/generator', documentGeneratorRoutes);
-// app.use('/api/admin/support', supportRoutes);
-// app.use('/api/sms', smsRoutes);
+app.use('/api/admin/support', supportRoutes);
+app.use('/api/sms', smsRoutes);
 
 
 // 404 HANDLER

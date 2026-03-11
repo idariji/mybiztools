@@ -193,7 +193,7 @@ export const sendReceiptEmail = async (
 ): Promise<boolean> => {
   try {
     const formData = new FormData();
-    formData.append('to', receipt.clientInfo.email);
+    formData.append('to', receipt.customerInfo.email || '');
     formData.append('subject', `Receipt #${receipt.receiptNumber} - Thank You`);
     formData.append('message', message);
     formData.append('receipt', pdfBlob, `${receipt.receiptNumber}.pdf`);
@@ -260,8 +260,8 @@ export const sendPayslipEmail = async (
 ): Promise<boolean> => {
   try {
     const formData = new FormData();
-    formData.append('to', payslip.employeeEmail);
-    formData.append('subject', `Payslip for ${payslip.month} - ${payslip.employeeName}`);
+    formData.append('to', payslip.employeeInfo.email);
+    formData.append('subject', `Payslip for ${payslip.month} - ${payslip.employeeInfo.name}`);
     formData.append('payslip', pdfBlob, `payslip_${payslip.month}.pdf`);
     formData.append('message', `Attached is your payslip for ${payslip.month}.`);
 
@@ -498,7 +498,7 @@ export const generateEmailTemplate = (invoice: Invoice, message: string): string
 
 export const generateReceiptTemplate = (receipt: Receipt, message: string): string => {
   const total = (receipt.summary?.total || 0).toLocaleString();
-  const issueDate = new Date(receipt.issueDate).toLocaleDateString();
+  const issueDate = new Date(receipt.receiptDate).toLocaleDateString();
 
   return `
     <!DOCTYPE html>
@@ -518,7 +518,7 @@ export const generateReceiptTemplate = (receipt: Receipt, message: string): stri
           
           <div class="content">
             <div class="section">
-              <p>Hello <strong>${receipt.clientInfo.name}</strong>,</p>
+              <p>Hello <strong>${receipt.customerInfo.name}</strong>,</p>
               <p style="margin-top: 10px;">We have received your payment. Here's your receipt:</p>
             </div>
 
@@ -558,7 +558,7 @@ export const generateReceiptTemplate = (receipt: Receipt, message: string): stri
 
 export const generateQuotationTemplate = (quotation: Quotation, message: string): string => {
   const total = (quotation.summary?.total || 0).toLocaleString();
-  const expiryDate = new Date(quotation.expiryDate || Date.now()).toLocaleDateString();
+  const expiryDate = new Date(quotation.validUntil || Date.now()).toLocaleDateString();
 
   return `
     <!DOCTYPE html>
@@ -622,9 +622,9 @@ export const generateQuotationTemplate = (quotation: Quotation, message: string)
 };
 
 export const generatePayslipTemplate = (payslip: Payslip): string => {
-  const grossSalary = (payslip.grossSalary || 0).toLocaleString();
-  const netSalary = (payslip.netSalary || 0).toLocaleString();
-  const deductions = (payslip.totalDeductions || 0).toLocaleString();
+  const grossSalary = (payslip.summary?.grossPay || 0).toLocaleString();
+  const netSalary = (payslip.summary?.netPay || 0).toLocaleString();
+  const deductions = (payslip.summary?.totalDeductions || 0).toLocaleString();
 
   return `
     <!DOCTYPE html>
@@ -644,14 +644,14 @@ export const generatePayslipTemplate = (payslip: Payslip): string => {
           
           <div class="content">
             <div class="section">
-              <p>Hello <strong>${payslip.employeeName}</strong>,</p>
+              <p>Hello <strong>${payslip.employeeInfo.name}</strong>,</p>
               <p style="margin-top: 10px;">Your payslip for ${payslip.month} is now available.</p>
             </div>
 
             <div class="info-block">
               <div class="info-row">
                 <span class="info-label">Employee Name</span>
-                <span class="info-value">${payslip.employeeName}</span>
+                <span class="info-value">${payslip.employeeInfo.name}</span>
               </div>
               <div class="info-row">
                 <span class="info-label">Period</span>
