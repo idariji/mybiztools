@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Save, Lock, Bell, Globe, Palette, Database, Shield } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '../utils/useToast';
 
 export const SettingsPage: React.FC = () => {
   const { addToast } = useToast();
+  const navigate = useNavigate();
   const [settings, setSettings] = useState({
     emailNotifications: true,
     pushNotifications: false,
@@ -151,8 +153,8 @@ export const SettingsPage: React.FC = () => {
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             >
               <option value="light">Light</option>
-              <option value="dark">Dark (Coming Soon)</option>
-              <option value="auto">Auto (Coming Soon)</option>
+              <option value="dark" disabled>Dark (Coming Soon)</option>
+              <option value="auto" disabled>Auto (Coming Soon)</option>
             </select>
           </div>
         </div>
@@ -183,7 +185,16 @@ export const SettingsPage: React.FC = () => {
             </div>
 
             <div className="pt-4 border-t">
-              <button className="text-red-600 hover:text-red-700 font-medium">
+              <button
+                onClick={() => {
+                  if (window.confirm('This will delete all locally saved documents and settings. Are you sure?')) {
+                    const keysToRemove = ['invoice-drafts', 'quotation-drafts', 'receipt-drafts', 'payslip-drafts', 'budget-entries', 'settings', 'current-invoice', 'current-quotation', 'current-receipt', 'current-payslip'];
+                    keysToRemove.forEach(k => localStorage.removeItem(k));
+                    addToast('All local data cleared successfully.', 'success');
+                  }
+                }}
+                className="text-red-600 hover:text-red-700 font-medium"
+              >
                 Clear All Local Data
               </button>
               <p className="text-sm text-gray-600 mt-1">Remove all saved documents and settings</p>
@@ -211,7 +222,10 @@ export const SettingsPage: React.FC = () => {
             </div>
 
             <div className="pt-4 border-t">
-              <button className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium">
+              <button
+                onClick={() => navigate('/forgot-password')}
+                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+              >
                 <Lock size={18} />
                 Change Password
               </button>

@@ -25,6 +25,11 @@ export function ReceiptPage() {
     r.customerInfo.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleView = (receipt: Receipt) => {
+    localStorage.setItem('current-receipt', JSON.stringify(receipt));
+    navigate('/dashboard/receipts/create');
+  };
+
   const handleDelete = (receiptNumber: string) => {
     if (confirm('Are you sure you want to delete this receipt?')) {
       const updated = receipts.filter(r => r.receiptNumber !== receiptNumber);
@@ -112,10 +117,10 @@ export function ReceiptPage() {
                       <td className="py-4 px-4 text-sm text-slate-600">{receipt.paymentMethod}</td>
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-2">
-                          <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors" title="View">
+                          <button onClick={() => handleView(receipt)} className="p-2 hover:bg-slate-100 rounded-lg transition-colors" title="View / Edit">
                             <Eye className="w-4 h-4 text-slate-600" />
                           </button>
-                          <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors" title="Download">
+                          <button onClick={() => handleView(receipt)} className="p-2 hover:bg-slate-100 rounded-lg transition-colors" title="Download (opens editor)">
                             <Download className="w-4 h-4 text-slate-600" />
                           </button>
                           <button 

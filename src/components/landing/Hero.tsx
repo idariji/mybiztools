@@ -1,4 +1,4 @@
-import React, { Children } from 'react';
+import React from 'react';
 import { Button } from '../ui/Button';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight, PlayCircle, Sparkles } from 'lucide-react';
@@ -89,11 +89,12 @@ export function Hero() {
           </motion.p>
 
           <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-20">
-            <Button size="lg" className="w-full sm:w-auto min-w-[180px] text-lg bg-[#FF8A2B] hover:bg-[#E56A00] text-white shadow-lg shadow-[#FF8A2B]/30 border-none" onClick={() => window.location.href = '/login'}>
+            <Button size="lg" className="w-full sm:w-auto min-w-[180px] text-lg bg-[#FF8A2B] hover:bg-[#E56A00] text-white shadow-lg shadow-[#FF8A2B]/30 border-none" onClick={() => window.location.href = '/login?signup=true'}>
               Get Started Free
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            <Button variant="outline" size="lg" className="w-full sm:w-auto min-w-[180px] text-lg group bg-white/50 backdrop-blur-sm border-[#FFD6C2] text-[#1F2D3D] hover:border-[#FF8A2B] hover:text-[#FF8A2B]">
+            <Button variant="outline" size="lg" className="w-full sm:w-auto min-w-[180px] text-lg group bg-white/50 backdrop-blur-sm border-[#FFD6C2] text-[#1F2D3D] hover:border-[#FF8A2B] hover:text-[#FF8A2B]"
+              onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>
               <PlayCircle className="mr-2 h-5 w-5 text-[#FF8A2B] group-hover:scale-110 transition-transform" />
               Watch Demo
             </Button>

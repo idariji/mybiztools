@@ -18,7 +18,11 @@ export function ReceiptGeneratorPage() {
   const navigate = useNavigate();
   const { toasts, addToast, removeToast } = useToast();
   const showWatermark = hasWatermark(authService.getCurrentUser()?.current_plan);
-  const [receipt, setReceipt] = useState<Receipt>({
+
+  // Check if editing an existing receipt (set by ReceiptPage handleView)
+  const initialReceipt = safeGetJSON<Receipt | null>('current-receipt', null);
+
+  const [receipt, setReceipt] = useState<Receipt>(initialReceipt || {
     receiptNumber: generateReceiptNumber(),
     receiptDate: new Date().toISOString().split('T')[0],
     currency: 'NGN',
@@ -44,6 +48,11 @@ export function ReceiptGeneratorPage() {
     notes: '',
     status: 'draft',
   });
+
+  // Clear the stored receipt after loading
+  useEffect(() => {
+    localStorage.removeItem('current-receipt');
+  }, []);
 
   const [showPreview, setShowPreview] = useState(false);
 
