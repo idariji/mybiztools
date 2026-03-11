@@ -23,8 +23,8 @@ export function TopBar({ onMenuClick }: TopBarProps = {}) {
   };
 
   return (
-    <header className="h-14 sm:h-16 bg-white border-b border-slate-200 flex items-center justify-between px-3 sm:px-6 sticky top-0 z-30">
-      <button onClick={onMenuClick} className="lg:hidden p-2 hover:bg-slate-100 rounded-lg active:scale-95 transition-transform">
+    <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-white/40 shadow-[0_1px_20px_rgba(0,0,0,0.06)] px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
+      <button onClick={onMenuClick} className="lg:hidden p-2 hover:bg-slate-100/80 rounded-lg active:scale-95 transition-colors">
         <Menu className="w-6 h-6 text-slate-600" />
       </button>
       <div className="flex-1 max-w-xl hidden md:block">
@@ -33,13 +33,13 @@ export function TopBar({ onMenuClick }: TopBarProps = {}) {
           <input
             type="text"
             placeholder="Search..."
-            className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#FF8A2B] transition-all"
+            className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50/80 border border-slate-200/60 focus:outline-none focus:bg-white focus:border-[#FF8A2B]/60 focus:ring-2 focus:ring-[#FF8A2B]/20 transition-all duration-200"
           />
         </div>
       </div>
 
       <div className="flex items-center gap-1 sm:gap-4">
-        <button className="relative p-2 hover:bg-slate-100 rounded-lg transition-all active:scale-95 hidden md:block">
+        <button className="relative p-2 hover:bg-slate-100/80 rounded-lg transition-colors active:scale-95 hidden md:block">
           <Bell className="w-5 h-5 text-slate-600" />
           <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
         </button>
@@ -47,7 +47,7 @@ export function TopBar({ onMenuClick }: TopBarProps = {}) {
         <div className="relative">
           <button
             onClick={() => setShowDropdown(!showDropdown)}
-            className="flex items-center gap-2 sm:gap-3 p-1.5 sm:p-2 hover:bg-slate-100 rounded-lg transition-all active:scale-95"
+            className="flex items-center gap-2 sm:gap-3 p-1.5 sm:p-2 hover:bg-slate-100/80 rounded-lg transition-colors active:scale-95"
           >
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#FF8A2B] to-[#FF6B00] flex items-center justify-center text-white font-bold shadow-md">
               {user?.firstName ? user.firstName.charAt(0).toUpperCase() : <User size={18} />}

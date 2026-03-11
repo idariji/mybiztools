@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Check, X, Loader2, Hexagon, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { authService } from '../services/authService';
-import { normalisePlan, planDisplayName } from '../utils/planUtils';
+import { normalisePlan } from '../utils/planUtils';
 
 interface ApiPricing {
   name: string;
@@ -143,7 +144,12 @@ export function SubscriptionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F0F3F5] py-8 sm:py-12 px-4">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen bg-[#F0F3F5] py-8 sm:py-12 px-4"
+    >
       <div className="max-w-6xl mx-auto">
 
         {/* Header */}
@@ -153,12 +159,13 @@ export function SubscriptionPage() {
             <span className="font-bold text-xl text-slate-900">MyBizTools</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-bold text-slate-900 mb-3">Choose Your Plan</h1>
-          <p className="text-base sm:text-lg text-slate-600 max-w-xl mx-auto">
+          <div className="h-1 w-20 bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] rounded-full mx-auto mt-3 mb-2" />
+          <p className="text-base sm:text-lg text-slate-600 max-w-xl mx-auto mt-3">
             Start free, upgrade when you're ready. All paid plans include full feature access.
           </p>
 
           {/* Billing toggle */}
-          <div className="mt-8 inline-flex items-center bg-white rounded-xl p-1 shadow-sm border border-slate-200">
+          <div className="mt-8 inline-flex items-center bg-slate-100 rounded-xl p-1 shadow-inner border border-slate-200">
             <button
               onClick={() => setBillingCycle('monthly')}
               className={`px-3 sm:px-6 py-1.5 sm:py-2 rounded-lg text-sm font-semibold transition-all ${
@@ -197,18 +204,21 @@ export function SubscriptionPage() {
 
         {/* Paid plan cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {PLAN_CONFIG.map((plan) => {
+          {PLAN_CONFIG.map((plan, idx) => {
             const price = getPrice(plan.key);
             const isCurrent = currentTier === plan.key || (plan.key === 'pro' && currentTier === 'pro');
             const isPopular = plan.popular;
 
             return (
-              <div
+              <motion.div
                 key={plan.key}
-                className={`relative bg-white rounded-2xl border shadow-sm flex flex-col ${
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: idx * 0.1 }}
+                className={`relative bg-white rounded-2xl flex flex-col transition-all duration-300 ${
                   isPopular
-                    ? 'border-[#FF8A2B] shadow-orange-100 shadow-lg ring-1 ring-[#FF8A2B]'
-                    : 'border-slate-200'
+                    ? 'border border-[#FF8A2B] ring-2 ring-[#FF8A2B]/30 scale-[1.02] sm:scale-105 shadow-[0_20px_60px_rgba(255,138,43,0.20)] hover:shadow-[0_24px_70px_rgba(255,138,43,0.30)]'
+                    : 'border border-slate-200 hover:border-slate-300 shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_40px_rgba(0,0,0,0.12)] hover:-translate-y-1'
                 }`}
               >
                 {isPopular && (
@@ -228,9 +238,17 @@ export function SubscriptionPage() {
                   <div className="mb-6">
                     {price != null ? (
                       <>
-                        <span className="text-2xl sm:text-4xl font-bold text-slate-900">
-                          ₦{price.toLocaleString()}
-                        </span>
+                        {isPopular ? (
+                          <span className="text-2xl sm:text-4xl font-bold">
+                            <span className="bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] bg-clip-text text-transparent">
+                              ₦{price.toLocaleString()}
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="text-2xl sm:text-4xl font-bold text-slate-900">
+                            ₦{price.toLocaleString()}
+                          </span>
+                        )}
                         <span className="text-slate-500 text-sm ml-1">
                           /{billingCycle === 'yearly' ? 'year' : 'month'}
                         </span>
@@ -246,10 +264,10 @@ export function SubscriptionPage() {
                   </div>
 
                   <ul className="space-y-2.5 mb-8 flex-1">
-                    {plan.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-start gap-2.5">
+                    {plan.features.map((feature, featureIdx) => (
+                      <li key={featureIdx} className="flex items-start gap-2.5">
                         {feature.included ? (
-                          <Check className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+                          <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                         ) : (
                           <X className="w-4 h-4 text-slate-300 shrink-0 mt-0.5" />
                         )}
@@ -280,7 +298,7 @@ export function SubscriptionPage() {
                     )}
                   </button>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>
@@ -291,6 +309,6 @@ export function SubscriptionPage() {
           Payments processed securely via Monipoint.
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 }

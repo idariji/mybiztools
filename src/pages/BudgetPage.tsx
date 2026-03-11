@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { DashboardLayout } from '../layout/DashboardLayout';
 import { TrendingUp, TrendingDown, DollarSign, PieChart } from 'lucide-react';
 
@@ -26,37 +27,59 @@ export function BudgetPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-4 sm:space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
+        className="space-y-4 sm:space-y-6"
+      >
         <div>
           <h1 className="text-xl sm:text-3xl font-bold text-slate-900">Budget Tracker</h1>
-          <p className="text-slate-600 mt-1">Track income and expenses</p>
+          <div className="h-1 w-16 bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] rounded-full mt-2 mb-1" />
+          <p className="text-sm text-slate-500">Track income and expenses</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
+          {/* Total Income card */}
+          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-200 border border-slate-100">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-green-100 rounded-lg"><TrendingUp className="w-5 h-5 text-green-600" /></div>
+              <div className="p-2 bg-gradient-to-br from-emerald-400 to-green-600 rounded-lg shadow-lg shadow-green-500/25">
+                <TrendingUp className="w-5 h-5 text-white" />
+              </div>
               <h3 className="text-sm font-semibold text-slate-600">Total Income</h3>
             </div>
             <p className="text-xl sm:text-3xl font-bold text-green-600">{fmt(totalIncome)}</p>
           </div>
-          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
+
+          {/* Total Expenses card */}
+          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-200 border border-slate-100">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-red-100 rounded-lg"><TrendingDown className="w-5 h-5 text-red-600" /></div>
+              <div className="p-2 bg-gradient-to-br from-red-400 to-rose-600 rounded-lg shadow-lg shadow-red-500/25">
+                <TrendingDown className="w-5 h-5 text-white" />
+              </div>
               <h3 className="text-sm font-semibold text-slate-600">Total Expenses</h3>
             </div>
             <p className="text-xl sm:text-3xl font-bold text-red-600">{fmt(totalExpenses)}</p>
           </div>
-          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
+
+          {/* Net Balance card */}
+          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-200 border border-slate-100">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-orange-100 rounded-lg"><DollarSign className="w-5 h-5 text-[#FF8A2B]" /></div>
+              <div className="p-2 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg shadow-lg shadow-orange-500/25">
+                <DollarSign className="w-5 h-5 text-white" />
+              </div>
               <h3 className="text-sm font-semibold text-slate-600">Net Balance</h3>
             </div>
             <p className={`text-xl sm:text-3xl font-bold ${netBalance >= 0 ? 'text-[#FF8A2B]' : 'text-red-600'}`}>{fmt(netBalance)}</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.15, ease: 'easeOut' }}
+          className="bg-white rounded-2xl p-4 sm:p-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] transition-all duration-300 border border-slate-100"
+        >
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-slate-900">Transactions</h2>
             <span className="text-sm text-slate-500 flex items-center gap-1">
@@ -64,7 +87,7 @@ export function BudgetPage() {
             </span>
           </div>
           {entries.length === 0 ? (
-            <div className="text-center py-12">
+            <div className="text-center py-16 px-6 bg-gradient-to-b from-slate-50 to-white rounded-2xl border border-dashed border-slate-200">
               <DollarSign className="w-16 h-16 text-slate-200 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-slate-700 mb-1">No transactions yet</h3>
               <p className="text-slate-500 text-sm">Your income and expense entries will appear here once you start tracking.</p>
@@ -85,12 +108,12 @@ export function BudgetPage() {
                 </thead>
                 <tbody>
                   {entries.map(entry => (
-                    <tr key={entry.id} className="border-b border-slate-100 hover:bg-slate-50">
+                    <tr key={entry.id} className="border-b border-slate-100 hover:bg-gradient-to-r hover:from-slate-50 hover:to-white transition-colors duration-150">
                       <td className="py-3 px-4 text-sm text-slate-600">{new Date(entry.date).toLocaleDateString()}</td>
                       <td className="py-3 px-4 text-sm text-slate-900">{entry.description}</td>
                       <td className="py-3 px-4 text-sm text-slate-600">{entry.category}</td>
                       <td className="py-3 px-4">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${entry.type === 'income' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold shadow-sm ${entry.type === 'income' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                           {entry.type}
                         </span>
                       </td>
@@ -105,11 +128,17 @@ export function BudgetPage() {
 
             {/* Mobile card list - hidden on desktop */}
             <div className="md:hidden space-y-3">
-              {entries.map(entry => (
-                <div key={entry.id} className="bg-white border border-slate-200 rounded-xl p-4 space-y-1.5">
+              {entries.map((entry, idx) => (
+                <motion.div
+                  key={entry.id}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: idx * 0.05 }}
+                  className="bg-white border border-slate-100 rounded-2xl p-4 space-y-3 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.10)] hover:-translate-y-0.5 transition-all duration-200"
+                >
                   <div className="flex items-start justify-between gap-2">
                     <span className="text-xs text-slate-500">{new Date(entry.date).toLocaleDateString()}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold shrink-0 ${entry.type === 'income' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold shrink-0 shadow-sm ${entry.type === 'income' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                       {entry.type}
                     </span>
                   </div>
@@ -118,13 +147,13 @@ export function BudgetPage() {
                   <p className={`text-base font-semibold ${entry.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
                     {entry.type === 'income' ? '+' : '-'}{fmt(entry.amount)}
                   </p>
-                </div>
+                </motion.div>
               ))}
             </div>
             </>
           )}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </DashboardLayout>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Save, Lock, Bell, Globe, Palette, Database, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useToast } from '../utils/useToast';
 
 export const SettingsPage: React.FC = () => {
@@ -31,16 +32,22 @@ export const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <div className="mb-4 sm:mb-6">
         <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Settings</h1>
         <p className="text-gray-600 mt-1">Manage your application preferences</p>
       </div>
 
       <div className="space-y-4 sm:space-y-6">
-        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-slate-100 hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all duration-300">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Bell className="w-5 h-5" />
+            <span className="p-1.5 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg">
+              <Bell className="w-5 h-5 text-slate-600" />
+            </span>
             Notifications
           </h3>
           <div className="space-y-4">
@@ -51,12 +58,12 @@ export const SettingsPage: React.FC = () => {
               </div>
               <button
                 onClick={() => handleToggle('emailNotifications')}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 ${
                   settings.emailNotifications ? 'bg-blue-600' : 'bg-gray-300'
                 }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
                     settings.emailNotifications ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />
@@ -70,12 +77,12 @@ export const SettingsPage: React.FC = () => {
               </div>
               <button
                 onClick={() => handleToggle('pushNotifications')}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 ${
                   settings.pushNotifications ? 'bg-blue-600' : 'bg-gray-300'
                 }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
                     settings.pushNotifications ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />
@@ -89,12 +96,12 @@ export const SettingsPage: React.FC = () => {
               </div>
               <button
                 onClick={() => handleToggle('marketingEmails')}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 ${
                   settings.marketingEmails ? 'bg-blue-600' : 'bg-gray-300'
                 }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
                     settings.marketingEmails ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />
@@ -103,9 +110,11 @@ export const SettingsPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-slate-100 hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all duration-300">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Globe className="w-5 h-5" />
+            <span className="p-1.5 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg">
+              <Globe className="w-5 h-5 text-slate-600" />
+            </span>
             Preferences
           </h3>
           <div className="space-y-4">
@@ -140,9 +149,11 @@ export const SettingsPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-slate-100 hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all duration-300">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Palette className="w-5 h-5" />
+            <span className="p-1.5 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg">
+              <Palette className="w-5 h-5 text-slate-600" />
+            </span>
             Appearance
           </h3>
           <div>
@@ -159,9 +170,11 @@ export const SettingsPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-slate-100 hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all duration-300">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Database className="w-5 h-5" />
+            <span className="p-1.5 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg">
+              <Database className="w-5 h-5 text-slate-600" />
+            </span>
             Data & Storage
           </h3>
           <div className="space-y-4">
@@ -172,12 +185,12 @@ export const SettingsPage: React.FC = () => {
               </div>
               <button
                 onClick={() => handleToggle('autoSave')}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 ${
                   settings.autoSave ? 'bg-blue-600' : 'bg-gray-300'
                 }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
                     settings.autoSave ? 'translate-x-6' : 'translate-x-1'
                   }`}
                 />
@@ -193,7 +206,7 @@ export const SettingsPage: React.FC = () => {
                     addToast('All local data cleared successfully.', 'success');
                   }
                 }}
-                className="text-red-600 hover:text-red-700 font-medium"
+                className="flex items-center gap-2 text-red-600 hover:text-white hover:bg-red-500 font-medium px-4 py-2 rounded-lg border border-red-200 hover:border-red-500 transition-all duration-200"
               >
                 Clear All Local Data
               </button>
@@ -202,9 +215,11 @@ export const SettingsPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-slate-100 hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all duration-300">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Shield className="w-5 h-5" />
+            <span className="p-1.5 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg">
+              <Shield className="w-5 h-5 text-slate-600" />
+            </span>
             Security
           </h3>
           <div className="space-y-4">
@@ -224,7 +239,7 @@ export const SettingsPage: React.FC = () => {
             <div className="pt-4 border-t">
               <button
                 onClick={() => navigate('/forgot-password')}
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+                className="flex items-center gap-2 text-blue-600 hover:text-white hover:bg-blue-600 font-medium px-4 py-2 rounded-lg border border-blue-200 hover:border-blue-600 transition-all duration-200"
               >
                 <Lock size={18} />
                 Change Password
@@ -236,12 +251,12 @@ export const SettingsPage: React.FC = () => {
 
         <button
           onClick={handleSave}
-          className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+          className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 font-medium transition-all duration-200"
         >
           <Save size={20} />
           Save All Settings
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 };

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { DashboardLayout } from '../layout/DashboardLayout';
 import { Plus, Download, Eye, Edit, Copy, Trash2, FileText, Search, Lock, Zap } from 'lucide-react';
 import { Quotation, QUOTATION_STATUSES } from '../types/quotation';
@@ -93,11 +94,17 @@ export function QuotationPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
+        className="space-y-6"
+      >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Quotation Generator</h1>
-            <p className="text-slate-600 mt-1">Create and manage professional quotations</p>
+            <h1 className="text-xl sm:text-3xl font-bold text-slate-900">Quotation Generator</h1>
+            <div className="h-1 w-16 bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] rounded-full mt-2 mb-1" />
+            <p className="text-sm text-slate-500">Create and manage professional quotations</p>
           </div>
           <div className="flex items-center gap-3">
             {isFree && (
@@ -119,7 +126,7 @@ export function QuotationPage() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div className="bg-white rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] transition-all duration-300 border border-slate-100">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -145,7 +152,7 @@ export function QuotationPage() {
         </div>
 
         {/* Quotations Table */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div className="bg-white rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] transition-all duration-300 border border-slate-100">
           <h2 className="text-xl font-bold text-slate-900 mb-4">
             Quotations ({filteredQuotations.length})
           </h2>
@@ -171,7 +178,7 @@ export function QuotationPage() {
                   </tr>
                 ) : (
                   filteredQuotations.map((quotation) => (
-                    <tr key={quotation.quotationNumber} className="border-b border-slate-100 hover:bg-slate-50">
+                    <tr key={quotation.quotationNumber} className="border-b border-slate-100 hover:bg-gradient-to-r hover:from-slate-50 hover:to-white transition-colors duration-150">
                       <td className="py-4 px-4 text-sm text-slate-900 font-medium">{quotation.quotationNumber}</td>
                       <td className="py-4 px-4 text-sm text-slate-600">{quotation.clientInfo.name}</td>
                       <td className="py-4 px-4 text-sm text-slate-900 font-semibold">
@@ -181,7 +188,7 @@ export function QuotationPage() {
                         {new Date(quotation.validUntil).toLocaleDateString()}
                       </td>
                       <td className="py-4 px-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusClasses(quotation.status)}`}>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${getStatusClasses(quotation.status)}`}>
                           {QUOTATION_STATUSES.find(s => s.value === quotation.status)?.label}
                         </span>
                       </td>
@@ -192,42 +199,42 @@ export function QuotationPage() {
                             className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                             title="View / Edit"
                           >
-                            <Eye className="w-4 h-4 text-slate-600" />
+                            <Eye className="w-4 h-4 text-slate-600 hover:scale-110 transition-transform duration-150" />
                           </button>
                           <button
                             onClick={() => handleView(quotation)}
                             className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                             title="Edit"
                           >
-                            <Edit className="w-4 h-4 text-slate-600" />
+                            <Edit className="w-4 h-4 text-slate-600 hover:scale-110 transition-transform duration-150" />
                           </button>
                           <button
                             onClick={() => handleDuplicate(quotation)}
                             className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                             title="Duplicate"
                           >
-                            <Copy className="w-4 h-4 text-slate-600" />
+                            <Copy className="w-4 h-4 text-slate-600 hover:scale-110 transition-transform duration-150" />
                           </button>
                           <button
                             onClick={() => handleView(quotation)}
                             className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                             title="Download (opens editor)"
                           >
-                            <Download className="w-4 h-4 text-slate-600" />
+                            <Download className="w-4 h-4 text-slate-600 hover:scale-110 transition-transform duration-150" />
                           </button>
                           <button
                             onClick={() => handleConvertToInvoice(quotation)}
                             className="p-2 hover:bg-blue-100 rounded-lg transition-colors"
                             title="Convert to Invoice"
                           >
-                            <FileText className="w-4 h-4 text-blue-600" />
+                            <FileText className="w-4 h-4 text-blue-600 hover:scale-110 transition-transform duration-150" />
                           </button>
                           <button
                             onClick={() => handleDelete(quotation.quotationNumber)}
                             className="p-2 hover:bg-red-100 rounded-lg transition-colors"
                             title="Delete"
                           >
-                            <Trash2 className="w-4 h-4 text-red-600" />
+                            <Trash2 className="w-4 h-4 text-red-600 hover:scale-110 transition-transform duration-150" />
                           </button>
                         </div>
                       </td>
@@ -240,16 +247,22 @@ export function QuotationPage() {
 
           {/* Mobile card list - hidden on desktop */}
           {filteredQuotations.length === 0 ? (
-            <div className="md:hidden py-8 text-center text-gray-500">
+            <div className="md:hidden text-center py-16 px-6 bg-gradient-to-b from-slate-50 to-white rounded-2xl border border-dashed border-slate-200">
               No quotations found. Create your first quotation!
             </div>
           ) : (
             <div className="md:hidden space-y-3">
-              {filteredQuotations.map((quotation) => (
-                <div key={quotation.quotationNumber} className="bg-white border border-slate-200 rounded-xl p-4 space-y-2">
+              {filteredQuotations.map((quotation, idx) => (
+                <motion.div
+                  key={quotation.quotationNumber}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: idx * 0.05 }}
+                  className="bg-white border border-slate-100 rounded-2xl p-4 space-y-3 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.10)] hover:-translate-y-0.5 transition-all duration-200"
+                >
                   <div className="flex items-start justify-between gap-2">
                     <span className="text-sm font-bold text-slate-900">{quotation.quotationNumber}</span>
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold shrink-0 ${getStatusClasses(quotation.status)}`}>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold shrink-0 shadow-sm ${getStatusClasses(quotation.status)}`}>
                       {QUOTATION_STATUSES.find(s => s.value === quotation.status)?.label}
                     </span>
                   </div>
@@ -278,17 +291,17 @@ export function QuotationPage() {
                       <Trash2 className="w-3.5 h-3.5" /> Delete
                     </button>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {/* Upgrade Modal */}
       {showUpgrade && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl p-4 sm:p-8 max-w-md w-full shadow-2xl">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-4 sm:p-8 max-w-md w-full shadow-2xl">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-3 bg-orange-100 rounded-xl">
                 <Zap className="w-6 h-6 text-[#FF8A2B]" />

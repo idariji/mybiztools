@@ -15,6 +15,7 @@ import {
   CreditCard,
   Edit,
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { authService } from '../services/authService';
 import { normalisePlan, planDisplayName, FREE_DOCUMENT_LIMIT } from '../utils/planUtils';
 import { safeGetJSON } from '../utils/storage';
@@ -87,6 +88,7 @@ export const AccountPage: React.FC = () => {
       last: daysAgo(latestTs(invoices)),
       color: 'bg-blue-50',
       textColor: 'text-blue-600',
+      iconGradient: 'bg-gradient-to-br from-blue-400 to-blue-600 shadow-lg shadow-blue-500/30',
       navigate: '/dashboard/invoices',
     },
     {
@@ -95,6 +97,7 @@ export const AccountPage: React.FC = () => {
       last: daysAgo(latestTs(quotations)),
       color: 'bg-orange-50',
       textColor: 'text-orange-600',
+      iconGradient: 'bg-gradient-to-br from-orange-400 to-orange-600 shadow-lg shadow-orange-500/30',
       navigate: '/dashboard/quotations',
     },
     {
@@ -103,6 +106,7 @@ export const AccountPage: React.FC = () => {
       last: daysAgo(latestTs(receipts)),
       color: 'bg-green-50',
       textColor: 'text-green-600',
+      iconGradient: 'bg-gradient-to-br from-emerald-400 to-green-600 shadow-lg shadow-emerald-500/30',
       navigate: '/dashboard/receipts',
     },
     {
@@ -111,6 +115,7 @@ export const AccountPage: React.FC = () => {
       last: daysAgo(latestTs(payslips)),
       color: 'bg-purple-50',
       textColor: 'text-purple-600',
+      iconGradient: 'bg-gradient-to-br from-purple-400 to-purple-600 shadow-lg shadow-purple-500/30',
       navigate: '/dashboard/payslips',
     },
   ];
@@ -158,6 +163,7 @@ export const AccountPage: React.FC = () => {
     .slice(0, 5);
 
   const usagePercent = Math.min((totalDocs / FREE_DOCUMENT_LIMIT) * 100, 100);
+  const usageNearLimit = usagePercent >= 75;
 
   return (
     <div>
@@ -170,8 +176,13 @@ export const AccountPage: React.FC = () => {
         {/* ── Left Column ── */}
         <div className="lg:col-span-1 space-y-4 sm:space-y-6">
           {/* Profile Card */}
-          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 text-center">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold mx-auto mb-4">
+          <motion.div
+            className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-slate-100 p-4 sm:p-6 text-center transition-all duration-300"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-2xl sm:text-3xl font-bold mx-auto mb-4 ring-4 ring-blue-100 ring-offset-2">
               {fullName !== 'Not set' ? fullName.charAt(0).toUpperCase() : 'U'}
             </div>
             <h2 className="text-xl font-bold text-gray-900">{fullName}</h2>
@@ -183,7 +194,7 @@ export const AccountPage: React.FC = () => {
             {/* Plan badge */}
             <div className="mt-3 flex justify-center">
               <span
-                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${planBadgeClass(
+                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${planBadgeClass(
                   user?.current_plan
                 )}`}
               >
@@ -194,7 +205,7 @@ export const AccountPage: React.FC = () => {
             {/* Edit Profile button */}
             <button
               onClick={() => navigate('/dashboard/profile')}
-              className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-sm rounded-lg transition-colors"
+              className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-sm rounded-lg transition-colors hover:scale-[1.02] active:scale-[0.98] transition-transform duration-200"
             >
               <Edit className="w-4 h-4" />
               Edit Profile
@@ -204,17 +215,22 @@ export const AccountPage: React.FC = () => {
             {plan === 'free' && (
               <button
                 onClick={() => navigate('/dashboard/subscription')}
-                className="mt-2 w-full flex items-center justify-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-medium text-sm rounded-lg transition-colors"
+                className="mt-2 w-full flex items-center justify-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-medium text-sm rounded-lg transition-colors hover:scale-[1.02] active:scale-[0.98] transition-transform duration-200"
               >
                 <TrendingUp className="w-4 h-4" />
                 Upgrade Plan
               </button>
             )}
-          </div>
+          </motion.div>
 
           {/* Document Usage Card */}
-          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-            <h3 className="text-base font-semibold text-gray-900 mb-3">Document Usage</h3>
+          <motion.div
+            className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-slate-100 p-4 sm:p-6 transition-all duration-300"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <h3 className="text-base font-semibold text-gray-900 mb-3 pl-3 border-l-4 border-[#FF8A2B]">Document Usage</h3>
             {plan === 'free' ? (
               <div>
                 <div className="flex items-center justify-between mb-2">
@@ -225,7 +241,11 @@ export const AccountPage: React.FC = () => {
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
-                    className="bg-orange-500 h-2 rounded-full transition-all"
+                    className={`h-2 rounded-full transition-all duration-700 ease-out ${
+                      usageNearLimit
+                        ? 'bg-gradient-to-r from-orange-400 to-red-500'
+                        : 'bg-gradient-to-r from-blue-400 to-blue-500'
+                    }`}
                     style={{ width: `${usagePercent}%` }}
                   />
                 </div>
@@ -247,16 +267,21 @@ export const AccountPage: React.FC = () => {
                 <span className="text-sm font-medium">Unlimited documents</span>
               </div>
             )}
-          </div>
+          </motion.div>
         </div>
 
         {/* ── Right Column ── */}
         <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {/* Account Information Card */}
-          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-            <h3 className="text-lg font-semibold mb-4">Account Information</h3>
+          <motion.div
+            className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-slate-100 p-4 sm:p-6 transition-all duration-300"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <h3 className="text-lg font-semibold mb-4 pl-3 border-l-4 border-[#FF8A2B]">Account Information</h3>
             <div className="space-y-4">
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-3 hover:bg-slate-50 rounded-lg p-2 -mx-2 transition-colors">
                 <User className="w-5 h-5 text-gray-400 mt-0.5" />
                 <div>
                   <p className="text-sm text-gray-500">Full Name</p>
@@ -264,7 +289,7 @@ export const AccountPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-3 hover:bg-slate-50 rounded-lg p-2 -mx-2 transition-colors">
                 <Mail className="w-5 h-5 text-gray-400 mt-0.5" />
                 <div>
                   <p className="text-sm text-gray-500">Email Address</p>
@@ -284,7 +309,7 @@ export const AccountPage: React.FC = () => {
               </div>
 
               {user?.businessName && (
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-3 hover:bg-slate-50 rounded-lg p-2 -mx-2 transition-colors">
                   <Building className="w-5 h-5 text-gray-400 mt-0.5" />
                   <div>
                     <p className="text-sm text-gray-500">Business Name</p>
@@ -293,7 +318,7 @@ export const AccountPage: React.FC = () => {
                 </div>
               )}
 
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-3 hover:bg-slate-50 rounded-lg p-2 -mx-2 transition-colors">
                 <Calendar className="w-5 h-5 text-gray-400 mt-0.5" />
                 <div>
                   <p className="text-sm text-gray-500">Member Since</p>
@@ -301,7 +326,7 @@ export const AccountPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-3 hover:bg-slate-50 rounded-lg p-2 -mx-2 transition-colors">
                 <Shield className="w-5 h-5 text-gray-400 mt-0.5" />
                 <div>
                   <p className="text-sm text-gray-500">Account Status</p>
@@ -311,30 +336,38 @@ export const AccountPage: React.FC = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Account Statistics Card */}
-          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-            <h3 className="text-lg font-semibold mb-4">Account Statistics</h3>
+          <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-slate-100 p-4 sm:p-6 transition-all duration-300">
+            <h3 className="text-lg font-semibold mb-4 pl-3 border-l-4 border-[#FF8A2B]">Account Statistics</h3>
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              {statCards.map((card) => (
-                <div
+              {statCards.map((card, idx) => (
+                <motion.div
                   key={card.label}
-                  className={`p-4 ${card.color} rounded-lg`}
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.2 + idx * 0.07, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  className={`p-4 ${card.color} rounded-lg hover:-translate-y-1 hover:shadow-lg transition-all duration-300`}
                 >
                   <p className="text-sm text-gray-600">{card.label}</p>
-                  <p className={`text-2xl font-bold ${card.textColor} mt-1`}>
+                  <p className={`text-2xl font-bold ${card.textColor} mt-1 tabular-nums`}>
                     {card.count}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">Last: {card.last}</p>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
 
           {/* Recent Documents Card */}
-          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-            <h3 className="text-lg font-semibold mb-4">Recent Documents</h3>
+          <motion.div
+            className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-slate-100 p-4 sm:p-6 transition-all duration-300"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <h3 className="text-lg font-semibold mb-4 pl-3 border-l-4 border-[#FF8A2B]">Recent Documents</h3>
             {allDocs.length === 0 ? (
               <div className="text-center py-8 text-gray-400">
                 <FileText className="w-10 h-10 mx-auto mb-2 opacity-40" />
@@ -346,7 +379,7 @@ export const AccountPage: React.FC = () => {
                   <button
                     key={idx}
                     onClick={() => navigate(doc.path)}
-                    className="w-full flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors text-left"
+                    className="w-full flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 p-3 rounded-lg hover:bg-gradient-to-r hover:from-slate-50 hover:to-white transition-colors text-left"
                   >
                     <div className="flex items-center gap-2 w-full sm:contents">
                       <span
@@ -373,7 +406,7 @@ export const AccountPage: React.FC = () => {
                 ))}
               </div>
             )}
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>

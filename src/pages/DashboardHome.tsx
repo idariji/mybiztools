@@ -277,36 +277,36 @@ export function DashboardHome() {
 
   const displayAlerts = alerts.slice(0, 4);
 
-  const alertStyleMap: Record<string, { bg: string; icon: string }> = {
-    error: { bg: 'bg-red-50', icon: 'text-red-600' },
-    warning: { bg: 'bg-orange-50', icon: 'text-orange-600' },
-    info: { bg: 'bg-blue-50', icon: 'text-blue-600' },
-    success: { bg: 'bg-green-50', icon: 'text-green-600' },
+  const alertStyleMap: Record<string, { bg: string; icon: string; border: string }> = {
+    error: { bg: 'bg-red-50', icon: 'text-red-600', border: 'border-l-4 border-red-400' },
+    warning: { bg: 'bg-orange-50', icon: 'text-orange-600', border: 'border-l-4 border-orange-400' },
+    info: { bg: 'bg-blue-50', icon: 'text-blue-600', border: 'border-l-4 border-blue-400' },
+    success: { bg: 'bg-green-50', icon: 'text-green-600', border: 'border-l-4 border-green-400' },
   };
 
   const quickActions = [
     {
       icon: FileText,
       label: 'New Invoice',
-      color: 'bg-blue-500',
+      color: 'bg-gradient-to-br from-blue-400 to-blue-600 shadow-lg shadow-blue-500/30',
       action: () => navigate('/dashboard/invoices/create'),
     },
     {
       icon: Receipt,
       label: 'New Receipt',
-      color: 'bg-green-500',
+      color: 'bg-gradient-to-br from-emerald-400 to-green-600 shadow-lg shadow-emerald-500/30',
       action: () => navigate('/dashboard/receipts/create'),
     },
     {
       icon: FileText,
       label: 'New Quotation',
-      color: 'bg-orange-500',
+      color: 'bg-gradient-to-br from-orange-400 to-orange-600 shadow-lg shadow-orange-500/30',
       action: () => navigate('/dashboard/quotations/create'),
     },
     {
       icon: CreditCard,
       label: 'Generate Payslip',
-      color: 'bg-purple-500',
+      color: 'bg-gradient-to-br from-purple-400 to-purple-600 shadow-lg shadow-purple-500/30',
       action: () => navigate('/dashboard/payslips/create'),
     },
   ];
@@ -318,7 +318,12 @@ export function DashboardHome() {
         <div className="space-y-4 sm:space-y-6">
 
           {/* ── Header / Welcome ── */}
-          <div id="tour-welcome">
+          <motion.div
+            id="tour-welcome"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+          >
             <h1 className="text-xl sm:text-3xl font-bold text-slate-900">
               Welcome back, {user?.firstName || user?.name || 'there'}! 👋
             </h1>
@@ -330,7 +335,7 @@ export function DashboardHome() {
             <div className="mt-3 flex items-center gap-3">
               <div className="flex-1 bg-gray-200 rounded-full h-1.5 max-w-xs">
                 <div
-                  className="bg-blue-500 h-1.5 rounded-full transition-all"
+                  className="bg-blue-500 h-1.5 rounded-full transition-all duration-700 ease-out"
                   style={{ width: `${completion}%` }}
                 />
               </div>
@@ -344,7 +349,7 @@ export function DashboardHome() {
                 </button>
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* ── Row 1: Financial Summary ── */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4" id="tour-stats">
@@ -353,42 +358,47 @@ export function DashboardHome() {
                 icon: DollarSign,
                 label: 'Total Revenue',
                 value: `₦${Number(totalRevenue || 0).toLocaleString()}`,
-                color: 'bg-blue-500',
+                color: 'bg-gradient-to-br from-blue-400 to-blue-600 shadow-lg shadow-blue-500/30',
+                topBar: 'bg-gradient-to-r from-blue-400 to-blue-600',
                 bg: 'bg-blue-50',
               },
               {
                 icon: Receipt,
                 label: 'Total Receipts',
                 value: `₦${Number(totalReceiptsSum || 0).toLocaleString()}`,
-                color: 'bg-green-500',
+                color: 'bg-gradient-to-br from-emerald-400 to-green-600 shadow-lg shadow-emerald-500/30',
+                topBar: 'bg-gradient-to-r from-emerald-400 to-green-600',
                 bg: 'bg-green-50',
               },
               {
                 icon: Clock,
                 label: 'Pending Drafts',
                 value: pendingDrafts.toString(),
-                color: 'bg-orange-500',
+                color: 'bg-gradient-to-br from-orange-400 to-orange-600 shadow-lg shadow-orange-500/30',
+                topBar: 'bg-gradient-to-r from-orange-400 to-orange-600',
                 bg: 'bg-orange-50',
               },
               {
                 icon: FileText,
                 label: 'Total Documents',
                 value: totalDocs.toString(),
-                color: 'bg-purple-500',
+                color: 'bg-gradient-to-br from-purple-400 to-purple-600 shadow-lg shadow-purple-500/30',
+                topBar: 'bg-gradient-to-r from-purple-400 to-purple-600',
                 bg: 'bg-purple-50',
               },
             ].map((stat, idx) => (
               <motion.div
                 key={idx}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
-                className="bg-white rounded-2xl p-3.5 sm:p-5 shadow-sm border border-slate-200 hover:shadow-md transition-shadow"
+                transition={{ duration: 0.4, delay: idx * 0.07, ease: [0.25, 0.46, 0.45, 0.94] }}
+                className="bg-white rounded-2xl p-3.5 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-slate-100 hover:-translate-y-1 transition-all duration-300"
               >
-                <div className={`inline-flex p-2.5 rounded-xl ${stat.color} shadow-sm mb-3`}>
+                <div className={`h-1 ${stat.topBar} rounded-full mb-4`} />
+                <div className={`inline-flex p-2.5 rounded-xl ${stat.color} mb-3`}>
                   <stat.icon className="w-5 h-5 text-white" />
                 </div>
-                <p className="text-lg sm:text-2xl font-bold text-slate-900 truncate">{stat.value}</p>
+                <p className="text-lg sm:text-2xl font-bold text-slate-900 truncate tabular-nums">{stat.value}</p>
                 <p className="text-xs sm:text-sm text-slate-500 mt-0.5">{stat.label}</p>
               </motion.div>
             ))}
@@ -397,9 +407,12 @@ export function DashboardHome() {
           {/* ── Row 2: Chart + Plan ── */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* Monthly Overview Chart */}
-            <div
-              className="lg:col-span-2 bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200"
+            <motion.div
+              className="lg:col-span-2 bg-white rounded-2xl p-4 sm:p-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-slate-100 transition-all duration-300"
               id="tour-chart"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
             >
               <div className="flex items-center gap-2 mb-4">
                 <BarChart2 className="w-5 h-5 text-slate-500" />
@@ -453,15 +466,15 @@ export function DashboardHome() {
                   </div>
                 </div>
               )}
-            </div>
+            </motion.div>
 
             {/* Your Plan Card */}
             <div
-              className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 flex flex-col gap-4"
+              className="bg-gradient-to-br from-white to-slate-50 rounded-2xl p-4 sm:p-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-slate-100 flex flex-col gap-4 transition-all duration-300"
               id="tour-plan"
             >
               <div>
-                <h2 className="text-base sm:text-lg font-bold text-slate-900 mb-2">Your Plan</h2>
+                <h2 className="text-base sm:text-lg font-bold text-slate-900 mb-2 pl-3 border-l-4 border-[#FF8A2B]">Your Plan</h2>
                 <span
                   className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${planBadgeClass(
                     user?.current_plan
@@ -490,7 +503,7 @@ export function DashboardHome() {
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-1.5">
                     <div
-                      className="bg-orange-500 h-1.5 rounded-full transition-all"
+                      className="bg-orange-500 h-1.5 rounded-full transition-all duration-700 ease-out"
                       style={{ width: `${usagePercent}%` }}
                     />
                   </div>
@@ -505,7 +518,7 @@ export function DashboardHome() {
 
               <button
                 onClick={() => navigate('/dashboard/subscription')}
-                className="mt-auto w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-semibold text-sm rounded-xl transition-colors"
+                className="mt-auto w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-semibold text-sm rounded-xl transition-colors hover:scale-[1.02] active:scale-[0.98]"
               >
                 <TrendingUp className="w-4 h-4" />
                 Upgrade Plan
@@ -515,10 +528,10 @@ export function DashboardHome() {
 
           {/* ── Row 3: Quick Actions ── */}
           <div
-            className="bg-white rounded-2xl p-3.5 sm:p-6 shadow-sm border border-slate-200"
+            className="bg-white rounded-2xl p-3.5 sm:p-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-slate-100 transition-all duration-300"
             id="tour-quick-actions"
           >
-            <h2 className="text-base sm:text-xl font-bold text-slate-900 mb-3 sm:mb-4">
+            <h2 className="text-base sm:text-xl font-bold text-slate-900 mb-3 sm:mb-4 pl-3 border-l-4 border-[#FF8A2B]">
               Quick Actions
             </h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
@@ -526,10 +539,10 @@ export function DashboardHome() {
                 <button
                   key={idx}
                   onClick={action.action}
-                  className="flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-6 rounded-xl border-2 border-slate-200 hover:border-[#FF8A2B] hover:bg-slate-50 transition-all active:scale-95"
+                  className="group flex flex-col items-center gap-2 sm:gap-3 p-3 sm:p-6 rounded-xl border-2 border-slate-200 hover:border-[#FF8A2B] hover:bg-slate-50 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#FF8A2B]/20 active:scale-95 transition-all duration-300"
                 >
-                  <div className={`${action.color} p-3 sm:p-4 rounded-xl shadow-md`}>
-                    <action.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  <div className={`${action.color} p-3 sm:p-4 rounded-xl`}>
+                    <action.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white group-hover:scale-110 transition-transform duration-200" />
                   </div>
                   <span className="text-xs sm:text-sm font-semibold text-slate-900 text-center leading-tight">
                     {action.label}
@@ -543,10 +556,10 @@ export function DashboardHome() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
             {/* Recent Activity */}
             <div
-              className="bg-white rounded-2xl p-3.5 sm:p-6 shadow-sm border border-slate-200"
+              className="bg-white rounded-2xl p-3.5 sm:p-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-slate-100 transition-all duration-300"
               id="tour-activity"
             >
-              <h2 className="text-base sm:text-xl font-bold text-slate-900 mb-3 sm:mb-4">
+              <h2 className="text-base sm:text-xl font-bold text-slate-900 mb-3 sm:mb-4 pl-3 border-l-4 border-[#FF8A2B]">
                 Recent Activity
               </h2>
               {recentActivity.length === 0 ? (
@@ -562,7 +575,7 @@ export function DashboardHome() {
                     return (
                       <div
                         key={activity.id || idx}
-                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors"
+                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-gradient-to-r hover:from-slate-50 hover:to-white transition-colors"
                       >
                         <div className={`p-2 rounded-lg shrink-0 ${colorClass}`}>
                           <FileText className="w-4 h-4" />
@@ -585,10 +598,10 @@ export function DashboardHome() {
 
             {/* Smart Alerts */}
             <div
-              className="bg-white rounded-2xl p-3.5 sm:p-6 shadow-sm border border-slate-200"
+              className="bg-white rounded-2xl p-3.5 sm:p-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-slate-100 transition-all duration-300"
               id="tour-alerts"
             >
-              <h2 className="text-base sm:text-xl font-bold text-slate-900 mb-3 sm:mb-4">
+              <h2 className="text-base sm:text-xl font-bold text-slate-900 mb-3 sm:mb-4 pl-3 border-l-4 border-[#FF8A2B]">
                 Alerts &amp; Reminders
               </h2>
               {displayAlerts.length === 0 ? (
@@ -609,7 +622,7 @@ export function DashboardHome() {
                     return (
                       <div
                         key={idx}
-                        className={`flex items-start gap-3 p-4 rounded-lg ${style.bg}`}
+                        className={`flex items-start gap-3 p-4 rounded-lg ${style.bg} ${style.border}`}
                       >
                         <Icon className={`w-5 h-5 shrink-0 mt-0.5 ${style.icon}`} />
                         <div className="flex-1 min-w-0">

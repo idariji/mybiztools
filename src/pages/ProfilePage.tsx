@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Save, User, Mail, Building, Phone, MapPin } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { authService } from '../services/authService';
 import { useToast } from '../utils/useToast';
 
@@ -44,7 +45,11 @@ export const ProfilePage: React.FC = () => {
   };
 
   return (
-    <div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <div className="mb-4 sm:mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
         <p className="text-gray-600 mt-1">Manage your personal and business information</p>
@@ -52,9 +57,9 @@ export const ProfilePage: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] transition-all duration-300">
             <div className="text-center">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-3xl font-bold mx-auto mb-4">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#FF8A2B] to-[#FF6B00] flex items-center justify-center text-white text-3xl font-bold mx-auto mb-4 ring-4 ring-blue-100 ring-offset-2">
                 {formData.firstName ? formData.firstName.charAt(0).toUpperCase() : 'U'}
               </div>
               <h3 className="font-semibold text-gray-900">{formData.firstName && formData.lastName ? `${formData.firstName} ${formData.lastName}` : 'User'}</h3>
@@ -64,9 +69,9 @@ export const ProfilePage: React.FC = () => {
         </div>
 
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-            <h3 className="text-lg font-semibold mb-6">Personal Information</h3>
-            
+          <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.10)] transition-all duration-300 p-4 sm:p-6">
+            <h3 className="text-lg font-semibold text-slate-700 border-b border-slate-100 pb-2 mb-4">Personal Information</h3>
+
             <div className="space-y-4 sm:space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -78,7 +83,7 @@ export const ProfilePage: React.FC = () => {
                     type="text"
                     value={formData.firstName}
                     onChange={(e) => handleChange('firstName', e.target.value)}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF8A2B]/20 focus:border-[#FF8A2B] transition-all duration-200"
                     placeholder="John"
                   />
                 </div>
@@ -90,7 +95,7 @@ export const ProfilePage: React.FC = () => {
                     type="text"
                     value={formData.lastName}
                     onChange={(e) => handleChange('lastName', e.target.value)}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF8A2B]/20 focus:border-[#FF8A2B] transition-all duration-200"
                     placeholder="Doe"
                   />
                 </div>
@@ -105,7 +110,7 @@ export const ProfilePage: React.FC = () => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleChange('email', e.target.value)}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF8A2B]/20 focus:border-[#FF8A2B] transition-all duration-200"
                   placeholder="john@example.com"
                 />
               </div>
@@ -119,7 +124,7 @@ export const ProfilePage: React.FC = () => {
                   type="text"
                   value={formData.businessName}
                   onChange={(e) => handleChange('businessName', e.target.value)}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF8A2B]/20 focus:border-[#FF8A2B] transition-all duration-200"
                   placeholder="My Business Ltd"
                 />
               </div>
@@ -133,7 +138,7 @@ export const ProfilePage: React.FC = () => {
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => handleChange('phone', e.target.value)}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF8A2B]/20 focus:border-[#FF8A2B] transition-all duration-200"
                   placeholder="+234 800 000 0000"
                 />
               </div>
@@ -147,7 +152,7 @@ export const ProfilePage: React.FC = () => {
                   value={formData.address}
                   onChange={(e) => handleChange('address', e.target.value)}
                   rows={3}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF8A2B]/20 focus:border-[#FF8A2B] transition-all duration-200"
                   placeholder="123 Business Street, Lagos, Nigeria"
                 />
               </div>
@@ -160,14 +165,14 @@ export const ProfilePage: React.FC = () => {
                   type="url"
                   value={formData.website}
                   onChange={(e) => handleChange('website', e.target.value)}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF8A2B]/20 focus:border-[#FF8A2B] transition-all duration-200"
                   placeholder="https://mybusiness.com"
                 />
               </div>
 
               <button
                 onClick={handleSave}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] hover:from-[#FF6B00] hover:to-[#E55A00] text-white rounded-xl font-semibold shadow-lg shadow-orange-500/30 hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2"
               >
                 <Save size={20} />
                 Save Changes
@@ -176,6 +181,6 @@ export const ProfilePage: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };

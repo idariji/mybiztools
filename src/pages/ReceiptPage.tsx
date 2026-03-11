@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { DashboardLayout } from '../layout/DashboardLayout';
 import { Plus, Download, Eye, Trash2, Search, Lock, Zap } from 'lucide-react';
 import { Receipt } from '../types/receipt';
@@ -20,7 +21,7 @@ export function ReceiptPage() {
     setReceipts(drafts);
   }, []);
 
-  const filteredReceipts = receipts.filter(r => 
+  const filteredReceipts = receipts.filter(r =>
     r.receiptNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
     r.customerInfo.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -40,11 +41,17 @@ export function ReceiptPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
+        className="space-y-6"
+      >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Receipt Generator</h1>
-            <p className="text-slate-600 mt-1">Create and manage digital receipts</p>
+            <h1 className="text-xl sm:text-3xl font-bold text-slate-900">Receipt Generator</h1>
+            <div className="h-1 w-16 bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] rounded-full mt-2 mb-1" />
+            <p className="text-sm text-slate-500">Create and manage digital receipts</p>
           </div>
           <div className="flex items-center gap-3">
             {isFree && (
@@ -66,7 +73,7 @@ export function ReceiptPage() {
         </div>
 
         {/* Search */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div className="bg-white rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] transition-all duration-300 border border-slate-100">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
@@ -80,7 +87,7 @@ export function ReceiptPage() {
         </div>
 
         {/* Receipts Table */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div className="bg-white rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] transition-all duration-300 border border-slate-100">
           <h2 className="text-xl font-bold text-slate-900 mb-4">
             Receipts ({filteredReceipts.length})
           </h2>
@@ -106,7 +113,7 @@ export function ReceiptPage() {
                   </tr>
                 ) : (
                   filteredReceipts.map((receipt) => (
-                    <tr key={receipt.receiptNumber} className="border-b border-slate-100 hover:bg-slate-50">
+                    <tr key={receipt.receiptNumber} className="border-b border-slate-100 hover:bg-gradient-to-r hover:from-slate-50 hover:to-white transition-colors duration-150">
                       <td className="py-4 px-4 text-sm text-slate-900 font-medium">{receipt.receiptNumber}</td>
                       <td className="py-4 px-4 text-sm text-slate-600">{receipt.customerInfo.name}</td>
                       <td className="py-4 px-4 text-sm text-slate-900 font-semibold">
@@ -119,17 +126,17 @@ export function ReceiptPage() {
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-2">
                           <button onClick={() => handleView(receipt)} className="p-2 hover:bg-slate-100 rounded-lg transition-colors" title="View / Edit">
-                            <Eye className="w-4 h-4 text-slate-600" />
+                            <Eye className="w-4 h-4 text-slate-600 hover:scale-110 transition-transform duration-150" />
                           </button>
                           <button onClick={() => handleView(receipt)} className="p-2 hover:bg-slate-100 rounded-lg transition-colors" title="Download (opens editor)">
-                            <Download className="w-4 h-4 text-slate-600" />
+                            <Download className="w-4 h-4 text-slate-600 hover:scale-110 transition-transform duration-150" />
                           </button>
                           <button
                             onClick={() => handleDelete(receipt.receiptNumber)}
                             className="p-2 hover:bg-red-100 rounded-lg transition-colors"
                             title="Delete"
                           >
-                            <Trash2 className="w-4 h-4 text-red-600" />
+                            <Trash2 className="w-4 h-4 text-red-600 hover:scale-110 transition-transform duration-150" />
                           </button>
                         </div>
                       </td>
@@ -142,13 +149,19 @@ export function ReceiptPage() {
 
           {/* Mobile card list - hidden on desktop */}
           {filteredReceipts.length === 0 ? (
-            <div className="md:hidden py-8 text-center text-gray-500">
+            <div className="md:hidden text-center py-16 px-6 bg-gradient-to-b from-slate-50 to-white rounded-2xl border border-dashed border-slate-200">
               No receipts found. Create your first receipt!
             </div>
           ) : (
             <div className="md:hidden space-y-3">
-              {filteredReceipts.map((receipt) => (
-                <div key={receipt.receiptNumber} className="bg-white border border-slate-200 rounded-xl p-4 space-y-2">
+              {filteredReceipts.map((receipt, idx) => (
+                <motion.div
+                  key={receipt.receiptNumber}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: idx * 0.05 }}
+                  className="bg-white border border-slate-100 rounded-2xl p-4 space-y-3 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.10)] hover:-translate-y-0.5 transition-all duration-200"
+                >
                   <div className="flex items-start justify-between gap-2">
                     <span className="text-sm font-bold text-slate-900">{receipt.receiptNumber}</span>
                     <span className="text-xs text-slate-500 shrink-0">{receipt.paymentMethod}</span>
@@ -178,17 +191,17 @@ export function ReceiptPage() {
                       <Trash2 className="w-3.5 h-3.5" /> Delete
                     </button>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {/* Upgrade Modal */}
       {showUpgrade && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl p-4 sm:p-8 max-w-md w-full shadow-2xl">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-4 sm:p-8 max-w-md w-full shadow-2xl">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-3 bg-orange-100 rounded-xl">
                 <Zap className="w-6 h-6 text-[#FF8A2B]" />

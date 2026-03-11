@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { DashboardLayout } from '../layout/DashboardLayout';
 import { Plus, Eye, Trash2, CreditCard, Lock, Zap } from 'lucide-react';
 import { Payslip } from '../types/payslip';
@@ -44,11 +45,17 @@ export function PayslipPage() {
     <>
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       <DashboardLayout>
-        <div className="space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
+          className="space-y-6"
+        >
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">Payslip Generator</h1>
-              <p className="text-slate-600 mt-1">Create and manage employee payslips</p>
+              <h1 className="text-xl sm:text-3xl font-bold text-slate-900">Payslip Generator</h1>
+              <div className="h-1 w-16 bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] rounded-full mt-2 mb-1" />
+              <p className="text-sm text-slate-500">Create and manage employee payslips</p>
             </div>
             <div className="flex items-center gap-3">
               {isFree && (
@@ -69,11 +76,11 @@ export function PayslipPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+          <div className="bg-white rounded-2xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] transition-all duration-300 border border-slate-100">
             <h2 className="text-xl font-bold text-slate-900 mb-4">Recent Payslips ({payslips.length})</h2>
 
             {payslips.length === 0 ? (
-              <div className="text-center py-12">
+              <div className="text-center py-16 px-6 bg-gradient-to-b from-slate-50 to-white rounded-2xl border border-dashed border-slate-200">
                 <CreditCard className="w-16 h-16 text-slate-300 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-slate-900 mb-2">No payslips yet</h3>
                 <p className="text-slate-600 mb-6">Generate your first payslip to get started</p>
@@ -106,7 +113,7 @@ export function PayslipPage() {
                   </thead>
                   <tbody>
                     {payslips.map((payslip) => (
-                      <tr key={payslip.payslipNumber} className="border-b border-slate-100 hover:bg-slate-50">
+                      <tr key={payslip.payslipNumber} className="border-b border-slate-100 hover:bg-gradient-to-r hover:from-slate-50 hover:to-white transition-colors duration-150">
                         <td className="py-4 px-4 text-sm text-slate-900 font-medium">{payslip.payslipNumber}</td>
                         <td className="py-4 px-4 text-sm text-slate-600">{payslip.employeeInfo?.name || 'N/A'}</td>
                         <td className="py-4 px-4 text-sm text-slate-600">{payslip.employeeInfo?.department || 'N/A'}</td>
@@ -115,7 +122,7 @@ export function PayslipPage() {
                           ₦{(payslip.summary?.netPay || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
                         <td className="py-4 px-4">
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
                             payslip.status === 'paid' ? 'bg-green-100 text-green-700' :
                             payslip.status === 'issued' ? 'bg-blue-100 text-blue-700' :
                             'bg-orange-100 text-orange-700'
@@ -131,14 +138,14 @@ export function PayslipPage() {
                               className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                               title="View/Edit"
                             >
-                              <Eye className="w-4 h-4 text-slate-600" />
+                              <Eye className="w-4 h-4 text-slate-600 hover:scale-110 transition-transform duration-150" />
                             </button>
                             <button
                               onClick={() => handleDelete(payslip.payslipNumber)}
                               className="p-2 hover:bg-red-50 rounded-lg transition-colors"
                               title="Delete"
                             >
-                              <Trash2 className="w-4 h-4 text-red-600" />
+                              <Trash2 className="w-4 h-4 text-red-600 hover:scale-110 transition-transform duration-150" />
                             </button>
                           </div>
                         </td>
@@ -150,11 +157,17 @@ export function PayslipPage() {
 
               {/* Mobile card list - hidden on desktop */}
               <div className="md:hidden space-y-3">
-                {payslips.map((payslip) => (
-                  <div key={payslip.payslipNumber} className="bg-white border border-slate-200 rounded-xl p-4 space-y-2">
+                {payslips.map((payslip, idx) => (
+                  <motion.div
+                    key={payslip.payslipNumber}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: idx * 0.05 }}
+                    className="bg-white border border-slate-100 rounded-2xl p-4 space-y-3 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.10)] hover:-translate-y-0.5 transition-all duration-200"
+                  >
                     <div className="flex items-start justify-between gap-2">
                       <span className="text-sm font-bold text-slate-900">{payslip.payslipNumber}</span>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold shrink-0 ${
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold shrink-0 shadow-sm ${
                         payslip.status === 'paid' ? 'bg-green-100 text-green-700' :
                         payslip.status === 'issued' ? 'bg-blue-100 text-blue-700' :
                         'bg-orange-100 text-orange-700'
@@ -183,19 +196,19 @@ export function PayslipPage() {
                         <Trash2 className="w-3.5 h-3.5" /> Delete
                       </button>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
               </>
             )}
           </div>
-        </div>
+        </motion.div>
       </DashboardLayout>
 
       {/* Upgrade Modal */}
       {showUpgrade && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl p-4 sm:p-8 max-w-md w-full shadow-2xl">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-4 sm:p-8 max-w-md w-full shadow-2xl">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-3 bg-orange-100 rounded-xl">
                 <Zap className="w-6 h-6 text-[#FF8A2B]" />
