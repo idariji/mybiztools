@@ -1,214 +1,144 @@
-import { Router, Request, Response } from 'express';
-import { SmsService } from '../services/smsService.js';
+import { Router } from 'express';
+import { SmsController } from '../controllers/smsController.js';
 import { authenticateUser, optionalAuth } from '../middleware/authMiddleware.js';
+import { validate } from '../middleware/validate.js';
 import rateLimit from 'express-rate-limit';
+import Joi from 'joi';
 
 const router = Router();
 
-// Rate limiting for SMS endpoints
 const smsLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 10, // 10 SMS per minute
-  message: {
-    success: false,
-    message: 'Too many SMS requests, please try again later.',
-    error: 'RATE_LIMITED',
-  },
+  windowMs: 60 * 1000,
+  max: 10,
+  message: { success: false, message: 'Too many SMS requests, please try again later.', error: 'RATE_LIMITED' },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-// POST /api/sms/send - Send single SMS
-router.post('/send', smsLimiter, optionalAuth, async (req: Request, res: Response) => {
-  try {
-    const { to, message, channel } = req.body;
+//Validators 
 
-    // Validate required fields
-    if (!to || !message) {
-      return res.status(400).json({
-        success: false,
-        message: 'Phone number (to) and message are required',
-        error: 'MISSING_FIELDS',
-      });
-    }
-
-    // Validate phone number format (basic check)
-    const phoneRegex = /^[\d\s+()-]{10,15}$/;
-    if (!phoneRegex.test(to.replace(/\s/g, ''))) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid phone number format',
-        error: 'INVALID_PHONE',
-      });
-    }
-
-    // Validate message length
-    if (message.length > 918) { // 6 SMS pages max
-      return res.status(400).json({
-        success: false,
-        message: 'Message is too long (max 918 characters)',
-        error: 'MESSAGE_TOO_LONG',
-        length: message.length,
-      });
-    }
-
-    // Validate channel
-    const validChannels = ['generic', 'dnd', 'whatsapp'];
-    if (channel && !validChannels.includes(channel)) {
-      return res.status(400).json({
-        success: false,
-        message: `Channel must be one of: ${validChannels.join(', ')}`,
-        error: 'INVALID_CHANNEL',
-      });
-    }
-
-    const result = await SmsService.sendSms({ to, message, channel });
-
-    if (!result.success) {
-      return res.status(400).json(result);
-    }
-
-    return res.status(200).json(result);
-  } catch (error) {
-    console.error('Send SMS route error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: 'SERVER_ERROR',
-    });
-  }
+const sendSmsSchema = Joi.object({
+  to:      Joi.string().trim().required().messages({ 'any.required': 'Phone number (to) is required' }),
+  message: Joi.string().trim().min(1).max(918).required().messages({ 'string.max': 'Message too long (max 918 characters)' }),
+  channel: Joi.string().valid('generic', 'dnd', 'whatsapp').optional(),
 });
 
-// POST /api/sms/bulk-send - Send bulk SMS
-router.post('/bulk-send', smsLimiter, authenticateUser, async (req: Request, res: Response) => {
-  try {
-    const { to, message, channel } = req.body;
-
-    // Validate required fields
-    if (!to || !Array.isArray(to) || to.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Phone numbers array (to) is required',
-        error: 'MISSING_FIELDS',
-      });
-    }
-
-    if (!message) {
-      return res.status(400).json({
-        success: false,
-        message: 'Message is required',
-        error: 'MISSING_FIELDS',
-      });
-    }
-
-    // Limit bulk recipients
-    if (to.length > 100) {
-      return res.status(400).json({
-        success: false,
-        message: 'Maximum 100 recipients allowed per bulk send',
-        error: 'TOO_MANY_RECIPIENTS',
-        count: to.length,
-      });
-    }
-
-    // Validate message length
-    if (message.length > 918) {
-      return res.status(400).json({
-        success: false,
-        message: 'Message is too long (max 918 characters)',
-        error: 'MESSAGE_TOO_LONG',
-        length: message.length,
-      });
-    }
-
-    const result = await SmsService.sendBulkSms({ to, message, channel });
-
-    if (!result.success) {
-      return res.status(400).json(result);
-    }
-
-    return res.status(200).json(result);
-  } catch (error) {
-    console.error('Send bulk SMS route error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: 'SERVER_ERROR',
-    });
-  }
+const bulkSmsSchema = Joi.object({
+  to:      Joi.array().items(Joi.string()).min(1).max(100).required().messages({
+    'array.max': 'Maximum 100 recipients per bulk send',
+    'any.required': 'Phone numbers array (to) is required',
+  }),
+  message: Joi.string().trim().min(1).max(918).required(),
+  channel: Joi.string().valid('generic', 'dnd', 'whatsapp').optional(),
 });
 
-// GET /api/sms/balance - Check SMS balance
-router.get('/balance', authenticateUser, async (req: Request, res: Response) => {
-  try {
-    const result = await SmsService.getBalance();
-
-    if (!result.success) {
-      return res.status(400).json(result);
-    }
-
-    return res.status(200).json(result);
-  } catch (error) {
-    console.error('Get SMS balance route error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: 'SERVER_ERROR',
-    });
-  }
+const validatePhoneSchema = Joi.object({
+  phoneNumber: Joi.string().trim().required().messages({ 'any.required': 'Phone number is required' }),
 });
 
-// POST /api/sms/validate - Validate phone number
-router.post('/validate', optionalAuth, async (req: Request, res: Response) => {
-  try {
-    const { phoneNumber } = req.body;
 
-    if (!phoneNumber) {
-      return res.status(400).json({
-        success: false,
-        message: 'Phone number is required',
-        error: 'MISSING_FIELDS',
-      });
-    }
+/**
+ * @swagger
+ * tags:
+ *   name: SMS
+ *   description: SMS notifications via Termii
+ */
 
-    const result = await SmsService.validatePhone(phoneNumber);
+/**
+ * @swagger
+ * /api/sms/send:
+ *   post:
+ *     summary: Send a single SMS
+ *     tags: [SMS]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [to, message]
+ *             properties:
+ *               to:      { type: string, description: Recipient phone number }
+ *               message: { type: string, maxLength: 918 }
+ *               channel: { type: string, enum: [generic, dnd, whatsapp] }
+ *     responses:
+ *       200: { description: SMS sent }
+ *       400: { description: Validation error }
+ *       429: { description: Rate limited }
+ */
+router.post('/send', smsLimiter, optionalAuth, validate(sendSmsSchema), SmsController.sendSms);
 
-    if (!result.success) {
-      return res.status(400).json(result);
-    }
+/**
+ * @swagger
+ * /api/sms/bulk-send:
+ *   post:
+ *     summary: Send bulk SMS (max 100 recipients)
+ *     tags: [SMS]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [to, message]
+ *             properties:
+ *               to:      { type: array, items: { type: string }, maxItems: 100 }
+ *               message: { type: string, maxLength: 918 }
+ *               channel: { type: string, enum: [generic, dnd, whatsapp] }
+ *     responses:
+ *       200: { description: Bulk SMS sent }
+ *       429: { description: Rate limited }
+ */
+router.post('/bulk-send', smsLimiter, authenticateUser, validate(bulkSmsSchema), SmsController.sendBulkSms);
 
-    return res.status(200).json(result);
-  } catch (error) {
-    console.error('Validate phone route error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: 'SERVER_ERROR',
-    });
-  }
-});
+/**
+ * @swagger
+ * /api/sms/balance:
+ *   get:
+ *     summary: Check Termii account balance
+ *     tags: [SMS]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200: { description: Balance retrieved }
+ */
+router.get('/balance', authenticateUser, SmsController.getBalance);
 
-// GET /api/sms/history - Get SMS history
-router.get('/history', authenticateUser, async (req: Request, res: Response) => {
-  try {
-    const { page } = req.query;
-    const pageNum = page ? parseInt(page as string) : 1;
+/**
+ * @swagger
+ * /api/sms/validate:
+ *   post:
+ *     summary: Validate a phone number
+ *     tags: [SMS]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [phoneNumber]
+ *             properties:
+ *               phoneNumber: { type: string }
+ *     responses:
+ *       200: { description: Phone number validated }
+ */
+router.post('/validate', optionalAuth, validate(validatePhoneSchema), SmsController.validatePhone);
 
-    const result = await SmsService.getHistory(pageNum);
-
-    if (!result.success) {
-      return res.status(400).json(result);
-    }
-
-    return res.status(200).json(result);
-  } catch (error) {
-    console.error('Get SMS history route error:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: 'SERVER_ERROR',
-    });
-  }
-});
+/**
+ * @swagger
+ * /api/sms/history:
+ *   get:
+ *     summary: Get SMS history
+ *     tags: [SMS]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - { in: query, name: page, schema: { type: integer } }
+ *     responses:
+ *       200: { description: History retrieved }
+ */
+router.get('/history', authenticateUser, SmsController.getHistory);
 
 export default router;

@@ -1,4 +1,9 @@
 import prisma from '../lib/prisma.js';
+import type { ServiceResponse } from '../types/index.js';
+
+// ============================================================================
+// PAYMENT SERVICE
+// ============================================================================
 
 export interface PaymentFilters {
   page?: number;
@@ -17,543 +22,401 @@ export interface RefundInput {
   adminName: string;
 }
 
+const formatPayment = (p: any) => ({
+  id: p.id,
+  userId: p.userId,
+  subscriptionId: p.subscriptionId,
+  amount: Number(p.amount) / 100,
+  currency: p.currency,
+  status: p.status,
+  stripePaymentId: p.stripePaymentId,
+  billingPeriodStart: p.billingPeriodStart?.toISOString() ?? null,
+  billingPeriodEnd: p.billingPeriodEnd?.toISOString() ?? null,
+  failureReason: p.failureReason,
+  retryCount: p.retryCount,
+  refundedAmount: Number(p.refundedAmount) / 100,
+  refundReason: p.refundReason,
+  refundedAt: p.refundedAt?.toISOString() ?? null,
+  createdAt: p.createdAt?.toISOString() ?? null,
+  user: p.user ?? undefined,
+  refundLogs: p.refundLogs ?? undefined,
+});
+
 export class PaymentService {
-  // Get payments with filters and pagination
-  static async getPayments(filters: PaymentFilters) {
-    try {
-      const page = filters.page || 1;
-      const limit = filters.limit || 20;
-      const skip = (page - 1) * limit;
+  // --------------------------------------------------------------------------
+  // GET PAYMENTS
+  // --------------------------------------------------------------------------
 
-      const where: any = {};
+  static async getPayments(filters: PaymentFilters): Promise<ServiceResponse> {
+    const page = filters.page ?? 1;
+    const limit = filters.limit ?? 20;
+    const skip = (page - 1) * limit;
 
-      if (filters.status) {
-        where.status = filters.status;
-      }
-
-      if (filters.userId) {
-        where.userId = filters.userId;
-      }
-
-      if (filters.dateFrom || filters.dateTo) {
-        where.createdAt = {};
-        if (filters.dateFrom) {
-          where.createdAt.gte = new Date(filters.dateFrom);
-        }
-        if (filters.dateTo) {
-          where.createdAt.lte = new Date(filters.dateTo);
-        }
-      }
-
-      const [payments, total] = await Promise.all([
-        prisma.payment.findMany({
-          where,
-          skip,
-          take: limit,
-          orderBy: { createdAt: 'desc' },
-          include: {
-            user: {
-              select: {
-                id: true,
-                email: true,
-                firstName: true,
-                lastName: true,
-                businessName: true,
-              },
-            },
-            refundLogs: true,
-          },
-        }),
-        prisma.payment.count({ where }),
-      ]);
-
-      return {
-        success: true,
-        data: {
-          payments,
-          pagination: {
-            page,
-            limit,
-            total,
-            totalPages: Math.ceil(total / limit),
-          },
-        },
-      };
-    } catch (error) {
-      console.error('Get payments error:', error);
-      return {
-        success: false,
-        message: 'Failed to fetch payments',
-        error: 'FETCH_FAILED',
-      };
+    const where: any = {};
+    if (filters.status) where.status = filters.status;
+    if (filters.userId) where.userId = filters.userId;
+    if (filters.dateFrom || filters.dateTo) {
+      where.createdAt = {};
+      if (filters.dateFrom) where.createdAt.gte = new Date(filters.dateFrom);
+      if (filters.dateTo)   where.createdAt.lte = new Date(filters.dateTo);
     }
-  }
 
-  // Get single payment by ID
-  static async getPaymentById(paymentId: string) {
-    try {
-      const payment = await prisma.payment.findUnique({
-        where: { id: paymentId },
+    const [payments, total] = await Promise.all([
+      prisma.payment.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
         include: {
           user: {
-            select: {
-              id: true,
-              email: true,
-              firstName: true,
-              lastName: true,
-              businessName: true,
-            },
+            select: { id: true, email: true, firstName: true, lastName: true, businessName: true },
           },
           refundLogs: true,
         },
-      });
+      }),
+      prisma.payment.count({ where }),
+    ]);
 
-      if (!payment) {
-        return {
-          success: false,
-          message: 'Payment not found',
-          error: 'PAYMENT_NOT_FOUND',
-        };
-      }
-
-      return {
-        success: true,
-        data: payment,
-      };
-    } catch (error) {
-      console.error('Get payment by ID error:', error);
-      return {
-        success: false,
-        message: 'Failed to fetch payment',
-        error: 'FETCH_FAILED',
-      };
-    }
+    return {
+      success: true,
+      message: 'Payments retrieved successfully',
+      data: {
+        payments: (payments as any[]).map(formatPayment),
+        pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+      },
+    };
   }
 
-  // Process refund
-  static async processRefund(input: RefundInput) {
-    try {
-      const payment = await prisma.payment.findUnique({
-        where: { id: input.paymentId },
-      });
+  // --------------------------------------------------------------------------
+  // GET PAYMENT BY ID
+  // --------------------------------------------------------------------------
 
-      if (!payment) {
-        return {
-          success: false,
-          message: 'Payment not found',
-          error: 'PAYMENT_NOT_FOUND',
-        };
-      }
-
-      if (payment.status === 'refunded') {
-        return {
-          success: false,
-          message: 'Payment has already been fully refunded',
-          error: 'ALREADY_REFUNDED',
-        };
-      }
-
-      const currentRefunded = Number(payment.refundedAmount);
-      const paymentAmount = Number(payment.amount);
-      const refundAmount = input.amount;
-
-      if (currentRefunded + refundAmount > paymentAmount) {
-        return {
-          success: false,
-          message: 'Refund amount exceeds remaining payment amount',
-          error: 'REFUND_EXCEEDS_PAYMENT',
-          data: {
-            paymentAmount,
-            alreadyRefunded: currentRefunded,
-            maxRefundable: paymentAmount - currentRefunded,
-          },
-        };
-      }
-
-      const newRefundedTotal = currentRefunded + refundAmount;
-      const newStatus = newRefundedTotal >= paymentAmount ? 'refunded' : payment.status;
-
-      // Update payment
-      await prisma.payment.update({
-        where: { id: input.paymentId },
-        data: {
-          refundedAmount: BigInt(newRefundedTotal),
-          refundReason: input.reason,
-          refundedAt: new Date(),
-          status: newStatus,
+  static async getPaymentById(paymentId: string): Promise<ServiceResponse> {
+    const payment = await prisma.payment.findUnique({
+      where: { id: paymentId },
+      include: {
+        user: {
+          select: { id: true, email: true, firstName: true, lastName: true, businessName: true },
         },
-      });
+        refundLogs: true,
+      },
+    });
 
-      // Create refund log
-      await prisma.refundLog.create({
-        data: {
-          paymentId: input.paymentId,
-          amount: BigInt(refundAmount),
-          reason: input.reason,
-          adminId: input.adminId,
-          adminName: input.adminName,
-        },
-      });
-
-      // Log admin action
-      await prisma.adminAuditLog.create({
-        data: {
-          adminId: input.adminId,
-          adminName: input.adminName,
-          adminRole: 'billing_admin',
-          targetUserId: payment.userId,
-          action: 'update',
-          resource: 'payment',
-          resourceId: input.paymentId,
-          changes: {
-            refund_amount: refundAmount,
-            total_refunded: newRefundedTotal,
-            new_status: newStatus,
-          },
-          reason: input.reason,
-        },
-      });
-
-      return {
-        success: true,
-        message: 'Refund processed successfully',
-        data: {
-          refundAmount,
-          totalRefunded: newRefundedTotal,
-          newStatus,
-        },
-      };
-    } catch (error) {
-      console.error('Process refund error:', error);
-      return {
-        success: false,
-        message: 'Failed to process refund',
-        error: 'REFUND_FAILED',
-      };
+    if (!payment) {
+      return { success: false, message: 'Payment not found', error: 'PAYMENT_NOT_FOUND' };
     }
+
+    return {
+      success: true,
+      message: 'Payment retrieved successfully',
+      data: { payment: formatPayment(payment) },
+    };
   }
 
-  // Retry failed payment
-  static async retryPayment(paymentId: string, adminId: string, adminName: string) {
-    try {
-      const payment = await prisma.payment.findUnique({
-        where: { id: paymentId },
-      });
+  // --------------------------------------------------------------------------
+  // PROCESS REFUND
+  // --------------------------------------------------------------------------
 
-      if (!payment) {
-        return {
-          success: false,
-          message: 'Payment not found',
-          error: 'PAYMENT_NOT_FOUND',
-        };
-      }
+  static async processRefund(input: RefundInput): Promise<ServiceResponse> {
+    const payment = await prisma.payment.findUnique({
+      where: { id: input.paymentId },
+    }) as any;
 
-      if (payment.status !== 'failed') {
-        return {
-          success: false,
-          message: 'Can only retry failed payments',
-          error: 'INVALID_STATUS',
-        };
-      }
+    if (!payment) {
+      return { success: false, message: 'Payment not found', error: 'PAYMENT_NOT_FOUND' };
+    }
 
-      if (payment.maxRetriesReached) {
-        return {
-          success: false,
-          message: 'Maximum retries reached for this payment',
-          error: 'MAX_RETRIES_REACHED',
-        };
-      }
+    if (payment.status === 'refunded') {
+      return { success: false, message: 'Payment has already been fully refunded', error: 'ALREADY_REFUNDED' };
+    }
 
-      const newRetryCount = payment.retryCount + 1;
-      const maxRetries = 3;
+    const currentRefunded = Number(payment.refundedAmount);
+    const paymentAmount   = Number(payment.amount);
+    const refundAmount    = input.amount;
 
-      // Update payment for retry
-      await prisma.payment.update({
-        where: { id: paymentId },
-        data: {
-          status: 'pending',
-          retryCount: newRetryCount,
-          nextRetryAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
-          maxRetriesReached: newRetryCount >= maxRetries,
-        },
-      });
-
-      // Log admin action
-      await prisma.adminAuditLog.create({
-        data: {
-          adminId: adminId,
-          adminName: adminName,
-          adminRole: 'billing_admin',
-          targetUserId: payment.userId,
-          action: 'update',
-          resource: 'payment',
-          resourceId: paymentId,
-          changes: { action: 'retry', retry_count: newRetryCount },
-          reason: 'Manual payment retry',
-        },
-      });
-
-      return {
-        success: true,
-        message: 'Payment retry initiated',
-        data: {
-          retryCount: newRetryCount,
-          maxRetries,
-        },
-      };
-    } catch (error) {
-      console.error('Retry payment error:', error);
+    if (currentRefunded + refundAmount > paymentAmount) {
       return {
         success: false,
-        message: 'Failed to retry payment',
-        error: 'RETRY_FAILED',
-      };
-    }
-  }
-
-  // Get dashboard metrics
-  static async getMetrics() {
-    try {
-      const now = new Date();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
-
-      // Get counts
-      const [
-        totalUsers,
-        activeUsers,
-        freeUsers,
-        proUsers,
-        enterpriseUsers,
-        suspendedUsers,
-        thisMonthPayments,
-        lastMonthPayments,
-        pendingAbuseReports,
-      ] = await Promise.all([
-        prisma.user.count(),
-        prisma.user.count({ where: { subscriptionStatus: 'active' } }),
-        prisma.user.count({ where: { currentPlan: 'free' } }),
-        prisma.user.count({ where: { currentPlan: 'pro' } }),
-        prisma.user.count({ where: { currentPlan: 'enterprise' } }),
-        prisma.user.count({ where: { subscriptionStatus: 'suspended' } }),
-        prisma.payment.findMany({
-          where: {
-            status: 'succeeded',
-            createdAt: { gte: startOfMonth },
-          },
-        }),
-        prisma.payment.findMany({
-          where: {
-            status: 'succeeded',
-            createdAt: { gte: startOfLastMonth, lte: endOfLastMonth },
-          },
-        }),
-        prisma.abuseReport.count({ where: { status: 'pending' } }),
-      ]);
-
-      // Calculate MRR
-      const thisMonthRevenue = thisMonthPayments.reduce(
-        (sum, p) => sum + Number(p.amount),
-        0
-      );
-      const lastMonthRevenue = lastMonthPayments.reduce(
-        (sum, p) => sum + Number(p.amount),
-        0
-      );
-
-      // Get MRR from active subscriptions
-      const activeSubscriptions = await prisma.subscription.findMany({
-        where: { status: 'active' },
-      });
-
-      const mrr = activeSubscriptions.reduce(
-        (sum, s) => sum + Number(s.mrrValue),
-        0
-      );
-
-      // Recent signups (last 7 days)
-      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      const recentSignups = await prisma.user.count({
-        where: { createdAt: { gte: weekAgo } },
-      });
-
-      // Failed payments count
-      const failedPayments = await prisma.payment.count({
-        where: { status: 'failed' },
-      });
-
-      return {
-        success: true,
+        message: 'Refund amount exceeds remaining payment amount',
+        error: 'REFUND_EXCEEDS_PAYMENT',
         data: {
-          users: {
-            total: totalUsers,
-            active: activeUsers,
-            suspended: suspendedUsers,
-            byPlan: {
-              free: freeUsers,
-              pro: proUsers,
-              enterprise: enterpriseUsers,
-            },
-            recentSignups,
-          },
-          revenue: {
-            mrr,
-            thisMonth: thisMonthRevenue,
-            lastMonth: lastMonthRevenue,
-            growth: lastMonthRevenue > 0
-              ? ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue * 100).toFixed(2)
-              : 0,
-          },
-          payments: {
-            thisMonthCount: thisMonthPayments.length,
-            lastMonthCount: lastMonthPayments.length,
-            failedCount: failedPayments,
-          },
-          abuse: {
-            pendingReports: pendingAbuseReports,
-          },
-          generatedAt: now.toISOString(),
+          paymentAmount: paymentAmount / 100,
+          alreadyRefunded: currentRefunded / 100,
+          maxRefundable: (paymentAmount - currentRefunded) / 100,
         },
       };
-    } catch (error) {
-      console.error('Get metrics error:', error);
-      return {
-        success: false,
-        message: 'Failed to fetch metrics',
-        error: 'FETCH_FAILED',
-      };
     }
+
+    const newRefundedTotal = currentRefunded + refundAmount;
+    const newStatus = newRefundedTotal >= paymentAmount ? 'refunded' : payment.status;
+
+    await prisma.payment.update({
+      where: { id: input.paymentId },
+      data: {
+        refundedAmount: BigInt(newRefundedTotal),
+        refundReason: input.reason,
+        refundedAt: new Date(),
+        status: newStatus,
+      },
+    });
+
+    await prisma.refundLog.create({
+      data: {
+        paymentId: input.paymentId,
+        amount: BigInt(refundAmount),
+        reason: input.reason,
+        adminId: input.adminId,
+        adminName: input.adminName,
+      },
+    });
+
+    await prisma.adminAuditLog.create({
+      data: {
+        adminId: input.adminId,
+        adminName: input.adminName,
+        adminRole: 'billing_admin',
+        targetUserId: payment.userId,
+        action: 'update',
+        resource: 'payment',
+        resourceId: input.paymentId,
+        changes: { refundAmount, totalRefunded: newRefundedTotal, newStatus },
+        reason: input.reason,
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Refund processed successfully',
+      data: {
+        refundAmount: refundAmount / 100,
+        totalRefunded: newRefundedTotal / 100,
+        newStatus,
+      },
+    };
   }
 
-  // Get abuse reports
-  static async getAbuseReports(filters: { severity?: string; status?: string; page?: number; limit?: number }) {
-    try {
-      const page = filters.page || 1;
-      const limit = filters.limit || 20;
-      const skip = (page - 1) * limit;
+  // --------------------------------------------------------------------------
+  // RETRY PAYMENT
+  // --------------------------------------------------------------------------
 
-      const where: any = {};
+  static async retryPayment(
+    paymentId: string,
+    adminId: string,
+    adminName: string
+  ): Promise<ServiceResponse> {
+    const payment = await prisma.payment.findUnique({
+      where: { id: paymentId },
+    }) as any;
 
-      if (filters.severity) {
-        where.severity = filters.severity;
-      }
+    if (!payment) {
+      return { success: false, message: 'Payment not found', error: 'PAYMENT_NOT_FOUND' };
+    }
 
-      if (filters.status) {
-        where.status = filters.status;
-      }
+    if (payment.status !== 'failed') {
+      return { success: false, message: 'Can only retry failed payments', error: 'INVALID_STATUS' };
+    }
 
-      const [reports, total] = await Promise.all([
-        prisma.abuseReport.findMany({
-          where,
-          skip,
-          take: limit,
-          orderBy: { createdAt: 'desc' },
-          include: {
-            user: {
-              select: {
-                id: true,
-                email: true,
-                firstName: true,
-                lastName: true,
-                currentPlan: true,
-              },
-            },
-          },
-        }),
-        prisma.abuseReport.count({ where }),
-      ]);
+    if (payment.maxRetriesReached) {
+      return { success: false, message: 'Maximum retries reached for this payment', error: 'MAX_RETRIES_REACHED' };
+    }
 
-      return {
-        success: true,
-        data: {
-          reports,
-          pagination: {
-            page,
-            limit,
-            total,
-            totalPages: Math.ceil(total / limit),
+    const newRetryCount = payment.retryCount + 1;
+    const maxRetries = 3;
+
+    await prisma.payment.update({
+      where: { id: paymentId },
+      data: {
+        status: 'pending',
+        retryCount: newRetryCount,
+        nextRetryAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        maxRetriesReached: newRetryCount >= maxRetries,
+      },
+    });
+
+    await prisma.adminAuditLog.create({
+      data: {
+        adminId,
+        adminName,
+        adminRole: 'billing_admin',
+        targetUserId: payment.userId,
+        action: 'update',
+        resource: 'payment',
+        resourceId: paymentId,
+        changes: { action: 'retry', retryCount: newRetryCount },
+        reason: 'Manual payment retry',
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Payment retry initiated',
+      data: { retryCount: newRetryCount, maxRetries },
+    };
+  }
+
+  // --------------------------------------------------------------------------
+  // GET METRICS
+  // --------------------------------------------------------------------------
+
+  static async getMetrics(): Promise<ServiceResponse> {
+    const now = new Date();
+    const startOfMonth     = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfLastMonth   = new Date(now.getFullYear(), now.getMonth(), 0);
+    const weekAgo          = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    const [
+      totalUsers, activeUsers, freeUsers, proUsers, enterpriseUsers, suspendedUsers,
+      thisMonthPayments, lastMonthPayments, pendingAbuseReports,
+      activeSubscriptions, recentSignups, failedPayments,
+    ] = await Promise.all([
+      prisma.user.count(),
+      prisma.user.count({ where: { subscriptionStatus: 'active' } }),
+      prisma.user.count({ where: { currentPlan: 'free' } }),
+      prisma.user.count({ where: { currentPlan: 'pro' } }),
+      prisma.user.count({ where: { currentPlan: 'enterprise' } }),
+      prisma.user.count({ where: { subscriptionStatus: 'suspended' } }),
+      prisma.payment.findMany({ where: { status: 'succeeded', createdAt: { gte: startOfMonth } } }),
+      prisma.payment.findMany({ where: { status: 'succeeded', createdAt: { gte: startOfLastMonth, lte: endOfLastMonth } } }),
+      prisma.abuseReport.count({ where: { status: 'pending' } }),
+      prisma.subscription.findMany({ where: { status: 'active' } }),
+      prisma.user.count({ where: { createdAt: { gte: weekAgo } } }),
+      prisma.payment.count({ where: { status: 'failed' } }),
+    ]);
+
+    const thisMonthRevenue = (thisMonthPayments as any[]).reduce((sum, p) => sum + Number(p.amount), 0);
+    const lastMonthRevenue = (lastMonthPayments as any[]).reduce((sum, p) => sum + Number(p.amount), 0);
+    const mrr = (activeSubscriptions as any[]).reduce((sum, s) => sum + Number(s.mrrValue), 0);
+
+    return {
+      success: true,
+      message: 'Metrics retrieved successfully',
+      data: {
+        users: {
+          total: totalUsers,
+          active: activeUsers,
+          suspended: suspendedUsers,
+          byPlan: { free: freeUsers, pro: proUsers, enterprise: enterpriseUsers },
+          recentSignups,
+        },
+        revenue: {
+          mrr: mrr / 100,
+          thisMonth: thisMonthRevenue / 100,
+          lastMonth: lastMonthRevenue / 100,
+          growth: lastMonthRevenue > 0
+            ? ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue * 100).toFixed(2)
+            : 0,
+        },
+        payments: {
+          thisMonthCount: thisMonthPayments.length,
+          lastMonthCount: lastMonthPayments.length,
+          failedCount: failedPayments,
+        },
+        abuse: { pendingReports: pendingAbuseReports },
+        generatedAt: now.toISOString(),
+      },
+    };
+  }
+
+  // --------------------------------------------------------------------------
+  // GET ABUSE REPORTS
+  // --------------------------------------------------------------------------
+
+  static async getAbuseReports(filters: {
+    severity?: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<ServiceResponse> {
+    const page = filters.page ?? 1;
+    const limit = filters.limit ?? 20;
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+    if (filters.severity) where.severity = filters.severity;
+    if (filters.status)   where.status   = filters.status;
+
+    const [reports, total] = await Promise.all([
+      prisma.abuseReport.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: {
+            select: { id: true, email: true, firstName: true, lastName: true, currentPlan: true },
           },
         },
-      };
-    } catch (error) {
-      console.error('Get abuse reports error:', error);
-      return {
-        success: false,
-        message: 'Failed to fetch abuse reports',
-        error: 'FETCH_FAILED',
-      };
-    }
+      }),
+      prisma.abuseReport.count({ where }),
+    ]);
+
+    return {
+      success: true,
+      message: 'Abuse reports retrieved successfully',
+      data: {
+        reports,
+        pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+      },
+    };
   }
 
-  // Update abuse report
+  // --------------------------------------------------------------------------
+  // UPDATE ABUSE REPORT
+  // --------------------------------------------------------------------------
+
   static async updateAbuseReport(
     reportId: string,
     action: string,
     reason: string,
     adminId: string,
     adminName: string
-  ) {
-    try {
-      const report = await prisma.abuseReport.findUnique({
-        where: { id: reportId },
-      });
+  ): Promise<ServiceResponse> {
+    const report = await prisma.abuseReport.findUnique({
+      where: { id: reportId },
+    }) as any;
 
-      if (!report) {
-        return {
-          success: false,
-          message: 'Abuse report not found',
-          error: 'REPORT_NOT_FOUND',
-        };
-      }
-
-      await prisma.abuseReport.update({
-        where: { id: reportId },
-        data: {
-          status: 'reviewed',
-          reviewedAt: new Date(),
-          reviewedBy: adminId,
-          actionTaken: action,
-          actionReason: reason,
-        },
-      });
-
-      // If action is suspend, suspend the user
-      if (action === 'suspended') {
-        await prisma.user.update({
-          where: { id: report.userId },
-          data: { subscriptionStatus: 'suspended' },
-        });
-      }
-
-      // Log admin action
-      await prisma.adminAuditLog.create({
-        data: {
-          adminId: adminId,
-          adminName: adminName,
-          adminRole: 'support_admin',
-          targetUserId: report.userId,
-          action: 'update',
-          resource: 'abuse_report',
-          resourceId: reportId,
-          changes: { action_taken: action },
-          reason,
-        },
-      });
-
-      return {
-        success: true,
-        message: 'Abuse report updated',
-        data: { action },
-      };
-    } catch (error) {
-      console.error('Update abuse report error:', error);
-      return {
-        success: false,
-        message: 'Failed to update abuse report',
-        error: 'UPDATE_FAILED',
-      };
+    if (!report) {
+      return { success: false, message: 'Abuse report not found', error: 'REPORT_NOT_FOUND' };
     }
+
+    await prisma.abuseReport.update({
+      where: { id: reportId },
+      data: {
+        status: 'reviewed',
+        reviewedAt: new Date(),
+        reviewedBy: adminId,
+        actionTaken: action,
+        actionReason: reason,
+      },
+    });
+
+    if (action === 'suspended') {
+      await prisma.user.update({
+        where: { id: report.userId },
+        data: { subscriptionStatus: 'suspended' },
+      });
+    }
+
+    await prisma.adminAuditLog.create({
+      data: {
+        adminId,
+        adminName,
+        adminRole: 'support_admin',
+        targetUserId: report.userId,
+        action: 'update',
+        resource: 'abuse_report',
+        resourceId: reportId,
+        changes: { actionTaken: action },
+        reason,
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Abuse report updated successfully',
+      data: { action },
+    };
   }
 }
 

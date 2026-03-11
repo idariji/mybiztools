@@ -201,7 +201,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { DocumentController } from '../controllers/documentController.js';
-import { authenticateUser } from '../middleware/authMiddleware.js';
+import { authenticateUser, requirePlan } from '../middleware/authMiddleware.js';
 import { validate } from '../middleware/validate.js';
 import { uploadDocumentSchema, updateDocumentSchema } from '../validators/documentValidator.js';
 
