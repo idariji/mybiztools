@@ -26,7 +26,7 @@ const options = {
     servers: [
       {
         url: env.nodeEnv === 'production'
-          ? 'https://api.mybiztools.ng'
+          ? 'https://mybiztools.onrender.com'
           : `http://localhost:${env.port}`,
         description: env.nodeEnv === 'production' ? 'Production Server' : 'Development Server',
       },
@@ -162,7 +162,10 @@ const options = {
     },
     security: [],
   },
-  apis: ['./src/routes/*.ts'],
+  // apis: ['./src/routes/*.ts'],
+  apis: env.nodeEnv === 'production' 
+  ? ['./dist/src/routes/*.js'] 
+  : ['./src/routes/*.ts'],
 };
 
 export const swaggerSpec: object = swaggerJsdoc(options);

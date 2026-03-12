@@ -12,7 +12,7 @@ async function createAdmin() {
       password: hashedPassword,
       name: 'Super Admin',
       role: 'super_admin',
-      is_active: true
+      isActive: true
     }
   });
 
