@@ -33,7 +33,9 @@ import { SubscriptionPage } from './pages/SubscriptionPage';
 import { PaymentCallbackPage } from './pages/PaymentCallbackPage';
 import { DashboardLayout } from './layout/DashboardLayout';
 import { DEDAChat } from './components/dashboard/DEDAChat';
-// Admin dashboard moved to standalone admin-portal app (runs on port 5174)
+import { AdminDashboardPage } from './admin/pages/AdminDashboardPage';
+import { AdminLoginPage } from './pages/AdminLoginPage';
+import { AdminProtectedRoute } from './components/auth/AdminProtectedRoute';
 
 export function App() {
   return (
@@ -72,6 +74,11 @@ export function App() {
           <Route path="/dashboard/settings" element={<ProtectedRoute><DashboardLayout><SettingsPage /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/dedai" element={<ProtectedRoute><DashboardLayout><DEDAPage /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
+
+          {/* Admin Routes */}
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+          <Route path="/admin" element={<AdminProtectedRoute><AdminDashboardPage /></AdminProtectedRoute>} />
+          <Route path="/admin/*" element={<AdminProtectedRoute><AdminDashboardPage /></AdminProtectedRoute>} />
         </Routes>
         <DEDAChat />
         </AuthProvider>

@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   BarChart3,
   Users,
@@ -15,7 +16,13 @@ import {
   Menu,
   X,
   HeadphonesIcon,
-  UserCog
+  UserCog,
+  Bell,
+  Hexagon,
+  Bell as BellIcon,
+  Shield,
+  Activity,
+  Wifi
 } from 'lucide-react';
 import { authService } from '../../services/authService';
 import { DashboardOverview } from '../components/DashboardOverview';
@@ -37,7 +44,7 @@ export function AdminDashboardPage() {
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
     if (!currentUser) {
-      navigate('/login');
+      navigate('/admin/login');
       return;
     }
     setUser(currentUser);
@@ -45,7 +52,14 @@ export function AdminDashboardPage() {
   }, [navigate]);
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-slate-900 to-slate-800">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-[#FF8A2B]/30 border-t-[#FF8A2B] rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-white/70 text-sm">Loading Admin Panel...</p>
+        </div>
+      </div>
+    );
   }
 
   const navItems: { id: AdminTab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
@@ -58,8 +72,10 @@ export function AdminDashboardPage() {
     { id: 'settings', label: 'Settings', icon: Settings }
   ];
 
+  const currentNavItem = navItems.find((item) => item.id === activeTab);
+
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden">
       {/* Sidebar */}
       <AdminSidebar
         isOpen={sidebarOpen}
@@ -67,14 +83,17 @@ export function AdminDashboardPage() {
         navItems={navItems}
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        user={user}
       />
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Header */}
         <AdminHeader
           onMenuClick={() => setSidebarOpen(!sidebarOpen)}
           activeTab={activeTab}
+          navItems={navItems}
+          user={user}
         />
 
         {/* Content */}
@@ -82,22 +101,33 @@ export function AdminDashboardPage() {
           <div className="p-6 space-y-6">
             {/* Page Title */}
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                {navItems.find((item) => item.id === activeTab)?.label}
+              <h1 className="text-3xl font-bold text-slate-900">
+                {currentNavItem?.label}
               </h1>
-              <p className="text-gray-600 mt-1">
+              <div className="h-1 w-16 bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] rounded-full mt-2 mb-1" />
+              <p className="text-slate-500 mt-1">
                 Manage your platform's billing, subscriptions, and compliance
               </p>
             </div>
 
             {/* Tab Content */}
-            {activeTab === 'overview' && <DashboardOverview />}
-            {activeTab === 'user-management' && <UserManagement />}
-            {activeTab === 'users' && <UserBillingManager />}
-            {activeTab === 'payments' && <PaymentHistoryViewer />}
-            {activeTab === 'support' && <CustomerSupport />}
-            {activeTab === 'abuse' && <AbuseDetectionDashboard />}
-            {activeTab === 'settings' && <AdminSettingsPanel />}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+              >
+                {activeTab === 'overview' && <DashboardOverview />}
+                {activeTab === 'user-management' && <UserManagement />}
+                {activeTab === 'users' && <UserBillingManager />}
+                {activeTab === 'payments' && <PaymentHistoryViewer />}
+                {activeTab === 'support' && <CustomerSupport />}
+                {activeTab === 'abuse' && <AbuseDetectionDashboard />}
+                {activeTab === 'settings' && <AdminSettingsPanel user={user} />}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </main>
       </div>
@@ -119,6 +149,7 @@ interface AdminSidebarProps {
   }[];
   activeTab: AdminTab;
   onTabChange: (tab: AdminTab) => void;
+  user: any;
 }
 
 function AdminSidebar({
@@ -126,8 +157,17 @@ function AdminSidebar({
   onClose,
   navItems,
   activeTab,
-  onTabChange
+  onTabChange,
+  user
 }: AdminSidebarProps) {
+  const handleSignOut = () => {
+    authService.logout();
+  };
+
+  const initials = user
+    ? `${(user.firstName || '')[0] || ''}${(user.lastName || '')[0] || ''}`.toUpperCase() || 'A'
+    : 'A';
+
   return (
     <>
       {/* Mobile Overlay */}
@@ -142,43 +182,76 @@ function AdminSidebar({
       <aside
         className={`${
           isOpen ? 'translate-x-0' : '-translate-x-full'
-        } fixed md:relative w-64 h-screen bg-gray-900 text-white overflow-y-auto transition-transform z-50 md:z-0`}
+        } fixed md:relative w-64 h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white overflow-y-auto transition-transform z-50 md:z-0 md:translate-x-0 flex flex-col border-r border-white/10`}
       >
         {/* Logo */}
-        <div className="p-6 border-b border-gray-800">
-          <h1 className="text-xl font-bold">MyBizTools</h1>
-          <p className="text-xs text-gray-400 mt-1">Admin Dashboard</p>
+        <div className="p-6 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-gradient-to-br from-[#FF8A2B] to-[#FF6B00] rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30 shrink-0">
+              <Hexagon className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-base font-bold text-white leading-tight">MyBizTools</h1>
+              <p className="text-xs text-white/40 leading-tight">Admin Portal</p>
+            </div>
+          </div>
+
+          {/* Mobile close button */}
+          <button
+            onClick={onClose}
+            className="absolute top-5 right-4 p-1.5 hover:bg-white/10 rounded-lg md:hidden"
+          >
+            <X className="w-4 h-4 text-white/60" />
+          </button>
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 space-y-2">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => {
-                onTabChange(item.id);
-                // Only close sidebar on mobile
-                if (window.innerWidth < 768) {
-                  onClose();
-                }
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                activeTab === item.id
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-300 hover:bg-gray-800'
-              }`}
-            >
-              <item.icon className="w-5 h-5" />
-              {item.label}
-            </button>
-          ))}
+        <nav className="p-4 space-y-1 flex-1">
+          {navItems.map((item) => {
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  onTabChange(item.id);
+                  if (window.innerWidth < 768) {
+                    onClose();
+                  }
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                  isActive
+                    ? 'bg-gradient-to-r from-[#FF8A2B]/20 to-[#FF6B00]/10 border border-[#FF8A2B]/30 text-[#FF8A2B] backdrop-blur-sm shadow-lg shadow-[#FF8A2B]/10'
+                    : 'text-white/60 hover:bg-white/10 hover:backdrop-blur-sm hover:text-white'
+                }`}
+              >
+                <item.icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-[#FF8A2B]' : 'text-white/60'}`} />
+                <span className="text-sm font-medium">{item.label}</span>
+              </button>
+            );
+          })}
         </nav>
 
         {/* Footer */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-800">
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-gray-800 transition-colors">
-            <LogOut className="w-5 h-5" />
-            Sign Out
+        <div className="p-4 border-t border-white/10">
+          {/* User info */}
+          <div className="flex items-center gap-3 px-2 py-2 mb-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-[#FF8A2B] to-[#FF6B00] rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0">
+              {initials}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-white truncate">
+                {user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email : 'Admin'}
+              </p>
+              <p className="text-xs text-white/40 truncate">{user?.role || 'admin'}</p>
+            </div>
+          </div>
+
+          <button
+            onClick={handleSignOut}
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/60 hover:bg-white/10 hover:text-white transition-all duration-200"
+          >
+            <LogOut className="w-4 h-4 shrink-0" />
+            <span className="text-sm font-medium">Sign Out</span>
           </button>
         </div>
       </aside>
@@ -193,31 +266,53 @@ function AdminSidebar({
 interface AdminHeaderProps {
   onMenuClick: () => void;
   activeTab: AdminTab;
+  navItems: { id: AdminTab; label: string; icon: React.ComponentType<{ className?: string }> }[];
+  user: any;
 }
 
-function AdminHeader({ onMenuClick, activeTab }: AdminHeaderProps) {
+function AdminHeader({ onMenuClick, activeTab, navItems, user }: AdminHeaderProps) {
+  const currentItem = navItems.find((item) => item.id === activeTab);
+
+  const initials = user
+    ? `${(user.firstName || '')[0] || ''}${(user.lastName || '')[0] || ''}`.toUpperCase() || 'A'
+    : 'A';
+
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-4">
+    <header className="bg-white/80 backdrop-blur-md border-b border-white/40 shadow-[0_1px_20px_rgba(0,0,0,0.06)] px-6 py-4 shrink-0">
       <div className="flex items-center justify-between">
-        <button
-          onClick={onMenuClick}
-          className="md:hidden p-2 hover:bg-gray-100 rounded-lg"
-        >
-          <Menu className="w-6 h-6 text-gray-600" />
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onMenuClick}
+            className="p-2 hover:bg-slate-100 rounded-xl transition-colors md:hidden"
+          >
+            <Menu className="w-5 h-5 text-slate-600" />
+          </button>
+          <h2 className="text-lg font-semibold text-slate-800 hidden sm:block">
+            {currentItem?.label}
+          </h2>
+        </div>
 
-        <div className="flex-1" />
+        <div className="flex items-center gap-3">
+          {/* Bell */}
+          <button className="relative p-2 hover:bg-slate-100 rounded-xl transition-colors">
+            <BellIcon className="w-5 h-5 text-slate-600" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+          </button>
 
-        <div className="flex items-center gap-4">
-          {/* User Info */}
-          <div className="text-right hidden sm:block">
-            <p className="text-sm font-medium text-gray-900">Admin User</p>
-            <p className="text-xs text-gray-500">super_admin</p>
-          </div>
-
-          {/* Avatar */}
-          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
-            A
+          {/* User */}
+          <div className="flex items-center gap-2.5">
+            <div className="text-right hidden sm:block">
+              <div className="flex items-center gap-1.5 justify-end">
+                <p className="text-sm font-medium text-slate-900">
+                  {user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email : 'Admin User'}
+                </p>
+                <span className="px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded-full font-semibold">Admin</span>
+              </div>
+              <p className="text-xs text-slate-500">{user?.role || 'super_admin'}</p>
+            </div>
+            <div className="w-9 h-9 bg-gradient-to-br from-[#FF8A2B] to-[#FF6B00] rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md shadow-orange-500/20">
+              {initials}
+            </div>
           </div>
         </div>
       </div>
@@ -229,14 +324,18 @@ function AdminHeader({ onMenuClick, activeTab }: AdminHeaderProps) {
 // SETTINGS PANEL
 // ============================================================================
 
-function AdminSettingsPanel() {
+interface AdminSettingsPanelProps {
+  user?: any;
+}
+
+function AdminSettingsPanel({ user }: AdminSettingsPanelProps) {
   const [settings, setSettings] = useState({
     email_notifications: true,
     abuse_alerts: true,
     payment_alerts: true,
     daily_reports: true,
     two_factor_enabled: false,
-    ip_whitelist: []
+    ip_whitelist: [] as string[]
   });
 
   return (
@@ -244,12 +343,15 @@ function AdminSettingsPanel() {
       {/* Admin Settings */}
       <div className="lg:col-span-2 space-y-6">
         {/* Notification Preferences */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">
-            Notification Preferences
-          </h2>
+        <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-slate-100 p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <span className="p-1.5 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg">
+              <Bell className="w-5 h-5 text-slate-600" />
+            </span>
+            <h2 className="text-lg font-bold text-slate-900">Notification Preferences</h2>
+          </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             <SettingToggle
               label="Email Notifications"
               description="Receive email alerts for important events"
@@ -258,7 +360,6 @@ function AdminSettingsPanel() {
                 setSettings({ ...settings, email_notifications: checked })
               }
             />
-
             <SettingToggle
               label="Abuse Alerts"
               description="Get notified of suspicious activity"
@@ -267,7 +368,6 @@ function AdminSettingsPanel() {
                 setSettings({ ...settings, abuse_alerts: checked })
               }
             />
-
             <SettingToggle
               label="Payment Alerts"
               description="Receive alerts for payment failures"
@@ -276,7 +376,6 @@ function AdminSettingsPanel() {
                 setSettings({ ...settings, payment_alerts: checked })
               }
             />
-
             <SettingToggle
               label="Daily Reports"
               description="Get daily summary reports"
@@ -286,13 +385,22 @@ function AdminSettingsPanel() {
               }
             />
           </div>
+
+          <div className="mt-5">
+            <button className="bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] text-white rounded-xl px-5 py-2.5 text-sm font-semibold shadow-lg shadow-orange-500/25 hover:-translate-y-0.5 hover:shadow-orange-500/40 transition-all duration-200">
+              Save Preferences
+            </button>
+          </div>
         </div>
 
         {/* Security Settings */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">
-            Security Settings
-          </h2>
+        <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-slate-100 p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <span className="p-1.5 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg">
+              <Shield className="w-5 h-5 text-slate-600" />
+            </span>
+            <h2 className="text-lg font-bold text-slate-900">Security Settings</h2>
+          </div>
 
           <div className="space-y-4">
             <SettingToggle
@@ -304,59 +412,73 @@ function AdminSettingsPanel() {
               }
             />
 
-            <div className="p-4 bg-gray-50 rounded border border-gray-200">
-              <p className="text-sm font-medium text-gray-900 mb-3">
-                IP Whitelist
-              </p>
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+              <p className="text-sm font-semibold text-slate-900 mb-3">IP Whitelist</p>
               <textarea
-                className="w-full p-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#FF8A2B]/20 focus:border-[#FF8A2B] transition-all duration-200 bg-white text-slate-800 placeholder-slate-400"
                 rows={4}
                 placeholder="Enter IP addresses (one per line)"
                 defaultValue={settings.ip_whitelist.join('\n')}
               />
             </div>
           </div>
+
+          <div className="mt-5">
+            <button className="bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] text-white rounded-xl px-5 py-2.5 text-sm font-semibold shadow-lg shadow-orange-500/25 hover:-translate-y-0.5 hover:shadow-orange-500/40 transition-all duration-200">
+              Save Security Settings
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Quick Stats */}
       <div className="space-y-6">
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="font-bold text-gray-900 mb-4">Admin Access</h3>
+        <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-slate-100 p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="p-1.5 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg">
+              <UserCog className="w-5 h-5 text-slate-600" />
+            </span>
+            <h3 className="font-bold text-slate-900">Admin Access</h3>
+          </div>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-600">Role:</span>
-              <span className="font-medium text-gray-900">Super Admin</span>
+              <span className="text-slate-500">Role:</span>
+              <span className="font-semibold text-slate-900 capitalize">{user?.role?.replace('_', ' ') || 'Super Admin'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Last Login:</span>
-              <span className="font-medium text-gray-900">2h ago</span>
+              <span className="text-slate-500">Last Login:</span>
+              <span className="font-medium text-slate-900">2h ago</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Actions Today:</span>
-              <span className="font-medium text-gray-900">24</span>
+              <span className="text-slate-500">Actions Today:</span>
+              <span className="font-medium text-slate-900">24</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="font-bold text-gray-900 mb-4">System Status</h3>
+        <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-slate-100 p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="p-1.5 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg">
+              <Activity className="w-5 h-5 text-slate-600" />
+            </span>
+            <h3 className="font-bold text-slate-900">System Status</h3>
+          </div>
           <div className="space-y-2 text-sm">
             <div className="flex items-center justify-between">
-              <span className="text-gray-600">API Health:</span>
-              <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
+              <span className="text-slate-500">API Health:</span>
+              <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-semibold bg-green-100 text-green-700">
                 Healthy
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-gray-600">Database:</span>
-              <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
+              <span className="text-slate-500">Database:</span>
+              <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-semibold bg-green-100 text-green-700">
                 Online
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-gray-600">Uptime:</span>
-              <span className="font-medium text-gray-900">99.9%</span>
+              <span className="text-slate-500">Uptime:</span>
+              <span className="font-semibold text-slate-900">99.9%</span>
             </div>
           </div>
         </div>
@@ -383,16 +505,16 @@ function SettingToggle({
   onChange
 }: SettingToggleProps) {
   return (
-    <div className="flex items-start justify-between p-4 bg-gray-50 rounded border border-gray-200">
+    <div className="flex items-start justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
       <div>
-        <p className="font-medium text-gray-900">{label}</p>
-        <p className="text-xs text-gray-600 mt-1">{description}</p>
+        <p className="font-medium text-slate-900 text-sm">{label}</p>
+        <p className="text-xs text-slate-500 mt-0.5">{description}</p>
       </div>
       <input
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="h-5 w-5 rounded border-gray-300 text-blue-600 cursor-pointer"
+        className="h-5 w-5 rounded border-slate-300 text-[#FF8A2B] cursor-pointer accent-[#FF8A2B] mt-0.5 shrink-0"
       />
     </div>
   );

@@ -34,7 +34,7 @@ const app = express();
 const corsOrigins =
   env.nodeEnv === 'development'
     ? [/^http:\/\/localhost:\d+$/]
-    : [env.frontendUrl, 'https://www.mybiztools.ng', 'https://mybiztools.ng'];
+    : [env.frontendUrl, 'https://www.mybiztools.ng', 'https://mybiztools.ng', 'https://mybiztools.onrender.com'];
 
 app.use(
   cors({

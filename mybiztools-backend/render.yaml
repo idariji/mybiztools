@@ -29,7 +29,7 @@ services:
       - key: TERMII_SENDER_ID
         value: MyBizTools
       - key: FRONTEND_URL
-        sync: false
+        value: https://mybiztools.onrender.com
       - key: MONNIFY_API_KEY
         sync: false
       - key: MONNIFY_SECRET_KEY

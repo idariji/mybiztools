@@ -64,6 +64,8 @@
 // export default prisma;
 
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import pg from 'pg';
 import { env } from '../config/env.js';
 
 // PRISMA SINGLETON
@@ -73,15 +75,14 @@ declare global {
   var __prisma: PrismaClient | undefined;
 }
 
-// const createPrismaClient = () =>
-//   new PrismaClient({
-//     // datasourceUrl: env.databaseUrl,
-//     log: env.nodeEnv === 'development' ? ['error', 'warn'] : ['error'],
-//   });
-
-const createPrismaClient = () => new PrismaClient({
-  log: env.nodeEnv === 'development' ? ['error', 'warn'] : ['error'],
-});
+const createPrismaClient = () => {
+  const pool = new pg.Pool({ connectionString: env.databaseUrl });
+  const adapter = new PrismaPg(pool);
+  return new PrismaClient({
+    adapter,
+    log: env.nodeEnv === 'development' ? ['error', 'warn'] : ['error'],
+  });
+};
 
 export const prisma = globalThis.__prisma ?? createPrismaClient();
 

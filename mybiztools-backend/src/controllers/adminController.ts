@@ -19,6 +19,18 @@ export class AdminController {
     res.status(result.success ? 200 : 401).json(result);
   }
 
+  /** POST /api/admin/bootstrap — creates first super_admin if none exist */
+  static async bootstrap(req: Request, res: Response): Promise<void> {
+    const { setupSecret, ...adminData } = req.body;
+    const expected = process.env.SETUP_SECRET;
+    if (!expected || setupSecret !== expected) {
+      res.status(403).json({ success: false, message: 'Forbidden' });
+      return;
+    }
+    const result = await AdminService.bootstrap(adminData);
+    res.status(result.success ? 201 : 409).json(result);
+  }
+
   /** POST /api/admin/create */
   static async createAdmin(req: Request, res: Response): Promise<void> {
     const result = await AdminService.createAdmin(req.body);

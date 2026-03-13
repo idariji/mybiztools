@@ -83,6 +83,22 @@ export class AdminService {
   }
 
   // --------------------------------------------------------------------------
+  // BOOTSTRAP — first admin only, no auth required (gated by SETUP_SECRET)
+  // --------------------------------------------------------------------------
+
+  static async bootstrap(input: CreateAdminInput): Promise<ServiceResponse> {
+    const count = await prisma.admin.count();
+    if (count > 0) {
+      return { success: false, message: 'An admin already exists. Use /api/admin/create instead.', error: 'ADMIN_EXISTS' };
+    }
+    const hashedPassword = await bcrypt.hash(input.password, 12);
+    const admin = await prisma.admin.create({
+      data: { email: input.email.toLowerCase(), password: hashedPassword, name: input.name, role: 'super_admin' },
+    });
+    return { success: true, message: 'First super_admin created', data: { admin: { id: admin.id, email: admin.email, name: admin.name, role: admin.role } } };
+  }
+
+  // --------------------------------------------------------------------------
   // CREATE ADMIN
   // --------------------------------------------------------------------------
 

@@ -91,6 +91,31 @@ router.post('/login', validate(loginSchema), AdminController.login);
 
 /**
  * @swagger
+ * /api/admin/bootstrap:
+ *   post:
+ *     summary: Create first super_admin if none exist (requires SETUP_SECRET header)
+ *     tags: [Admin]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password, name, setupSecret]
+ *             properties:
+ *               email:       { type: string, format: email }
+ *               password:    { type: string, minLength: 8 }
+ *               name:        { type: string }
+ *               setupSecret: { type: string }
+ *     responses:
+ *       201: { description: First admin created }
+ *       403: { description: Forbidden }
+ *       409: { description: Admin already exists }
+ */
+router.post('/bootstrap', AdminController.bootstrap);
+
+/**
+ * @swagger
  * /api/admin/create:
  *   post:
  *     summary: Create a new admin (super_admin only)

@@ -3,21 +3,20 @@
  * Handle customer feedback, complaints via Email, WhatsApp, and SMS
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import {
   MessageSquare,
   Mail,
   Phone,
   Send,
   Search,
-  Filter,
   Clock,
   CheckCircle,
-  AlertCircle,
   User,
   RefreshCw,
-  ChevronDown,
-  MessageCircle
+  MessageCircle,
+  HeadphonesIcon
 } from 'lucide-react';
 
 interface SupportTicket {
@@ -57,25 +56,17 @@ export function CustomerSupport() {
   const [replyChannel, setReplyChannel] = useState<'email' | 'whatsapp' | 'sms'>('email');
   const [isSending, setIsSending] = useState(false);
 
-  useEffect(() => {
-    fetchTickets();
-  }, []);
+  useEffect(() => { fetchTickets(); }, []);
 
   const fetchTickets = async () => {
     setIsLoading(true);
     try {
-      // Try to fetch from API
       const token = localStorage.getItem('adminAuthToken');
       const response = await fetch(`${API_URL}/api/admin/support/tickets`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
       });
-
       if (response.ok) {
         const data = await response.json();
-        // Transform API data to match component interface
         const transformedTickets = (data.data?.tickets || []).map((t: any) => ({
           id: t.id,
           userId: t.user_id,
@@ -99,11 +90,9 @@ export function CustomerSupport() {
         }));
         setTickets(transformedTickets);
       } else {
-        // No tickets available - show empty state
         setTickets([]);
       }
-    } catch (error) {
-      console.error('Failed to fetch tickets:', error);
+    } catch {
       setTickets([]);
     } finally {
       setIsLoading(false);
@@ -112,27 +101,16 @@ export function CustomerSupport() {
 
   const handleSendReply = async () => {
     if (!selectedTicket || !replyMessage.trim()) return;
-
     setIsSending(true);
     try {
       const token = localStorage.getItem('adminAuthToken');
-
-      // Use the new support ticket respond endpoint
       const response = await fetch(`${API_URL}/api/admin/support/tickets/${selectedTicket.id}/respond`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          message: replyMessage,
-          channel: replyChannel
-        })
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: replyMessage, channel: replyChannel })
       });
-
       if (response.ok) {
         const data = await response.json();
-        // Add response to ticket using returned data
         const newResponse: TicketResponse = {
           id: data.data?.response?.id || `resp-${Date.now()}`,
           message: replyMessage,
@@ -140,49 +118,22 @@ export function CustomerSupport() {
           sentBy: 'Admin',
           sentAt: new Date()
         };
-
-        setSelectedTicket({
-          ...selectedTicket,
-          responses: [...selectedTicket.responses, newResponse],
-          status: 'in_progress',
-          updatedAt: new Date()
-        });
-
+        setSelectedTicket({ ...selectedTicket, responses: [...selectedTicket.responses, newResponse], status: 'in_progress', updatedAt: new Date() });
         setTickets(tickets.map(t =>
           t.id === selectedTicket.id
             ? { ...t, responses: [...t.responses, newResponse], status: 'in_progress' as const, updatedAt: new Date() }
             : t
         ));
-
         setReplyMessage('');
-
-        // Check delivery status
-        if (data.data?.delivered) {
-          alert(`Reply sent successfully via ${replyChannel}!`);
-        } else if (data.data?.deliveryError) {
-          alert(`Reply saved but delivery failed: ${data.data.deliveryError}`);
-        } else {
-          alert(`Reply sent via ${replyChannel}!`);
-        }
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        alert(`Failed to send reply: ${errorData.message || 'Unknown error'}`);
       }
-    } catch (error) {
-      console.error('Failed to send reply:', error);
-      alert('Failed to send reply. Please check your connection and try again.');
-    } finally {
+    } catch { /* ignore */ } finally {
       setIsSending(false);
     }
   };
 
   const handleUpdateStatus = (ticketId: string, newStatus: SupportTicket['status']) => {
-    setTickets(tickets.map(t =>
-      t.id === ticketId ? { ...t, status: newStatus, updatedAt: new Date() } : t
-    ));
-    if (selectedTicket?.id === ticketId) {
-      setSelectedTicket({ ...selectedTicket, status: newStatus, updatedAt: new Date() });
-    }
+    setTickets(tickets.map(t => t.id === ticketId ? { ...t, status: newStatus, updatedAt: new Date() } : t));
+    if (selectedTicket?.id === ticketId) setSelectedTicket({ ...selectedTicket, status: newStatus, updatedAt: new Date() });
   };
 
   const filteredTickets = tickets.filter(ticket => {
@@ -199,8 +150,8 @@ export function CustomerSupport() {
     switch (status) {
       case 'open': return 'bg-red-100 text-red-800';
       case 'in_progress': return 'bg-yellow-100 text-yellow-800';
-      case 'resolved': return 'bg-green-100 text-green-800';
-      case 'closed': return 'bg-gray-100 text-gray-800';
+      case 'resolved': return 'bg-emerald-100 text-emerald-800';
+      case 'closed': return 'bg-slate-100 text-slate-700';
     }
   };
 
@@ -209,16 +160,16 @@ export function CustomerSupport() {
       case 'urgent': return 'bg-red-600 text-white';
       case 'high': return 'bg-orange-500 text-white';
       case 'medium': return 'bg-yellow-500 text-white';
-      case 'low': return 'bg-gray-400 text-white';
+      case 'low': return 'bg-slate-400 text-white';
     }
   };
 
   const getChannelIcon = (channel: SupportTicket['channel']) => {
     switch (channel) {
-      case 'email': return <Mail className="w-4 h-4" />;
-      case 'whatsapp': return <MessageCircle className="w-4 h-4" />;
-      case 'sms': return <Phone className="w-4 h-4" />;
-      case 'in_app': return <MessageSquare className="w-4 h-4" />;
+      case 'email': return <Mail className="w-3.5 h-3.5" />;
+      case 'whatsapp': return <MessageCircle className="w-3.5 h-3.5" />;
+      case 'sms': return <Phone className="w-3.5 h-3.5" />;
+      case 'in_app': return <MessageSquare className="w-3.5 h-3.5" />;
     }
   };
 
@@ -226,39 +177,47 @@ export function CustomerSupport() {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <RefreshCw className="w-8 h-8 text-blue-600 animate-spin mx-auto mb-2" />
-          <p className="text-gray-600">Loading support tickets...</p>
+          <div className="w-8 h-8 border-4 border-orange-200 border-t-[#FF8A2B] rounded-full animate-spin mx-auto mb-2" />
+          <p className="text-slate-500 text-sm">Loading support tickets...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-220px)]"
+    >
       {/* Ticket List */}
-      <div className="lg:col-span-1 bg-white rounded-lg border border-gray-200 flex flex-col">
+      <div className="lg:col-span-1 bg-white rounded-2xl border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.06)] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="p-4 border-b border-gray-200">
-          <h2 className="text-lg font-bold text-gray-900 mb-3">Support Tickets</h2>
-
-          {/* Search */}
+        <div className="p-4 border-b border-slate-100 shrink-0">
+          <h2 className="text-base font-bold text-slate-900 pl-3 border-l-4 border-[#FF8A2B] mb-3">
+            Support Tickets
+            {filteredTickets.length > 0 && (
+              <span className="ml-2 text-xs font-semibold bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">
+                {filteredTickets.length}
+              </span>
+            )}
+          </h2>
           <div className="relative mb-3">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
             <input
               type="text"
               placeholder="Search tickets..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#FF8A2B]/20 focus:border-[#FF8A2B] transition-all"
             />
           </div>
-
-          {/* Filters */}
           <div className="flex gap-2">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#FF8A2B]/20 focus:border-[#FF8A2B] transition-all"
             >
               <option value="all">All Status</option>
               <option value="open">Open</option>
@@ -269,7 +228,7 @@ export function CustomerSupport() {
             <select
               value={channelFilter}
               onChange={(e) => setChannelFilter(e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#FF8A2B]/20 focus:border-[#FF8A2B] transition-all"
             >
               <option value="all">All Channels</option>
               <option value="email">Email</option>
@@ -283,38 +242,39 @@ export function CustomerSupport() {
         {/* Ticket List */}
         <div className="flex-1 overflow-y-auto">
           {filteredTickets.length === 0 ? (
-            <div className="p-4 text-center text-gray-500">
-              No tickets found
+            <div className="p-8 text-center">
+              <MessageSquare className="w-10 h-10 text-slate-200 mx-auto mb-2" />
+              <p className="text-slate-400 text-sm font-medium">No tickets found</p>
             </div>
           ) : (
-            filteredTickets.map(ticket => (
+            filteredTickets.map((ticket) => (
               <div
                 key={ticket.id}
                 onClick={() => setSelectedTicket(ticket)}
-                className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
-                  selectedTicket?.id === ticket.id ? 'bg-blue-50 border-l-4 border-l-blue-600' : ''
+                className={`p-4 border-b border-slate-50 cursor-pointer transition-all duration-150 ${
+                  selectedTicket?.id === ticket.id
+                    ? 'bg-gradient-to-r from-orange-50 to-white border-l-4 border-l-[#FF8A2B]'
+                    : 'hover:bg-slate-50 border-l-4 border-l-transparent'
                 }`}
               >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-start justify-between mb-1.5">
+                  <div className="flex items-center gap-1.5 text-slate-500">
                     {getChannelIcon(ticket.channel)}
-                    <span className="font-medium text-gray-900 text-sm truncate max-w-[150px]">
+                    <span className="font-semibold text-slate-900 text-sm truncate max-w-[130px]">
                       {ticket.userName}
                     </span>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${getPriorityColor(ticket.priority)}`}>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${getPriorityColor(ticket.priority)}`}>
                     {ticket.priority}
                   </span>
                 </div>
-                <p className="text-sm font-medium text-gray-800 truncate">{ticket.subject}</p>
-                <p className="text-xs text-gray-500 truncate mt-1">{ticket.message}</p>
+                <p className="text-sm font-medium text-slate-800 truncate">{ticket.subject}</p>
+                <p className="text-xs text-slate-400 truncate mt-0.5">{ticket.message}</p>
                 <div className="flex items-center justify-between mt-2">
-                  <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(ticket.status)}`}>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getStatusColor(ticket.status)}`}>
                     {ticket.status.replace('_', ' ')}
                   </span>
-                  <span className="text-xs text-gray-400">
-                    {new Date(ticket.createdAt).toLocaleDateString()}
-                  </span>
+                  <span className="text-xs text-slate-400">{new Date(ticket.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>
             ))
@@ -323,146 +283,129 @@ export function CustomerSupport() {
       </div>
 
       {/* Ticket Detail & Reply */}
-      <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200 flex flex-col">
+      <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.06)] flex flex-col overflow-hidden">
         {selectedTicket ? (
           <>
             {/* Ticket Header */}
-            <div className="p-4 border-b border-gray-200">
-              <div className="flex items-start justify-between">
+            <div className="p-5 border-b border-slate-100 shrink-0">
+              <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">{selectedTicket.subject}</h3>
-                  <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
-                    <span className="flex items-center gap-1">
-                      <User className="w-4 h-4" />
-                      {selectedTicket.userName}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Mail className="w-4 h-4" />
-                      {selectedTicket.userEmail}
-                    </span>
+                  <h3 className="text-base font-bold text-slate-900">{selectedTicket.subject}</h3>
+                  <div className="flex items-center gap-3 mt-1.5 text-sm text-slate-500 flex-wrap">
+                    <span className="flex items-center gap-1"><User className="w-3.5 h-3.5" />{selectedTicket.userName}</span>
+                    <span className="flex items-center gap-1"><Mail className="w-3.5 h-3.5" />{selectedTicket.userEmail}</span>
                     {selectedTicket.userPhone && (
-                      <span className="flex items-center gap-1">
-                        <Phone className="w-4 h-4" />
-                        {selectedTicket.userPhone}
-                      </span>
+                      <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5" />{selectedTicket.userPhone}</span>
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <select
-                    value={selectedTicket.status}
-                    onChange={(e) => handleUpdateStatus(selectedTicket.id, e.target.value as SupportTicket['status'])}
-                    className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="open">Open</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="resolved">Resolved</option>
-                    <option value="closed">Closed</option>
-                  </select>
-                </div>
+                <select
+                  value={selectedTicket.status}
+                  onChange={(e) => handleUpdateStatus(selectedTicket.id, e.target.value as SupportTicket['status'])}
+                  className="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#FF8A2B]/20 focus:border-[#FF8A2B] transition-all shrink-0"
+                >
+                  <option value="open">Open</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="resolved">Resolved</option>
+                  <option value="closed">Closed</option>
+                </select>
               </div>
             </div>
 
             {/* Conversation */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-5 space-y-4">
               {/* Original Message */}
-              <div className="bg-gray-100 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                    {selectedTicket.userName.charAt(0)}
+              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                <div className="flex items-center gap-3 mb-2.5">
+                  <div className="w-8 h-8 bg-gradient-to-br from-slate-400 to-slate-600 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0">
+                    {selectedTicket.userName.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{selectedTicket.userName}</p>
-                    <p className="text-xs text-gray-500">
-                      {new Date(selectedTicket.createdAt).toLocaleString()} via {selectedTicket.channel}
+                    <p className="text-sm font-semibold text-slate-900">{selectedTicket.userName}</p>
+                    <p className="text-xs text-slate-400">
+                      {new Date(selectedTicket.createdAt).toLocaleString()} · via {selectedTicket.channel}
                     </p>
                   </div>
                 </div>
-                <p className="text-gray-700 whitespace-pre-wrap">{selectedTicket.message}</p>
+                <p className="text-slate-700 text-sm whitespace-pre-wrap leading-relaxed">{selectedTicket.message}</p>
               </div>
 
               {/* Responses */}
               {selectedTicket.responses.map(response => (
-                <div key={response.id} className="bg-blue-50 rounded-lg p-4 ml-8">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                <div key={response.id} className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-4 border border-orange-100 ml-6">
+                  <div className="flex items-center gap-3 mb-2.5">
+                    <div className="w-8 h-8 bg-gradient-to-br from-[#FF8A2B] to-[#FF6B00] rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md shadow-orange-500/20 shrink-0">
                       A
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{response.sentBy}</p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(response.sentAt).toLocaleString()} via {response.sentVia}
+                      <p className="text-sm font-semibold text-slate-900">{response.sentBy}</p>
+                      <p className="text-xs text-slate-400">
+                        {new Date(response.sentAt).toLocaleString()} · via {response.sentVia}
                       </p>
                     </div>
                   </div>
-                  <p className="text-gray-700 whitespace-pre-wrap">{response.message}</p>
+                  <p className="text-slate-700 text-sm whitespace-pre-wrap leading-relaxed">{response.message}</p>
                 </div>
               ))}
             </div>
 
             {/* Reply Box */}
-            <div className="p-4 border-t border-gray-200">
+            <div className="p-5 border-t border-slate-100 shrink-0">
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-sm text-gray-600">Reply via:</span>
-                <button
-                  onClick={() => setReplyChannel('email')}
-                  className={`flex items-center gap-1 px-3 py-1 rounded-lg text-sm ${
-                    replyChannel === 'email' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  <Mail className="w-4 h-4" /> Email
-                </button>
-                <button
-                  onClick={() => setReplyChannel('whatsapp')}
-                  disabled={!selectedTicket.userPhone}
-                  className={`flex items-center gap-1 px-3 py-1 rounded-lg text-sm ${
-                    replyChannel === 'whatsapp' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  } ${!selectedTicket.userPhone ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  <MessageCircle className="w-4 h-4" /> WhatsApp
-                </button>
-                <button
-                  onClick={() => setReplyChannel('sms')}
-                  disabled={!selectedTicket.userPhone}
-                  className={`flex items-center gap-1 px-3 py-1 rounded-lg text-sm ${
-                    replyChannel === 'sms' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  } ${!selectedTicket.userPhone ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  <Phone className="w-4 h-4" /> SMS
-                </button>
+                <span className="text-xs font-medium text-slate-500">Reply via:</span>
+                {(['email', 'whatsapp', 'sms'] as const).map((ch) => {
+                  const icons = { email: <Mail className="w-3.5 h-3.5" />, whatsapp: <MessageCircle className="w-3.5 h-3.5" />, sms: <Phone className="w-3.5 h-3.5" /> };
+                  const colors = { email: 'from-blue-500 to-blue-600 shadow-blue-500/25', whatsapp: 'from-emerald-500 to-green-600 shadow-green-500/25', sms: 'from-purple-500 to-purple-600 shadow-purple-500/25' };
+                  const active = replyChannel === ch;
+                  const disabled = ch !== 'email' && !selectedTicket.userPhone;
+                  return (
+                    <button
+                      key={ch}
+                      onClick={() => setReplyChannel(ch)}
+                      disabled={disabled}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
+                        active
+                          ? `bg-gradient-to-r ${colors[ch]} text-white shadow-lg -translate-y-0.5`
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      } ${disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+                    >
+                      {icons[ch]}
+                      {ch.charAt(0).toUpperCase() + ch.slice(1)}
+                    </button>
+                  );
+                })}
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <textarea
                   value={replyMessage}
                   onChange={(e) => setReplyMessage(e.target.value)}
                   placeholder="Type your reply..."
                   rows={3}
-                  className="flex-1 p-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="flex-1 p-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#FF8A2B]/20 focus:border-[#FF8A2B] transition-all resize-none"
                 />
                 <button
                   onClick={handleSendReply}
                   disabled={!replyMessage.trim() || isSending}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-4 bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] text-white rounded-xl font-semibold shadow-lg shadow-orange-500/25 hover:-translate-y-0.5 hover:shadow-orange-500/40 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center gap-2"
                 >
-                  {isSending ? (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Send className="w-4 h-4" />
-                  )}
+                  {isSending ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   Send
                 </button>
               </div>
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-gray-500">
+          <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
-              <MessageSquare className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-              <p>Select a ticket to view details</p>
+              <div className="w-16 h-16 bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <HeadphonesIcon className="w-8 h-8 text-slate-400" />
+              </div>
+              <p className="text-slate-500 font-medium">Select a ticket to view details</p>
+              <p className="text-slate-400 text-sm mt-1">Choose from the list on the left</p>
             </div>
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

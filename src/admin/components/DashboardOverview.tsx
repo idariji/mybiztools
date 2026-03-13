@@ -9,8 +9,22 @@ import {
   DollarSign,
   AlertTriangle,
   Activity,
-  TrendingUp
+  TrendingUp,
+  CheckCircle,
+  XCircle,
+  Clock,
+  RotateCcw
 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
+} from 'recharts';
 import { DashboardMetrics, SubscriptionMetrics, PaymentMetrics } from '../types/admin';
 import { DatabaseService } from '../services/databaseService';
 
@@ -20,6 +34,15 @@ interface DashboardOverviewProps {
   paymentMetrics?: PaymentMetrics;
   loading?: boolean;
 }
+
+const revenueData = [
+  { month: 'Oct', revenue: 145000, users: 120 },
+  { month: 'Nov', revenue: 189000, users: 145 },
+  { month: 'Dec', revenue: 210000, users: 178 },
+  { month: 'Jan', revenue: 178000, users: 165 },
+  { month: 'Feb', revenue: 243000, users: 210 },
+  { month: 'Mar', revenue: 289000, users: 248 },
+];
 
 export function DashboardOverview({
   metrics: propMetrics,
@@ -39,7 +62,7 @@ export function DashboardOverview({
       try {
         setIsLoading(true);
         const response = await DatabaseService.getDashboardMetrics();
-        
+
         // Parse metrics from backend response structure
         if (response?.success && response.data) {
           const data = response.data;
@@ -48,20 +71,20 @@ export function DashboardOverview({
           const proCount = data.users?.byPlan?.pro || 0;
           const enterpriseCount = data.users?.byPlan?.enterprise || 0;
           const totalPaidUsers = proCount + enterpriseCount;
-          
+
           setMetrics({
             total_users: totalUsers,
             active_subscriptions: data.users?.active || 0,
             revenue_current_month: data.revenue?.thisMonth || 0,
             revenue_previous_month: data.revenue?.lastMonth || 0,
             churn_rate: 0,
-            payment_success_rate: totalPaidUsers > 0 
+            payment_success_rate: totalPaidUsers > 0
               ? Math.round(((data.payments?.thisMonthCount || 0) / totalPaidUsers) * 100)
               : 0,
             open_abuse_reports: data.abuse?.pendingReports || 0,
             suspension_count: data.users?.suspended || 0
           });
-          
+
           setSubMetrics({
             free_count: freeCount,
             pro_count: proCount,
@@ -72,19 +95,19 @@ export function DashboardOverview({
             mrr: data.revenue?.mrr || 0,
             arr: (data.revenue?.mrr || 0) * 12
           });
-          
+
           const thisMonthCount = data.payments?.thisMonthCount || 0;
           const failedCount = data.payments?.failedCount || 0;
           const totalPayments = thisMonthCount + failedCount;
-          
+
           setPayMetrics({
             total_revenue: data.revenue?.thisMonth || 0,
             succeeded_payments: thisMonthCount,
             failed_payments: failedCount,
             pending_payments: 0,
             refunded_amount: 0,
-            average_transaction: thisMonthCount > 0 
-              ? (data.revenue?.thisMonth || 0) / thisMonthCount 
+            average_transaction: thisMonthCount > 0
+              ? (data.revenue?.thisMonth || 0) / thisMonthCount
               : 0,
             payment_success_rate: totalPayments > 0
               ? Math.round((thisMonthCount / totalPayments) * 100)
@@ -150,22 +173,24 @@ export function DashboardOverview({
   };
 
   const revenueGrowth =
-    ((defaultMetrics.revenue_current_month - defaultMetrics.revenue_previous_month) /
-      defaultMetrics.revenue_previous_month) *
-    100;
+    defaultMetrics.revenue_previous_month > 0
+      ? ((defaultMetrics.revenue_current_month - defaultMetrics.revenue_previous_month) /
+          defaultMetrics.revenue_previous_month) *
+        100
+      : 0;
 
   if (isLoading) {
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-gray-100 rounded-lg h-32 animate-pulse" />
+            <div key={i} className="bg-slate-100 rounded-2xl h-32 animate-pulse" />
           ))}
         </div>
-        <div className="bg-white rounded-lg border border-gray-200 p-6 h-64 flex items-center justify-center">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-6 h-64 flex items-center justify-center">
           <div className="text-center">
-            <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-2"></div>
-            <p className="text-gray-600">Loading dashboard metrics...</p>
+            <div className="w-8 h-8 border-4 border-orange-200 border-t-[#FF8A2B] rounded-full animate-spin mx-auto mb-2"></div>
+            <p className="text-slate-600">Loading dashboard metrics...</p>
           </div>
         </div>
       </div>
@@ -174,10 +199,10 @@ export function DashboardOverview({
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <AlertTriangle className="w-12 h-12 text-red-600 mx-auto mb-2" />
+            <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-2" />
             <p className="text-red-600">{error}</p>
           </div>
         </div>
@@ -185,136 +210,255 @@ export function DashboardOverview({
     );
   }
 
+  const kpiCards = [
+    {
+      title: 'Total Users',
+      value: defaultMetrics.total_users.toLocaleString(),
+      icon: Users,
+      trend: '+5.2%',
+      accentColor: 'bg-blue-500',
+      iconGradient: 'bg-gradient-to-br from-blue-400 to-blue-600 shadow-lg shadow-blue-500/30',
+    },
+    {
+      title: 'Monthly Revenue',
+      value: `₦${(defaultMetrics.revenue_current_month / 1000000).toFixed(1)}M`,
+      icon: DollarSign,
+      trend: `${revenueGrowth > 0 ? '+' : ''}${revenueGrowth.toFixed(1)}%`,
+      accentColor: 'bg-emerald-500',
+      iconGradient: 'bg-gradient-to-br from-emerald-400 to-green-600 shadow-lg shadow-green-500/30',
+    },
+    {
+      title: 'Active Subscriptions',
+      value: defaultMetrics.active_subscriptions.toLocaleString(),
+      icon: Activity,
+      trend: `${defaultMetrics.churn_rate}% churn`,
+      accentColor: 'bg-purple-500',
+      iconGradient: 'bg-gradient-to-br from-purple-400 to-purple-600 shadow-lg shadow-purple-500/30',
+    },
+    {
+      title: 'Payment Success',
+      value: `${defaultMetrics.payment_success_rate}%`,
+      icon: TrendingUp,
+      trend: defaultMetrics.payment_success_rate >= 94 ? 'Healthy' : 'Low',
+      accentColor: 'bg-orange-500',
+      iconGradient: 'bg-gradient-to-br from-orange-400 to-orange-600 shadow-lg shadow-orange-500/30',
+    },
+  ];
+
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className="space-y-6"
+    >
       {/* Top KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPICard
-          title="Total Users"
-          value={defaultMetrics.total_users.toLocaleString()}
-          icon={Users}
-          trend="+5.2%"
-          color="bg-blue-50"
-          iconColor="text-blue-600"
-        />
-
-        <KPICard
-          title="Active Subscriptions"
-          value={defaultMetrics.active_subscriptions.toLocaleString()}
-          icon={Activity}
-          trend={`${defaultMetrics.churn_rate}% churn`}
-          color="bg-green-50"
-          iconColor="text-green-600"
-        />
-
-        <KPICard
-          title="Monthly Revenue"
-          value={`₦${(defaultMetrics.revenue_current_month / 1000000).toFixed(1)}M`}
-          icon={DollarSign}
-          trend={`${revenueGrowth > 0 ? '+' : ''}${revenueGrowth.toFixed(1)}%`}
-          color="bg-emerald-50"
-          iconColor="text-emerald-600"
-        />
-
-        <KPICard
-          title="Payment Success"
-          value={`${defaultMetrics.payment_success_rate}%`}
-          icon={TrendingUp}
-          trend={
-            defaultMetrics.payment_success_rate >= 94 ? '✓ Healthy' : '⚠️ Low'
-          }
-          color="bg-purple-50"
-          iconColor="text-purple-600"
-        />
+        {kpiCards.map((card, idx) => (
+          <motion.div
+            key={card.title}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.08 }}
+            className="bg-white rounded-2xl border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+          >
+            {/* Top accent bar */}
+            <div className={`h-1 w-full ${card.accentColor}`} />
+            <div className="p-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-sm text-slate-500 font-medium">{card.title}</p>
+                  <p className="text-3xl font-bold text-slate-900 tabular-nums mt-2">{card.value}</p>
+                  {card.trend && (
+                    <span className="inline-flex items-center gap-1 mt-2 text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                      {card.trend}
+                    </span>
+                  )}
+                </div>
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${card.iconGradient}`}>
+                  <card.icon className="w-6 h-6 text-white" />
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        ))}
       </div>
 
-      {/* Subscription Distribution */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Subscription Distribution
+      {/* Revenue Chart + Plan Distribution */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Revenue Area Chart */}
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-6">
+          <h3 className="text-base font-semibold text-slate-900 border-l-4 border-[#FF8A2B] pl-3 mb-6">
+            Revenue Overview
           </h3>
-          <div className="space-y-4">
-            <SubscriptionDistributionRow
-              plan="Free"
-              count={defaultSubMetrics.free_count}
-              percentage={defaultSubMetrics.free_percentage}
-              color="bg-gray-200"
-            />
-            <SubscriptionDistributionRow
-              plan="Pro"
-              count={defaultSubMetrics.pro_count}
-              percentage={defaultSubMetrics.pro_percentage}
-              color="bg-blue-200"
-            />
-            <SubscriptionDistributionRow
-              plan="Enterprise"
-              count={defaultSubMetrics.enterprise_count}
-              percentage={defaultSubMetrics.enterprise_percentage}
-              color="bg-purple-200"
-            />
-          </div>
-
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">MRR:</span>
-              <span className="font-semibold text-gray-900">
-                ₦{(defaultSubMetrics.mrr / 1000000).toFixed(2)}M
-              </span>
-            </div>
-            <div className="flex justify-between text-sm mt-2">
-              <span className="text-gray-600">ARR:</span>
-              <span className="font-semibold text-gray-900">
-                ₦{(defaultSubMetrics.arr / 1000000).toFixed(0)}M
-              </span>
-            </div>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={revenueData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#FF8A2B" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#FF8A2B" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fill: '#94a3b8', fontSize: 12 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fill: '#94a3b8', fontSize: 12 }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v: number) => `₦${(v / 1000).toFixed(0)}k`}
+                />
+                <Tooltip
+                  formatter={(v: number) => [`₦${v.toLocaleString()}`, 'Revenue']}
+                  contentStyle={{
+                    borderRadius: '12px',
+                    border: '1px solid #e2e8f0',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#FF8A2B"
+                  strokeWidth={2.5}
+                  fill="url(#revenueGradient)"
+                  dot={{ fill: '#FF8A2B', r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
+        {/* Plan Distribution */}
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-6">
+          <h3 className="text-base font-semibold text-slate-900 border-l-4 border-[#FF8A2B] pl-3 mb-4">
+            Plan Distribution
+          </h3>
+          <div className="space-y-4 mt-4">
+            {/* Free */}
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-slate-600">Free</span>
+                <span className="font-semibold text-slate-900">
+                  {defaultSubMetrics.free_percentage.toFixed(1)}%
+                </span>
+              </div>
+              <div className="h-2 bg-slate-100 rounded-full">
+                <div
+                  className="h-2 bg-gradient-to-r from-slate-400 to-slate-500 rounded-full transition-all duration-700"
+                  style={{ width: `${defaultSubMetrics.free_percentage}%` }}
+                />
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">{defaultSubMetrics.free_count} users</p>
+            </div>
+            {/* Pro */}
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-slate-600">Pro</span>
+                <span className="font-semibold text-slate-900">
+                  {defaultSubMetrics.pro_percentage.toFixed(1)}%
+                </span>
+              </div>
+              <div className="h-2 bg-slate-100 rounded-full">
+                <div
+                  className="h-2 bg-gradient-to-r from-orange-400 to-orange-500 rounded-full transition-all duration-700"
+                  style={{ width: `${defaultSubMetrics.pro_percentage}%` }}
+                />
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">{defaultSubMetrics.pro_count} users</p>
+            </div>
+            {/* Enterprise */}
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-slate-600">Enterprise</span>
+                <span className="font-semibold text-slate-900">
+                  {defaultSubMetrics.enterprise_percentage.toFixed(1)}%
+                </span>
+              </div>
+              <div className="h-2 bg-slate-100 rounded-full">
+                <div
+                  className="h-2 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full transition-all duration-700"
+                  style={{ width: `${defaultSubMetrics.enterprise_percentage}%` }}
+                />
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">{defaultSubMetrics.enterprise_count} users</p>
+            </div>
+          </div>
+
+          {/* MRR / ARR */}
+          <div className="mt-6 pt-4 border-t border-slate-100 grid grid-cols-2 gap-3">
+            <div className="text-center p-3 bg-orange-50 rounded-xl">
+              <p className="text-xs text-slate-500 mb-1">MRR</p>
+              <p className="text-lg font-bold text-orange-600 tabular-nums">
+                ₦{((defaultSubMetrics.mrr || 0) / 100).toLocaleString()}
+              </p>
+            </div>
+            <div className="text-center p-3 bg-purple-50 rounded-xl">
+              <p className="text-xs text-slate-500 mb-1">ARR</p>
+              <p className="text-lg font-bold text-purple-600 tabular-nums">
+                ₦{((defaultSubMetrics.arr || 0) / 100).toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Payment Metrics + Alerts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Payment Metrics */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-6">
+          <h3 className="text-base font-semibold text-slate-900 border-l-4 border-[#FF8A2B] pl-3 mb-4">
             Payment Metrics
           </h3>
-          <div className="space-y-3">
-            <MetricRow
+          <div className="grid grid-cols-2 gap-3">
+            <PaymentMetricCard
               label="Succeeded"
               value={defaultPayMetrics.succeeded_payments}
-              color="text-green-600"
+              icon={CheckCircle}
+              iconGradient="bg-gradient-to-br from-emerald-400 to-green-600 shadow-lg shadow-green-500/30"
             />
-            <MetricRow
+            <PaymentMetricCard
               label="Failed"
               value={defaultPayMetrics.failed_payments}
-              color="text-red-600"
+              icon={XCircle}
+              iconGradient="bg-gradient-to-br from-red-400 to-red-600 shadow-lg shadow-red-500/30"
             />
-            <MetricRow
+            <PaymentMetricCard
               label="Pending"
               value={defaultPayMetrics.pending_payments}
-              color="text-yellow-600"
+              icon={Clock}
+              iconGradient="bg-gradient-to-br from-yellow-400 to-amber-500 shadow-lg shadow-yellow-500/30"
             />
-            <MetricRow
+            <PaymentMetricCard
               label="Refunded"
               value={`₦${(defaultPayMetrics.refunded_amount / 1000000).toFixed(2)}M`}
-              color="text-blue-600"
+              icon={RotateCcw}
+              iconGradient="bg-gradient-to-br from-slate-400 to-slate-600 shadow-lg shadow-slate-500/30"
             />
           </div>
 
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <p className="text-sm text-gray-600 mb-1">Success Rate</p>
+          <div className="mt-4 pt-4 border-t border-slate-100">
+            <p className="text-sm text-slate-500 mb-1">Success Rate</p>
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-gray-900">
+              <span className="text-2xl font-bold text-slate-900 tabular-nums">
                 {defaultPayMetrics.payment_success_rate}%
               </span>
-              <span className="text-sm text-green-600">✓ Healthy</span>
+              <span className="text-sm text-emerald-600 font-medium">Healthy</span>
             </div>
           </div>
         </div>
 
         {/* Alerts & Issues */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-orange-600" />
-            Alerts & Issues
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-6">
+          <h3 className="text-base font-semibold text-slate-900 border-l-4 border-[#FF8A2B] pl-3 mb-4 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-orange-500" />
+            Alerts &amp; Issues
           </h3>
           <div className="space-y-3">
             <AlertItem
@@ -340,7 +484,7 @@ export function DashboardOverview({
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -348,78 +492,25 @@ export function DashboardOverview({
 // COMPONENT PARTS
 // ============================================================================
 
-interface KPICardProps {
-  title: string;
-  value: string;
-  icon: React.ComponentType<{ className?: string }>;
-  trend: string;
-  color: string;
-  iconColor: string;
-}
-
-function KPICard({
-  title,
-  value,
-  icon: Icon,
-  trend,
-  color,
-  iconColor
-}: KPICardProps) {
-  return (
-    <div className={`${color} rounded-lg border border-gray-200 p-6`}>
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-gray-600 font-medium">{title}</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">{value}</p>
-          <p className="text-xs text-gray-500 mt-2">{trend}</p>
-        </div>
-        <Icon className={`${iconColor} w-8 h-8`} />
-      </div>
-    </div>
-  );
-}
-
-interface SubscriptionDistributionRowProps {
-  plan: string;
-  count: number;
-  percentage: number;
-  color: string;
-}
-
-function SubscriptionDistributionRow({
-  plan,
-  count,
-  percentage,
-  color
-}: SubscriptionDistributionRowProps) {
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-1">
-        <span className="text-sm font-medium text-gray-700">{plan}</span>
-        <span className="text-sm font-semibold text-gray-900">
-          {count} ({percentage.toFixed(1)}%)
-        </span>
-      </div>
-      <div className="w-full bg-gray-200 rounded-full h-2">
-        <div className={`${color} h-2 rounded-full`} style={{ width: `${percentage}%` }} />
-      </div>
-    </div>
-  );
-}
-
-interface MetricRowProps {
+interface PaymentMetricCardProps {
   label: string;
   value: string | number;
-  color: string;
+  icon: React.ComponentType<{ className?: string }>;
+  iconGradient: string;
 }
 
-function MetricRow({ label, value, color }: MetricRowProps) {
+function PaymentMetricCard({ label, value, icon: Icon, iconGradient }: PaymentMetricCardProps) {
   return (
-    <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded">
-      <span className="text-sm text-gray-600">{label}</span>
-      <span className={`text-sm font-semibold ${color}`}>
-        {typeof value === 'number' ? value.toLocaleString() : value}
-      </span>
+    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl hover:-translate-y-1 transition-all duration-200">
+      <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${iconGradient}`}>
+        <Icon className="w-4 h-4 text-white" />
+      </div>
+      <div>
+        <p className="text-xs text-slate-500">{label}</p>
+        <p className="text-sm font-semibold text-slate-900 tabular-nums">
+          {typeof value === 'number' ? value.toLocaleString() : value}
+        </p>
+      </div>
     </div>
   );
 }
@@ -431,16 +522,16 @@ interface AlertItemProps {
 }
 
 function AlertItem({ title, value, severity }: AlertItemProps) {
-  const colors = {
-    low: 'text-green-600 bg-green-50',
-    medium: 'text-yellow-600 bg-yellow-50',
-    high: 'text-red-600 bg-red-50'
+  const styles = {
+    low: 'border-l-4 border-emerald-400 bg-emerald-50 text-emerald-800',
+    medium: 'border-l-4 border-orange-400 bg-orange-50 text-orange-800',
+    high: 'border-l-4 border-red-500 bg-red-50 text-red-800'
   };
 
   return (
-    <div className={`p-3 rounded ${colors[severity]}`}>
+    <div className={`p-3 rounded-xl shadow-sm ${styles[severity]}`}>
       <p className="text-sm font-medium">{title}</p>
-      <p className="text-2xl font-bold mt-1">{value}</p>
+      <p className="text-2xl font-bold mt-1 tabular-nums">{value}</p>
     </div>
   );
 }
