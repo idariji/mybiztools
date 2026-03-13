@@ -31,10 +31,13 @@ import smsRoutes from './routes/smsRoutes.js';
 const app = express();
 
 // CORS
-const corsOrigins =
-  env.nodeEnv === 'development'
-    ? [/^http:\/\/localhost:\d+$/]
-    : [env.frontendUrl, 'https://www.mybiztools.ng', 'https://mybiztools.ng', 'https://mybiztools.onrender.com'];
+const corsOrigins = [
+  /^http:\/\/localhost:\d+$/,
+  env.frontendUrl,
+  'https://www.mybiztools.ng',
+  'https://mybiztools.ng',
+  'https://mybiztools.onrender.com',
+];
 
 app.use(
   cors({
