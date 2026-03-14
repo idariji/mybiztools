@@ -50,10 +50,15 @@ export class AdminService {
   static async login(input: AdminLoginInput): Promise<ServiceResponse> {
     const admin = await prisma.admin.findUnique({
       where: { email: input.email.toLowerCase() },
-    }) as any;
+      select: { id: true, email: true, password: true, name: true, role: true, isActive: true },
+    });
 
     if (!admin) {
       return { success: false, message: 'Invalid credentials', error: 'INVALID_CREDENTIALS' };
+    }
+
+    if (!admin.isActive) {
+      return { success: false, message: 'This admin account has been disabled. Contact a super admin.', error: 'ACCOUNT_DISABLED' };
     }
 
     const isValidPassword = await bcrypt.compare(input.password, admin.password);
@@ -61,10 +66,10 @@ export class AdminService {
       return { success: false, message: 'Invalid credentials', error: 'INVALID_CREDENTIALS' };
     }
 
-    await prisma.admin.update({
-      where: { id: admin.id },
-      data: { lastLoginAt: new Date() },
-    });
+    // Best-effort lastLoginAt update — don't fail login if this errors
+    prisma.admin.update({ where: { id: admin.id }, data: { lastLoginAt: new Date() } }).catch(
+      (err) => console.warn('[Admin] lastLoginAt update failed:', err?.message)
+    );
 
     const token = AuthService.generateToken(admin.id, admin.email);
 

@@ -32,13 +32,18 @@ import inventoryRoutes from './routes/inventoryRoutes.js';
 const app = express();
 
 // CORS
-const corsOrigins = [
-  /^http:\/\/localhost:\d+$/,
-  env.frontendUrl,
+const corsOrigins: (string | RegExp)[] = [
   'https://www.mybiztools.ng',
   'https://mybiztools.ng',
   'https://mybiztools.onrender.com',
 ];
+if (env.frontendUrl && !corsOrigins.includes(env.frontendUrl)) {
+  corsOrigins.push(env.frontendUrl);
+}
+// Allow any localhost port in development only
+if (env.nodeEnv !== 'production') {
+  corsOrigins.push(/^http:\/\/localhost:\d+$/);
+}
 
 app.use(
   cors({
