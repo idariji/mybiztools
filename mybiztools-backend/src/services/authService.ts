@@ -564,7 +564,10 @@ export class AuthService {
       return { success: false, message: 'Your account has been suspended. Please contact support.', error: 'ACCOUNT_SUSPENDED' };
     }
 
-    await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
+    // Fire-and-forget — don't let a column mismatch break login
+    prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } }).catch(
+      (err) => console.warn('[Auth] lastLoginAt update failed:', err?.message)
+    );
 
     const token = this.generateToken(user.id, user.email);
 
