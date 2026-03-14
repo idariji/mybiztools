@@ -5,7 +5,7 @@ services:
     region: frankfurt
     plan: free
     rootDir: mybiztools-backend
-    buildCommand: npm ci && npx prisma generate --schema=./prisma/schema.prisma && npm run build
+    buildCommand: npm ci && npx prisma generate && npx prisma migrate deploy && npm run build
     startCommand: node dist/server.js
     envVars:
       - key: NODE_ENV

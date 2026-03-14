@@ -26,6 +26,7 @@ import taxRoutes from './routes/taxRoutes.js';
 import documentGeneratorRoutes from './routes/documentGeneratorRoutes.js';
 import supportRoutes from './routes/supportRoutes.js';
 import smsRoutes from './routes/smsRoutes.js';
+import inventoryRoutes from './routes/inventoryRoutes.js';
 
 // APP INIT
 const app = express();
@@ -123,6 +124,7 @@ app.use('/api/tax', taxRoutes);
 app.use('/api/generator', documentGeneratorRoutes);
 app.use('/api/admin/support', supportRoutes);
 app.use('/api/sms', smsRoutes);
+app.use('/api/inventory', inventoryRoutes);
 
 
 // 404 HANDLER
