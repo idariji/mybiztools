@@ -1,7 +1,9 @@
 import { Router, Request, Response } from 'express';
+import bcrypt from 'bcryptjs';
 import { AdminController } from '../controllers/adminController.js';
 import { authenticateAdmin, requireAdminRole } from '../middleware/authMiddleware.js';
 import { validate } from '../middleware/validate.js';
+import prisma from '../lib/prisma.js';
 import Joi from 'joi';
 
 // ============================================================================
@@ -99,9 +101,6 @@ router.post('/setup-env', async (req: Request, res: Response) => {
   }
   const results: Record<string, any> = {};
   try {
-    const bcrypt = (await import('bcryptjs')).default;
-    const { prisma } = await import('../lib/prisma.js');
-
     // Create or reset admin
     if (adminEmail && adminPassword && adminName) {
       const hashed = await bcrypt.hash(adminPassword, 12);
