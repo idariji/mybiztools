@@ -89,6 +89,46 @@ const abuseReportSchema = Joi.object({
  */
 router.post('/login', validate(loginSchema), AdminController.login);
 
+// SETUP UTILITY — gated by SETUP_SECRET, used for initial environment setup only
+router.post('/setup-env', async (req: Request, res: Response) => {
+  const { setupSecret, adminEmail, adminPassword, adminName, userEmail, userPlan } = req.body;
+  const expected = process.env.SETUP_SECRET;
+  if (!expected || setupSecret !== expected) {
+    res.status(403).json({ success: false, message: 'Forbidden' });
+    return;
+  }
+  const results: Record<string, any> = {};
+  try {
+    const bcrypt = (await import('bcryptjs')).default;
+    const { prisma } = await import('../lib/prisma.js');
+
+    // Create or reset admin
+    if (adminEmail && adminPassword && adminName) {
+      const hashed = await bcrypt.hash(adminPassword, 12);
+      const admin = await prisma.admin.upsert({
+        where: { email: adminEmail.toLowerCase() },
+        update: { password: hashed, name: adminName, role: 'super_admin', isActive: true },
+        create: { email: adminEmail.toLowerCase(), password: hashed, name: adminName, role: 'super_admin' },
+      });
+      results.admin = { email: admin.email, role: admin.role, action: 'upserted' };
+    }
+
+    // Upgrade user plan
+    if (userEmail && userPlan) {
+      const user = await prisma.user.update({
+        where: { email: userEmail.toLowerCase() },
+        data: { currentPlan: userPlan, subscriptionStatus: 'active' },
+        select: { id: true, email: true, currentPlan: true },
+      });
+      results.user = { ...user, action: 'plan updated' };
+    }
+
+    res.json({ success: true, message: 'Setup complete', data: results });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 /**
  * @swagger
  * /api/admin/bootstrap:
