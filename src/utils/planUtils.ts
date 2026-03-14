@@ -62,9 +62,8 @@ export function canCreateDocument(plan: string | undefined | null, currentCount:
  * Return true if exports should carry a watermark.
  * Both unsubscribed and Starter plan users get watermarks.
  */
-export function hasWatermark(plan: string | undefined | null): boolean {
-  const tier = normalisePlan(plan);
-  return tier === 'free' || tier === 'starter';
+export function hasWatermark(_plan?: string | null): boolean {
+  return false;
 }
 
 /** Human-readable plan display name */

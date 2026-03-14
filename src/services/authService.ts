@@ -80,7 +80,10 @@ class AuthServiceClass {
 
       if (data.success && data.data) {
         localStorage.setItem(this.tokenKey, data.data.token);
-        localStorage.setItem(this.userKey, JSON.stringify(data.data.user));
+        // Normalise camelCase server fields to snake_case expected by frontend
+        const u = data.data.user as any;
+        if (u.currentPlan && !u.current_plan) u.current_plan = u.currentPlan;
+        localStorage.setItem(this.userKey, JSON.stringify(u));
       }
 
       return data;
@@ -109,7 +112,9 @@ class AuthServiceClass {
 
       if (data.success && data.data) {
         localStorage.setItem(this.tokenKey, data.data.token);
-        localStorage.setItem(this.userKey, JSON.stringify(data.data.user));
+        const u = data.data.user as any;
+        if (u.currentPlan && !u.current_plan) u.current_plan = u.currentPlan;
+        localStorage.setItem(this.userKey, JSON.stringify(u));
       }
 
       return data;

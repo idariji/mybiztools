@@ -92,14 +92,15 @@ export function Sidebar({ collapsed, setCollapsed, mobileMenuOpen, setMobileMenu
               <button
                 key={item.path}
                 onClick={() => handleNavClick(item)}
-                title={locked ? 'Upgrade to access this feature' : item.label}
-                className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all active:scale-95 relative ${
-                  locked
+                title={item.label}
+                className={`w-full flex items-center py-3 rounded-xl transition-all active:scale-95 relative
+                  ${collapsed ? 'justify-center px-0' : 'gap-3 px-3'}
+                  ${locked
                     ? 'text-slate-400 hover:bg-slate-50 cursor-pointer'
                     : isActive(item)
                     ? 'bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] text-white shadow-lg'
                     : 'hover:bg-slate-100 text-slate-700 active:bg-slate-200'
-                }`}
+                  }`}
               >
                 <item.icon className="w-5 h-5 shrink-0" />
                 {!collapsed && (
@@ -118,11 +119,11 @@ export function Sidebar({ collapsed, setCollapsed, mobileMenuOpen, setMobileMenu
 
         <div className="shrink-0 p-3 lg:p-4 border-t border-slate-200 space-y-1 bg-white">
           <button
-            onClick={() => {
-              navigate('/dashboard/settings');
-              setMobileMenuOpen(false);
-            }}
-            className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all active:scale-95 ${location.pathname === '/dashboard/settings'
+            onClick={() => { navigate('/dashboard/settings'); setMobileMenuOpen(false); }}
+            title="Settings"
+            className={`w-full flex items-center py-3 rounded-xl transition-all active:scale-95
+              ${collapsed ? 'justify-center px-0' : 'gap-3 px-3'}
+              ${location.pathname === '/dashboard/settings'
                 ? 'bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] text-white shadow-lg'
                 : 'hover:bg-slate-100 text-slate-700 active:bg-slate-200'
               }`}
@@ -131,12 +132,10 @@ export function Sidebar({ collapsed, setCollapsed, mobileMenuOpen, setMobileMenu
             {!collapsed && <span className="text-sm font-medium">Settings</span>}
           </button>
           <button
-            onClick={() => {
-              authService.logout();
-              navigate('/login');
-              setMobileMenuOpen(false);
-            }}
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-red-50 text-red-600 transition-all active:scale-95 active:bg-red-100"
+            onClick={() => { authService.logout(); navigate('/login'); setMobileMenuOpen(false); }}
+            title="Logout"
+            className={`w-full flex items-center py-3 rounded-xl hover:bg-red-50 text-red-600 transition-all active:scale-95 active:bg-red-100
+              ${collapsed ? 'justify-center px-0' : 'gap-3 px-3'}`}
           >
             <LogOut className="w-5 h-5 shrink-0" />
             {!collapsed && <span className="text-sm font-medium">Logout</span>}
