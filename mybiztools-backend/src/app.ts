@@ -41,6 +41,9 @@ const corsOrigins: (string | RegExp)[] = [
 if (env.frontendUrl && !corsOrigins.includes(env.frontendUrl)) {
   corsOrigins.push(env.frontendUrl);
 }
+if (env.adminUrl && !corsOrigins.includes(env.adminUrl)) {
+  corsOrigins.push(env.adminUrl);
+}
 // Allow any localhost port in development only
 if (env.nodeEnv !== 'production') {
   corsOrigins.push(/^http:\/\/localhost:\d+$/);

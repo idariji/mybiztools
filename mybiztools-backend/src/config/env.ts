@@ -22,6 +22,7 @@ export const env = {
 
   // Frontend
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
+  adminUrl: process.env.ADMIN_URL || '',
 
   // OTP
   otpExpiresInMinutes: parseInt(process.env.OTP_EXPIRES_MINUTES || '10', 10),
