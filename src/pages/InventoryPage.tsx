@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DashboardLayout } from '../layout/DashboardLayout';
 import {
@@ -18,6 +18,8 @@ import {
   ArrowUp,
   ArrowDown,
 } from 'lucide-react';
+import { authService } from '../services/authService';
+import { API_BASE_URL } from '../config/apiConfig';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -46,9 +48,6 @@ interface StockMovement {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const STORAGE_KEY = 'inventory-products';
-const MOVEMENTS_KEY = 'inventory-movements';
-
 const CATEGORIES = [
   'Electronics',
   'Food & Beverages',
@@ -60,63 +59,16 @@ const CATEGORIES = [
 
 const STATUS_OPTIONS = ['All', 'In Stock', 'Low Stock', 'Out of Stock'];
 
-const SAMPLE_PRODUCTS: Product[] = [
-  {
-    id: 'prod-001',
-    name: 'Samsung Galaxy A14',
-    sku: 'ELEC-0001',
-    category: 'Electronics',
-    quantity: 12,
-    unitCost: 85000,
-    sellingPrice: 105000,
-    lowStockThreshold: 5,
-    supplier: 'TechHub Distributors',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'prod-002',
-    name: 'Indomie Noodles (Carton)',
-    sku: 'FNB-0001',
-    category: 'Food & Beverages',
-    quantity: 3,
-    unitCost: 4800,
-    sellingPrice: 6000,
-    lowStockThreshold: 5,
-    supplier: 'Dufil Prima Foods',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'prod-003',
-    name: 'A4 Paper Ream',
-    sku: 'STN-0001',
-    category: 'Stationery',
-    quantity: 0,
-    unitCost: 2500,
-    sellingPrice: 3500,
-    lowStockThreshold: 10,
-    supplier: 'Office World Nigeria',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'prod-004',
-    name: 'Men\'s Corporate Shirt',
-    sku: 'CLO-0001',
-    category: 'Clothing',
-    quantity: 24,
-    unitCost: 3500,
-    sellingPrice: 6500,
-    lowStockThreshold: 5,
-    supplier: 'Lagos Fashion Hub',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
+// ─── API helpers ──────────────────────────────────────────────────────────────
+
+function authHeaders(): HeadersInit {
+  const token = authService.getToken();
+  return { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+// SKU suggestion only (actual SKU generated server-side if blank)
 function generateSKU(category: string): string {
   const prefix =
     category === 'Electronics'
@@ -132,10 +84,6 @@ function generateSKU(category: string): string {
       : 'OTH';
   const num = Math.floor(1000 + Math.random() * 9000);
   return `${prefix}-${num}`;
-}
-
-function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 function formatNaira(amount: number): string {
@@ -180,7 +128,8 @@ type FormState = typeof emptyForm;
 
 export function InventoryPage() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [movements, setMovements] = useState<StockMovement[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState('');
 
   // UI state
   const [search, setSearch] = useState('');
@@ -202,29 +151,24 @@ export function InventoryPage() {
   // Delete confirmation
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  // ── Load from localStorage ──────────────────────────────────────────────────
+  // ── Load from API ──────────────────────────────────────────────────────────
 
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      setProducts(JSON.parse(stored));
-    } else {
-      setProducts(SAMPLE_PRODUCTS);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(SAMPLE_PRODUCTS));
+  const loadProducts = useCallback(async () => {
+    setLoading(true);
+    setApiError('');
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/inventory`, { headers: authHeaders() });
+      const data = await res.json();
+      if (data.success) setProducts(data.data);
+      else setApiError(data.message || 'Failed to load products');
+    } catch {
+      setApiError('Could not reach server. Check your connection.');
+    } finally {
+      setLoading(false);
     }
-    const storedMov = localStorage.getItem(MOVEMENTS_KEY);
-    if (storedMov) setMovements(JSON.parse(storedMov));
   }, []);
 
-  const persist = useCallback((updated: Product[]) => {
-    setProducts(updated);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-  }, []);
-
-  const persistMovements = useCallback((updated: StockMovement[]) => {
-    setMovements(updated);
-    localStorage.setItem(MOVEMENTS_KEY, JSON.stringify(updated));
-  }, []);
+  useEffect(() => { loadProducts(); }, [loadProducts]);
 
   // ── Derived stats ───────────────────────────────────────────────────────────
 
@@ -262,67 +206,85 @@ export function InventoryPage() {
     return Object.keys(errs).length === 0;
   }
 
-  function handleAddProduct() {
+  async function handleAddProduct() {
     if (!validateForm()) return;
-    const now = new Date().toISOString();
-    const newProduct: Product = {
-      id: generateId(),
-      name: form.name.trim(),
-      sku: form.sku.trim() || generateSKU(form.category),
-      category: form.category,
-      quantity: Number(form.quantity),
-      unitCost: Number(form.unitCost),
-      sellingPrice: Number(form.sellingPrice),
-      lowStockThreshold: Number(form.lowStockThreshold) || 5,
-      supplier: form.supplier.trim() || undefined,
-      createdAt: now,
-      updatedAt: now,
-    };
-    persist([newProduct, ...products]);
-    setShowAddModal(false);
-    setForm(emptyForm);
-    setFormErrors({});
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/inventory`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          name: form.name.trim(),
+          sku: form.sku.trim() || generateSKU(form.category),
+          category: form.category,
+          quantity: Number(form.quantity),
+          unitCost: Number(form.unitCost),
+          sellingPrice: Number(form.sellingPrice),
+          lowStockThreshold: Number(form.lowStockThreshold) || 5,
+          supplier: form.supplier.trim() || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setProducts((prev) => [data.data, ...prev]);
+        setShowAddModal(false);
+        setForm(emptyForm);
+        setFormErrors({});
+      } else {
+        setFormErrors({ name: data.message || 'Failed to add product' });
+      }
+    } catch {
+      setFormErrors({ name: 'Could not reach server' });
+    } finally {
+    }
   }
 
   // ── Stock adjustment ────────────────────────────────────────────────────────
 
-  function handleAdjust() {
+  async function handleAdjust() {
     if (!adjustProduct) return;
     const delta = Number(adjQty);
     if (!delta || isNaN(delta) || delta <= 0) return;
-    const now = new Date().toISOString();
-    const newQty =
-      adjType === 'in'
-        ? adjustProduct.quantity + delta
-        : Math.max(0, adjustProduct.quantity - delta);
-
-    const updated = products.map((p) =>
-      p.id === adjustProduct.id
-        ? { ...p, quantity: newQty, updatedAt: now }
-        : p
-    );
-    persist(updated);
-
-    const movement: StockMovement = {
-      id: generateId(),
-      productId: adjustProduct.id,
-      type: adjType,
-      quantity: delta,
-      reason: adjReason,
-      date: now,
-    };
-    persistMovements([movement, ...movements]);
-    setAdjustProduct(null);
-    setAdjQty('1');
-    setAdjReason('Restock');
-    setAdjType('in');
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/inventory/${adjustProduct.id}/adjust`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ type: adjType, quantity: delta, reason: adjReason }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setProducts((prev) =>
+          prev.map((p) =>
+            p.id === adjustProduct.id ? { ...p, quantity: data.data.newQuantity } : p
+          )
+        );
+        setAdjustProduct(null);
+        setAdjQty('1');
+        setAdjReason('Restock');
+        setAdjType('in');
+      }
+    } catch {
+      // silently fail — UI stays open
+    } finally {
+    }
   }
 
   // ── Delete ──────────────────────────────────────────────────────────────────
 
-  function handleDelete(id: string) {
-    persist(products.filter((p) => p.id !== id));
-    setDeleteId(null);
+  async function handleDelete(id: string) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/inventory/${id}`, {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setProducts((prev) => prev.filter((p) => p.id !== id));
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setDeleteId(null);
+    }
   }
 
   // ── Open add modal ──────────────────────────────────────────────────────────
@@ -358,6 +320,25 @@ export function InventoryPage() {
             Add Product
           </button>
         </div>
+
+        {/* ── API Error Banner ── */}
+        {apiError && (
+          <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+            <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0" />
+            <p className="text-sm text-red-700">{apiError}</p>
+            <button onClick={loadProducts} className="ml-auto text-xs font-semibold text-red-600 hover:underline">Retry</button>
+          </div>
+        )}
+
+        {/* ── Loading Skeleton ── */}
+        {loading && (
+          <div className="flex items-center justify-center py-20">
+            <div className="w-8 h-8 border-4 border-[#FF8A2B]/30 border-t-[#FF8A2B] rounded-full animate-spin" />
+          </div>
+        )}
+
+        {/* ── Main content (hidden while loading) ── */}
+        {!loading && <>
 
         {/* ── Low Stock Alert Banner ── */}
         <AnimatePresence>
@@ -698,6 +679,8 @@ export function InventoryPage() {
             </div>
           )}
         </motion.div>
+
+        </>} {/* end !loading */}
       </motion.div>
 
       {/* ══════════════════════════════════════════════════════════════════════

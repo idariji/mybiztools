@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Users,
@@ -15,9 +15,11 @@ import {
   Edit,
   ChevronRight,
   X,
-  Download,
+
   Upload,
 } from 'lucide-react';
+import { authService } from '../services/authService';
+import { API_BASE_URL } from '../config/apiConfig';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -42,8 +44,6 @@ type FilterTag = TagType | 'All';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const STORAGE_KEY = 'crm-customers';
-
 const TAG_STYLES: Record<TagType, string> = {
   VIP: 'bg-yellow-100 text-yellow-800',
   Wholesale: 'bg-blue-100 text-blue-800',
@@ -51,53 +51,50 @@ const TAG_STYLES: Record<TagType, string> = {
   Inactive: 'bg-slate-100 text-slate-600',
 };
 
-const SAMPLE_CUSTOMERS: Customer[] = [
-  {
-    id: 'sample-1',
-    firstName: 'Amara',
-    lastName: 'Okafor',
-    businessName: 'Amara Fabrics Ltd',
-    phone: '08012345678',
-    email: 'amara@amarafabrics.ng',
-    address: '14 Allen Avenue, Ikeja, Lagos',
-    tag: 'VIP',
-    notes: 'Bulk orders every quarter. Prefers Ankara fabrics.',
-    birthday: '1985-03-22',
-    createdAt: '2024-01-15T08:00:00.000Z',
-    lastContactAt: '2024-11-20T10:30:00.000Z',
-    totalSpend: 485000,
-  },
-  {
-    id: 'sample-2',
-    firstName: 'Chukwuemeka',
-    lastName: 'Nwosu',
-    businessName: '',
-    phone: '07098765432',
-    email: 'emeka.nwosu@gmail.com',
-    address: '5 Wuse Zone 4, Abuja',
-    tag: 'Wholesale',
-    notes: 'Reseller from Abuja. Usually orders 50+ units.',
-    birthday: '',
-    createdAt: '2024-03-08T09:15:00.000Z',
-    lastContactAt: '2024-12-01T14:00:00.000Z',
-    totalSpend: 210000,
-  },
-  {
-    id: 'sample-3',
-    firstName: 'Ngozi',
-    lastName: 'Eze',
-    businessName: '',
-    phone: '09011223344',
-    email: '',
-    address: 'Trans-Ekulu, Enugu',
-    tag: 'Retail',
-    notes: 'Walk-in customer. Buys during festive seasons.',
-    birthday: '1992-12-05',
-    createdAt: '2024-06-20T11:00:00.000Z',
-    lastContactAt: '2024-10-15T16:45:00.000Z',
-    totalSpend: 37500,
-  },
-];
+// ─── API helpers ──────────────────────────────────────────────────────────────
+
+function authHeaders(): HeadersInit {
+  const token = authService.getToken();
+  return { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+}
+
+// Map Contact API response → Customer UI shape
+function contactToCustomer(c: any): Customer {
+  const nameParts = (c.name || '').split(' ');
+  const firstName = nameParts[0] || '';
+  const lastName = nameParts.slice(1).join(' ') || '';
+  const extra = c.tags && typeof c.tags === 'object' && !Array.isArray(c.tags) ? c.tags : {};
+  return {
+    id: c.id,
+    firstName,
+    lastName,
+    businessName: c.company || '',
+    phone: c.phone || '',
+    email: c.email || '',
+    address: c.address || '',
+    tag: (c.type as TagType) || 'Retail',
+    notes: c.notes || '',
+    birthday: extra.birthday || '',
+    createdAt: c.createdAt,
+    lastContactAt: c.lastContactedAt || '',
+    totalSpend: extra.totalSpend || 0,
+  };
+}
+
+// Map Customer UI shape → Contact API payload
+function customerToContact(data: Omit<Customer, 'id' | 'createdAt' | 'totalSpend'>): any {
+  return {
+    name: `${data.firstName} ${data.lastName}`.trim(),
+    company: data.businessName || undefined,
+    phone: data.phone || undefined,
+    email: data.email || undefined,
+    address: data.address || undefined,
+    type: data.tag,
+    notes: data.notes || undefined,
+    lastContactedAt: data.lastContactAt || undefined,
+    tags: { birthday: data.birthday || '' },
+  };
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -140,23 +137,6 @@ function isActiveThisMonth(customer: Customer): boolean {
   const now = new Date();
   const last = new Date(customer.lastContactAt);
   return last.getFullYear() === now.getFullYear() && last.getMonth() === now.getMonth();
-}
-
-function loadCustomers(): Customer[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    }
-  } catch {}
-  return SAMPLE_CUSTOMERS;
-}
-
-function saveCustomers(customers: Customer[]): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(customers));
-  } catch {}
 }
 
 // ─── Empty form state ─────────────────────────────────────────────────────────
@@ -715,7 +695,8 @@ function CustomerRow({ customer, onClick, onDelete, index }: CustomerRowProps) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export function CustomersPage() {
-  const [customers, setCustomers] = useState<Customer[]>(() => loadCustomers());
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterTag, setFilterTag] = useState<FilterTag>('All');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -724,11 +705,26 @@ export function CustomersPage() {
   const [showFilterMenu, setShowFilterMenu] = useState(false);
 
   const { toasts, addToast, removeToast } = useToast();
+  const mounted = useRef(true);
+  useEffect(() => { return () => { mounted.current = false; }; }, []);
 
-  // Persist to localStorage whenever customers change
-  useEffect(() => {
-    saveCustomers(customers);
-  }, [customers]);
+  // ── Load from API ──────────────────────────────────────────────────────────
+  const loadCustomers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/contacts`, { headers: authHeaders() });
+      const data = await res.json();
+      if (data.success && mounted.current) {
+        setCustomers((data.data?.contacts || data.data || []).map(contactToCustomer));
+      }
+    } catch {
+      addToast('Could not load customers', 'error');
+    } finally {
+      if (mounted.current) setLoading(false);
+    }
+  }, [addToast]);
+
+  useEffect(() => { loadCustomers(); }, [loadCustomers]);
 
   // Computed stats
   const totalCustomers = customers.length;
@@ -751,51 +747,94 @@ export function CustomersPage() {
 
   // CRUD
   const handleAddCustomer = useCallback(
-    (data: Omit<Customer, 'id' | 'createdAt' | 'totalSpend'>) => {
-      const newCustomer: Customer = {
-        ...data,
-        id: generateId(),
-        createdAt: new Date().toISOString(),
-        totalSpend: 0,
-      };
-      setCustomers((prev) => [newCustomer, ...prev]);
-      setShowAddModal(false);
-      addToast(`${data.firstName} ${data.lastName} added!`, 'success');
+    async (data: Omit<Customer, 'id' | 'createdAt' | 'totalSpend'>) => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/contacts`, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify(customerToContact(data)),
+        });
+        const result = await res.json();
+        if (result.success) {
+          setCustomers((prev) => [contactToCustomer(result.data), ...prev]);
+          setShowAddModal(false);
+          addToast(`${data.firstName} ${data.lastName} added!`, 'success');
+        } else {
+          addToast(result.message || 'Failed to add customer', 'error');
+        }
+      } catch {
+        addToast('Could not reach server', 'error');
+      }
     },
     [addToast]
   );
 
   const handleEditCustomer = useCallback(
-    (data: Omit<Customer, 'id' | 'createdAt' | 'totalSpend'>) => {
+    async (data: Omit<Customer, 'id' | 'createdAt' | 'totalSpend'>) => {
       if (!editingCustomer) return;
-      setCustomers((prev) =>
-        prev.map((c) => (c.id === editingCustomer.id ? { ...c, ...data } : c))
-      );
-      // Update selected customer if open
-      setSelectedCustomer((prev) =>
-        prev?.id === editingCustomer.id ? { ...prev, ...data } : prev
-      );
-      setEditingCustomer(null);
-      addToast('Customer updated!', 'success');
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/contacts/${editingCustomer.id}`, {
+          method: 'PUT',
+          headers: authHeaders(),
+          body: JSON.stringify(customerToContact(data)),
+        });
+        const result = await res.json();
+        if (result.success) {
+          const updated = contactToCustomer(result.data);
+          setCustomers((prev) => prev.map((c) => (c.id === editingCustomer.id ? updated : c)));
+          setSelectedCustomer((prev) => (prev?.id === editingCustomer.id ? updated : prev));
+          setEditingCustomer(null);
+          addToast('Customer updated!', 'success');
+        } else {
+          addToast(result.message || 'Failed to update customer', 'error');
+        }
+      } catch {
+        addToast('Could not reach server', 'error');
+      }
     },
     [editingCustomer, addToast]
   );
 
   const handleDeleteCustomer = useCallback(
-    (id: string) => {
-      setCustomers((prev) => prev.filter((c) => c.id !== id));
-      addToast('Customer removed.', 'info');
+    async (id: string) => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/contacts/${id}`, {
+          method: 'DELETE',
+          headers: authHeaders(),
+        });
+        const result = await res.json();
+        if (result.success) {
+          setCustomers((prev) => prev.filter((c) => c.id !== id));
+          addToast('Customer removed.', 'info');
+        }
+      } catch {
+        addToast('Could not reach server', 'error');
+      }
     },
     [addToast]
   );
 
   const handleUpdateNotes = useCallback(
-    (id: string, notes: string) => {
-      setCustomers((prev) => prev.map((c) => (c.id === id ? { ...c, notes } : c)));
-      setSelectedCustomer((prev) => (prev?.id === id ? { ...prev, notes } : prev));
-      addToast('Notes saved.', 'success');
+    async (id: string, notes: string) => {
+      try {
+        const customer = customers.find((c) => c.id === id);
+        if (!customer) return;
+        const res = await fetch(`${API_BASE_URL}/api/contacts/${id}`, {
+          method: 'PUT',
+          headers: authHeaders(),
+          body: JSON.stringify({ notes }),
+        });
+        const result = await res.json();
+        if (result.success) {
+          setCustomers((prev) => prev.map((c) => (c.id === id ? { ...c, notes } : c)));
+          setSelectedCustomer((prev) => (prev?.id === id ? { ...prev, notes } : prev));
+          addToast('Notes saved.', 'success');
+        }
+      } catch {
+        addToast('Could not save notes', 'error');
+      }
     },
-    [addToast]
+    [customers, addToast]
   );
 
   const handleOpenEdit = useCallback((customer: Customer) => {
@@ -837,7 +876,15 @@ export function CustomersPage() {
         </div>
       </div>
 
-      {/* ── Stats Bar ── */}
+      {/* ── Loading ── */}
+      {loading && (
+        <div className="flex items-center justify-center py-20">
+          <div className="w-8 h-8 border-4 border-[#FF8A2B]/30 border-t-[#FF8A2B] rounded-full animate-spin" />
+        </div>
+      )}
+
+      {/* ── Stats + Search + List (hidden while loading) ── */}
+      {!loading && <>
       <div className="px-4 sm:px-6 mb-5">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
@@ -1004,6 +1051,8 @@ export function CustomersPage() {
           </p>
         )}
       </div>
+
+      </> } {/* end !loading */}
 
       {/* ── Add Modal ── */}
       <AnimatePresence>
