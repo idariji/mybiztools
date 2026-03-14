@@ -22,7 +22,7 @@ export function Pricing() {
 
   const tiers = [{
     name: 'Starter',
-    price: isAnnual ? 18000 : 2000,
+    price: isAnnual ? 48000 : 5000,
     description: 'Perfect for freelancers and solo entrepreneurs',
     features: [
       'Unlimited Invoices, Quotations, Receipts & Payslips',
@@ -45,7 +45,7 @@ export function Pricing() {
     highlight: false,
   }, {
     name: 'Business Pro',
-    price: isAnnual ? 45000 : 4500,
+    price: isAnnual ? 115000 : 12000,
     description: 'Most Popular – full toolkit for growing businesses',
     features: [
       'Everything in Starter',
@@ -67,7 +67,7 @@ export function Pricing() {
     highlight: true,
   }, {
     name: 'Enterprise Suite',
-    price: isAnnual ? 120000 : 12000,
+    price: isAnnual ? 288000 : 30000,
     description: 'Full-scale solution for larger organisations',
     features: [
       'Everything in Business Pro',
