@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Receipt, CreditCard, QrCode, Calendar, PieChart, Calculator, TrendingUp, Bot, ShieldCheck, Globe, FileSpreadsheet, ArrowRight, Sparkles } from 'lucide-react';
+import { FileText, Receipt, CreditCard, QrCode, Calendar, PieChart, Calculator, TrendingUp, Bot, ShieldCheck, Globe, FileSpreadsheet, ArrowRight, Layers } from 'lucide-react';
 import { Card } from '../ui/Card';
 const tools = [{
   icon: FileText,
@@ -93,7 +93,7 @@ export function SolutionsGrid() {
         }} viewport={{
           once: true
         }} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100/50 text-[#FF8A2B] text-sm font-bold border border-orange-200 mb-5 sm:mb-6">
-            <Sparkles className="w-4 h-4" />
+            <Layers className="w-4 h-4" />
             <span>All-in-One Platform</span>
           </motion.div>
 

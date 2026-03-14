@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '../ui/Button';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { ArrowRight, PlayCircle, Sparkles } from 'lucide-react';
+import { ArrowRight, PlayCircle, Zap } from 'lucide-react';
 import { DashboardMockup } from '../dashboard/DashboardMockup';
 export function Hero() {
   const {
@@ -66,7 +66,7 @@ export function Hero() {
             <motion.span whileHover={{
             scale: 1.05
           }} className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-white/80 backdrop-blur-md text-[#FF8A2B] text-xs sm:text-sm font-bold border border-[#FFD6C2] shadow-sm cursor-default">
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FF8A2B] fill-[#FF8A2B]" />
+              <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FF8A2B] fill-[#FF8A2B]" />
               <span className="bg-gradient-to-r from-[#FF8A2B] to-[#E56A00] bg-clip-text text-transparent">
                 Trusted by 10,000+ African Entrepreneurs
               </span>
@@ -130,7 +130,7 @@ export function Hero() {
         }}>
             <div className="flex items-center gap-3 mb-2">
               <div className="w-8 h-8 rounded-full bg-[#FFD6C2]/30 flex items-center justify-center text-[#FF8A2B]">
-                <Sparkles size={16} />
+                <Zap size={16} />
               </div>
               <div>
                 <div className="text-xs text-[#1F2D3D]/50">AI Insight</div>

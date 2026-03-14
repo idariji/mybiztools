@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, X, Sparkles, Info } from 'lucide-react';
+import { Check, X, Star, Info } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 export function Pricing() {
@@ -172,7 +172,7 @@ export function Pricing() {
         }} className={tier.highlight ? 'sm:col-span-2 lg:col-span-1 lg:-mt-8 lg:mb-8 z-10' : ''}>
               <Card className={`h-full flex flex-col p-5 sm:p-6 lg:p-8 ${tier.highlight ? 'border-[#FF8A2B] ring-4 ring-[#FF8A2B]/10 shadow-2xl shadow-[#FF8A2B]/10 relative' : 'border-slate-200 hover:border-orange-200 transition-colors'}`} glass={tier.highlight}>
                 {tier.highlight && <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg shadow-[#FF8A2B]/30 flex items-center gap-1 whitespace-nowrap">
-                    <Sparkles className="w-3 h-3" />
+                    <Star className="w-3 h-3 fill-white" />
                     Most Popular
                   </div>}
 

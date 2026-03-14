@@ -58,11 +58,10 @@ export function Sidebar({ collapsed, setCollapsed, mobileMenuOpen, setMobileMenu
       {mobileMenuOpen && (
         <div className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
       )}
-      <aside className={`fixed left-0 top-0 h-screen bg-white border-r border-slate-200 text-slate-900 transition-transform duration-300 z-50 shadow-2xl flex flex-col
-        ${collapsed ? 'lg:w-20' : 'lg:w-64'}
-        ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        w-[280px] max-w-[85vw] lg:w-64`}>
-        <div className="flex items-center justify-between p-4 border-b border-slate-200 shrink-0">
+      <aside className={`fixed left-0 top-0 h-screen bg-white border-r border-slate-200 text-slate-900 transition-all duration-300 z-50 shadow-2xl flex flex-col
+        w-[280px] max-w-[85vw] ${collapsed ? 'lg:w-20' : 'lg:w-64'}
+        ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+        <div className={`flex items-center p-4 border-b border-slate-200 shrink-0 ${collapsed ? 'justify-center lg:justify-center' : 'justify-between'}`}>
           {!collapsed && (
             <div className="flex items-center gap-2">
               <Hexagon className="w-8 h-8 fill-[#FF8A2B] text-[#FF8A2B]" />

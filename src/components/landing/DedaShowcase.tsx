@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Check, Send, Sparkles, BrainCircuit, Zap } from 'lucide-react';
+import { Check, Send, BrainCircuit, Zap, Activity } from 'lucide-react';
 import { Button } from '../ui/Button';
 export function DedaShowcase() {
   const features = ['Generate invoices & receipts automatically', 'Calculate tax instantly based on local laws', 'Plan marketing content and social captions', 'Analyze your budget and suggest savings', 'Make data-driven business decisions'];
@@ -106,7 +106,7 @@ export function DedaShowcase() {
                     DEDA Assistant
                   </h3>
                   <p className="text-[#FF8A2B] text-xs font-medium flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" />
+                    <Activity className="w-3 h-3" />
                     Always Active
                   </p>
                 </div>

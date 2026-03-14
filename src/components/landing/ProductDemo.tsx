@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Calculator, TrendingUp, MessageSquare, Receipt, Sparkles } from 'lucide-react';
+import { FileText, Calculator, TrendingUp, MessageSquare, Receipt, Play } from 'lucide-react';
 export function ProductDemo() {
   const [activeTab, setActiveTab] = useState(0);
   const tools = [{
@@ -52,7 +52,7 @@ export function ProductDemo() {
         }} viewport={{
           once: true
         }} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FF8A2B]/10 text-[#FF8A2B] text-sm font-bold border border-[#FF8A2B]/20 mb-6">
-            <Sparkles className="w-4 h-4" />
+            <Play className="w-4 h-4" />
             <span>Live Preview</span>
           </motion.div>
           <motion.h2 initial={{

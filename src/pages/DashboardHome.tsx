@@ -325,7 +325,7 @@ export function DashboardHome() {
             transition={{ duration: 0.5, ease: 'easeOut' }}
           >
             <h1 className="text-xl sm:text-3xl font-bold text-slate-900">
-              Welcome back, {user?.firstName || user?.name || 'there'}! 👋
+              Welcome back, {user?.firstName || user?.name || 'there'}!
             </h1>
             <p className="text-xs sm:text-base text-slate-600 mt-1">
               Here's what's happening with your business today.
