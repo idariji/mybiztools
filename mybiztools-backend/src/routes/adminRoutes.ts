@@ -101,6 +101,12 @@ router.post('/setup-env', async (req: Request, res: Response) => {
   }
   const results: Record<string, any> = {};
   try {
+    // Ensure Admin table has all required columns (handles DB schema drift)
+    await prisma.$executeRaw`ALTER TABLE "Admin" ADD COLUMN IF NOT EXISTS "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP`;
+    await prisma.$executeRaw`ALTER TABLE "Admin" ADD COLUMN IF NOT EXISTS "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP`;
+    await prisma.$executeRaw`ALTER TABLE "Admin" ADD COLUMN IF NOT EXISTS "last_login_at" TIMESTAMP(3)`;
+    results.schemaRepair = 'Admin table columns verified';
+
     // Create or reset admin
     if (adminEmail && adminPassword && adminName) {
       const hashed = await bcrypt.hash(adminPassword, 12);
