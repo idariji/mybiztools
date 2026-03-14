@@ -107,15 +107,20 @@ router.post('/setup-env', async (req: Request, res: Response) => {
     await prisma.$executeRaw`ALTER TABLE "Admin" ADD COLUMN IF NOT EXISTS "last_login_at" TIMESTAMP(3)`;
     results.schemaRepair = 'Admin table columns verified';
 
-    // Create or reset admin
+    // Create or reset admin using raw SQL to avoid Prisma schema drift issues
     if (adminEmail && adminPassword && adminName) {
       const hashed = await bcrypt.hash(adminPassword, 12);
-      const admin = await prisma.admin.upsert({
-        where: { email: adminEmail.toLowerCase() },
-        update: { password: hashed, name: adminName, role: 'super_admin' },
-        create: { email: adminEmail.toLowerCase(), password: hashed, name: adminName, role: 'super_admin' },
-      });
-      results.admin = { email: admin.email, role: admin.role, action: 'upserted' };
+      const email = adminEmail.toLowerCase();
+      await prisma.$executeRaw`
+        INSERT INTO "Admin" (id, email, password, name, role, created_at, updated_at)
+        VALUES (gen_random_uuid(), ${email}, ${hashed}, ${adminName}, 'super_admin', NOW(), NOW())
+        ON CONFLICT (email) DO UPDATE SET
+          password = EXCLUDED.password,
+          name = EXCLUDED.name,
+          role = 'super_admin',
+          updated_at = NOW()
+      `;
+      results.admin = { email, role: 'super_admin', action: 'upserted' };
     }
 
     // Upgrade user plan
