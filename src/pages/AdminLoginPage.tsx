@@ -26,7 +26,19 @@ export function AdminLoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      const result = await response.json();
+      const text = await response.text();
+      const isHtml = text.trimStart().startsWith('<');
+
+      if (isHtml || response.status === 502 || response.status === 503) {
+        setError('Server is starting up. Please wait 30 seconds and try again.');
+        return;
+      }
+
+      let result: any;
+      try { result = JSON.parse(text); } catch {
+        setError('Server returned an unexpected response. Please try again.');
+        return;
+      }
 
       if (!result.success || !result.data) {
         setError(result.message || 'Login failed. Please try again.');
@@ -35,7 +47,6 @@ export function AdminLoginPage() {
 
       const { admin, token } = result.data;
 
-      // Store token and admin profile so authService.getCurrentUser() works
       localStorage.setItem('adminAuthToken', token);
       localStorage.setItem('authToken', token);
       localStorage.setItem('user', JSON.stringify({
@@ -50,8 +61,12 @@ export function AdminLoginPage() {
       }));
 
       navigate('/admin');
-    } catch {
-      setError('An unexpected error occurred. Please try again.');
+    } catch (err: any) {
+      if (err?.message?.includes('fetch') || err?.message?.includes('network') || err?.name === 'TypeError') {
+        setError('Cannot reach the server. Check your connection and try again.');
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
