@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
 import { AdminController } from '../controllers/adminController.js';
 import { authenticateAdmin, requireAdminRole } from '../middleware/authMiddleware.js';
 import { validate } from '../middleware/validate.js';
@@ -101,41 +102,56 @@ router.post('/setup-env', async (req: Request, res: Response) => {
   }
   const results: Record<string, any> = {};
   try {
-    // Ensure Admin table has all required columns (handles DB schema drift)
-    await prisma.$executeRaw`ALTER TABLE "Admin" ADD COLUMN IF NOT EXISTS "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP`;
-    await prisma.$executeRaw`ALTER TABLE "Admin" ADD COLUMN IF NOT EXISTS "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP`;
-    await prisma.$executeRaw`ALTER TABLE "Admin" ADD COLUMN IF NOT EXISTS "last_login_at" TIMESTAMP(3)`;
-    results.schemaRepair = 'Admin table columns verified';
+    // Step 1: Inspect actual Admin table columns so we know exactly what exists
+    const cols = await prisma.$queryRaw<{ column_name: string }[]>`
+      SELECT column_name FROM information_schema.columns
+      WHERE table_name = 'Admin' AND table_schema = 'public'
+      ORDER BY ordinal_position
+    `;
+    results.existingColumns = cols.map(c => c.column_name);
 
-    // Create or reset admin using raw SQL to avoid Prisma schema drift issues
+    // Step 2: Ensure every required column exists (idempotent — safe to re-run)
+    await prisma.$executeRaw`ALTER TABLE "Admin" ADD COLUMN IF NOT EXISTS "is_active"     BOOLEAN   NOT NULL DEFAULT true`;
+    await prisma.$executeRaw`ALTER TABLE "Admin" ADD COLUMN IF NOT EXISTS "created_at"    TIMESTAMP NOT NULL DEFAULT NOW()`;
+    await prisma.$executeRaw`ALTER TABLE "Admin" ADD COLUMN IF NOT EXISTS "updated_at"    TIMESTAMP NOT NULL DEFAULT NOW()`;
+    await prisma.$executeRaw`ALTER TABLE "Admin" ADD COLUMN IF NOT EXISTS "last_login_at" TIMESTAMP`;
+    results.schemaRepair = 'done';
+
+    // Step 3: Create or reset admin via raw SQL (bypasses Prisma model entirely)
     if (adminEmail && adminPassword && adminName) {
       const hashed = await bcrypt.hash(adminPassword, 12);
-      const email = adminEmail.toLowerCase();
+      const email  = adminEmail.toLowerCase();
+      const id     = uuidv4();
       await prisma.$executeRaw`
-        INSERT INTO "Admin" (id, email, password, name, role, created_at, updated_at)
-        VALUES (gen_random_uuid(), ${email}, ${hashed}, ${adminName}, 'super_admin', NOW(), NOW())
+        INSERT INTO "Admin" (id, email, password, name, role, is_active, created_at, updated_at)
+        VALUES (${id}, ${email}, ${hashed}, ${adminName}, 'super_admin', true, NOW(), NOW())
         ON CONFLICT (email) DO UPDATE SET
-          password = EXCLUDED.password,
-          name = EXCLUDED.name,
-          role = 'super_admin',
+          password   = EXCLUDED.password,
+          name       = EXCLUDED.name,
+          role       = 'super_admin',
+          is_active  = true,
           updated_at = NOW()
       `;
       results.admin = { email, role: 'super_admin', action: 'upserted' };
     }
 
-    // Upgrade user plan
+    // Step 4: Upgrade user plan (isolated — failure here doesn't block admin creation)
     if (userEmail && userPlan) {
-      const user = await prisma.user.update({
-        where: { email: userEmail.toLowerCase() },
-        data: { currentPlan: userPlan, subscriptionStatus: 'active' },
-        select: { id: true, email: true, currentPlan: true },
-      });
-      results.user = { ...user, action: 'plan updated' };
+      try {
+        const user = await prisma.user.update({
+          where: { email: userEmail.toLowerCase() },
+          data: { currentPlan: userPlan, subscriptionStatus: 'active' },
+          select: { id: true, email: true, currentPlan: true },
+        });
+        results.user = { ...user, action: 'plan updated' };
+      } catch (userErr: any) {
+        results.userError = userErr.message;
+      }
     }
 
     res.json({ success: true, message: 'Setup complete', data: results });
   } catch (err: any) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: err.message, partialResults: results });
   }
 });
 
