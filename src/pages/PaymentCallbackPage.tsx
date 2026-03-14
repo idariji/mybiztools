@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { authService } from '../services/authService';
+import { API_BASE_URL } from '../config/apiConfig';
 
 export function PaymentCallbackPage() {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ export function PaymentCallbackPage() {
   const verifyPayment = async (reference: string) => {
     try {
       const token = authService.getToken();
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/payments/verify`, {
+      const response = await fetch(`${API_BASE_URL}/api/payments/verify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

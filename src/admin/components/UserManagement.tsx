@@ -37,7 +37,7 @@ interface User {
   mrr_value?: number;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+import { API_BASE_URL as API_URL } from '../../config/apiConfig';
 
 type UserFilter = 'all' | 'free' | 'paid' | 'pro' | 'enterprise';
 

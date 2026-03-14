@@ -5,9 +5,10 @@
  */
 
 import { authService } from './authService';
+import { API_BASE_URL as API_ROOT } from '../config/apiConfig';
 
-// API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// API Configuration — SMS routes live under /api/sms
+const API_BASE_URL = `${API_ROOT}/api`;
 
 // Helper to get auth headers
 const getAuthHeaders = (): HeadersInit => {

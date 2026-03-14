@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { authService } from '../services/authService';
 import { normalisePlan } from '../utils/planUtils';
+import { API_BASE_URL } from '../config/apiConfig';
 
 interface ApiPricing {
   name: string;
@@ -84,7 +85,7 @@ export function SubscriptionPage() {
 
   const fetchPlans = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/payments/plans`);
+      const response = await fetch(`${API_BASE_URL}/api/payments/plans`);
       const result = await response.json();
       if (result.success) {
         const map: Record<string, ApiPricing> = {};
@@ -102,7 +103,7 @@ export function SubscriptionPage() {
     setProcessing(planKey);
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/payments/initialize`, {
+      const response = await fetch(`${API_BASE_URL}/api/payments/initialize`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

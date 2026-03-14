@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Shield, Lock, Eye, EyeOff } from 'lucide-react';
+import { API_BASE_URL } from '../config/apiConfig';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = API_BASE_URL;
 
 export function AdminLoginPage() {
   const navigate = useNavigate();

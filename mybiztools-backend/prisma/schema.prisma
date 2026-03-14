@@ -56,6 +56,7 @@ model User {
   abuseReports        AbuseReport[]
 
   @@index([email])
+  @@index([createdAt])
   @@index([subscriptionStatus])
   @@index([currentPlan])
   @@index([verificationToken])
@@ -329,6 +330,7 @@ model Admin {
 
   @@index([email])
   @@index([role])
+  @@index([isActive])
   @@map("Admin")
 }
 
@@ -467,6 +469,7 @@ model Contact {
   invoices        Invoice[]
 
   @@index([userId])
+  @@index([userId, email])
   @@index([type])
   @@index([isActive])
   @@index([email])
@@ -833,8 +836,8 @@ model Product {
   sku               String
   category          String   @default("Other")
   quantity          Int      @default(0)
-  unitCost          Float    @default(0)
-  sellingPrice      Float    @default(0)
+  unitCost          Decimal  @default(0) @db.Decimal(12, 2)
+  sellingPrice      Decimal  @default(0) @db.Decimal(12, 2)
   lowStockThreshold Int      @default(5)
   supplier          String?
   description       String?
