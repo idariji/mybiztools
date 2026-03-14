@@ -55,12 +55,14 @@ export function DashboardOverview({
   const [payMetrics, setPayMetrics] = useState<PaymentMetrics | null>(propPayMetrics || null);
   const [isLoading, setIsLoading] = useState(propLoading ?? true);
   const [error, setError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
 
   // Fetch real dashboard metrics from database
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
         setIsLoading(true);
+        setError(null);
         const response = await DatabaseService.getDashboardMetrics();
 
         // Parse metrics from backend response structure
@@ -115,20 +117,22 @@ export function DashboardOverview({
           });
         }
         setError(null);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Failed to fetch dashboard metrics:', err);
-        // Show mock data when backend is unavailable
-        setMetrics({
-          total_users: 0,
-          active_subscriptions: 0,
-          revenue_current_month: 0,
-          revenue_previous_month: 0,
-          churn_rate: 0,
-          payment_success_rate: 0,
-          open_abuse_reports: 0,
-          suspension_count: 0
-        });
-        setError('Backend unavailable. Start the backend server at http://localhost:3001');
+        const msg: string = err?.message || '';
+        if (msg.includes('401') || msg.includes('Unauthorized')) {
+          setError('Session expired. Please log in again.');
+          setTimeout(() => { window.location.href = '/admin/login'; }, 2000);
+        } else if (msg.includes('403') || msg.includes('Forbidden') || msg.includes('disabled')) {
+          setError('Access denied. Your admin account may be disabled.');
+          setTimeout(() => { window.location.href = '/admin/login'; }, 2000);
+        } else if (msg.includes('502') || msg.includes('503') || msg.includes('504') || msg.includes('Bad Gateway')) {
+          setError('Server is starting up. Please wait a moment and try again.');
+        } else if (msg.includes('NetworkError') || msg.includes('Failed to fetch')) {
+          setError('Network error. Check your internet connection and try again.');
+        } else {
+          setError('Could not connect to the server. Please try again.');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -137,7 +141,7 @@ export function DashboardOverview({
     if (!propMetrics) {
       fetchMetrics();
     }
-  }, [propMetrics]);
+  }, [propMetrics, retryKey]);
 
   // Use zero values as defaults when data is not yet loaded
   const defaultMetrics: DashboardMetrics = metrics || {
@@ -202,8 +206,16 @@ export function DashboardOverview({
       <div className="bg-white rounded-2xl border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-2" />
-            <p className="text-red-600">{error}</p>
+            <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-3" />
+            <p className="text-red-600 font-medium mb-1">Connection Error</p>
+            <p className="text-slate-500 text-sm mb-4 max-w-xs">{error}</p>
+            <button
+              onClick={() => setRetryKey(k => k + 1)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-xl transition-colors"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Retry
+            </button>
           </div>
         </div>
       </div>

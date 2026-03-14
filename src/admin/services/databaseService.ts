@@ -90,24 +90,24 @@ export class DatabaseService {
    * Get dashboard metrics
    */
   static async getDashboardMetrics() {
-    try {
-      const response = await fetch(`${API_BASE_URL}/admin/metrics`, {
-        headers: {
-          Authorization: `Bearer ${this.getAuthToken()}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    const response = await fetch(`${API_BASE_URL}/admin/metrics`, {
+      headers: {
+        Authorization: `Bearer ${this.getAuthToken()}`,
+        'Content-Type': 'application/json'
       }
-      
-      const result = await response.json();
-      return result;
-    } catch (error) {
-      console.error('Failed to fetch metrics:', error);
-      throw error;
+    });
+
+    if (!response.ok) {
+      // Try to read the body for a useful error message
+      const text = await response.text().catch(() => '');
+      const isHtml = text.trimStart().startsWith('<');
+      const msg = isHtml
+        ? `${response.status} Bad Gateway`
+        : (() => { try { return JSON.parse(text)?.message || response.statusText; } catch { return response.statusText; } })();
+      throw new Error(`${response.status} ${msg}`);
     }
+
+    return await response.json();
   }
 
   /**
@@ -225,9 +225,8 @@ export class DatabaseService {
   /**
    * Get auth token from localStorage
    */
-  private static getAuthToken(): string {
+  static getAuthToken(): string {
     try {
-      // Try admin token first, then regular user token
       const adminToken = localStorage.getItem('adminAuthToken');
       if (adminToken) return adminToken;
 
