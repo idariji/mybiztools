@@ -117,21 +117,35 @@ router.post('/setup-env', async (req: Request, res: Response) => {
     await prisma.$executeRaw`ALTER TABLE "Admin" ADD COLUMN IF NOT EXISTS "last_login_at" TIMESTAMP`;
     results.schemaRepair = 'done';
 
-    // Step 3: Create or reset admin via raw SQL (bypasses Prisma model entirely)
+    // Step 3: Create or reset admin via dynamic raw SQL built from actual column list
     if (adminEmail && adminPassword && adminName) {
       const hashed = await bcrypt.hash(adminPassword, 12);
       const email  = adminEmail.toLowerCase();
       const id     = uuidv4();
-      await prisma.$executeRaw`
-        INSERT INTO "Admin" (id, email, password, name, role, is_active, created_at, updated_at)
-        VALUES (${id}, ${email}, ${hashed}, ${adminName}, 'super_admin', true, NOW(), NOW())
-        ON CONFLICT (email) DO UPDATE SET
-          password   = EXCLUDED.password,
-          name       = EXCLUDED.name,
-          role       = 'super_admin',
-          is_active  = true,
-          updated_at = NOW()
+      const existingCols = new Set(cols.map(c => c.column_name));
+
+      // Build INSERT columns/values dynamically — covers any mix of camelCase or snake_case
+      const colNames: string[] = ['id', 'email', 'password', 'name', 'role'];
+      const colVals:  string[] = ['$1', '$2',    '$3',       '$4',   "'super_admin'"];
+      if (existingCols.has('isActive'))    { colNames.push('"isActive"');    colVals.push('true'); }
+      if (existingCols.has('is_active'))   { colNames.push('"is_active"');   colVals.push('true'); }
+      if (existingCols.has('createdAt'))   { colNames.push('"createdAt"');   colVals.push('NOW()'); }
+      if (existingCols.has('created_at'))  { colNames.push('"created_at"');  colVals.push('NOW()'); }
+      if (existingCols.has('updatedAt'))   { colNames.push('"updatedAt"');   colVals.push('NOW()'); }
+      if (existingCols.has('updated_at'))  { colNames.push('"updated_at"');  colVals.push('NOW()'); }
+
+      const updateClauses = ["password = EXCLUDED.password", "name = EXCLUDED.name", "role = 'super_admin'"];
+      if (existingCols.has('isActive'))    updateClauses.push('"isActive" = true');
+      if (existingCols.has('is_active'))   updateClauses.push('"is_active" = true');
+      if (existingCols.has('updatedAt'))   updateClauses.push('"updatedAt" = NOW()');
+      if (existingCols.has('updated_at'))  updateClauses.push('"updated_at" = NOW()');
+
+      const sql = `
+        INSERT INTO "Admin" (${colNames.join(', ')})
+        VALUES (${colVals.join(', ')})
+        ON CONFLICT (email) DO UPDATE SET ${updateClauses.join(', ')}
       `;
+      await prisma.$executeRawUnsafe(sql, id, email, hashed, adminName);
       results.admin = { email, role: 'super_admin', action: 'upserted' };
     }
 
