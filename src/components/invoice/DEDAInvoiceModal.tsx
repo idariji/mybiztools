@@ -86,6 +86,7 @@ export function DEDAInvoiceModal({ isOpen, onClose, onGenerate }: DEDAInvoiceMod
         totalDiscount: 0,
         totalTax: 0,
         bankCharges,
+        vatEnabled: true,
         vat: 0,
         total: 0,
         amountInWords: ''

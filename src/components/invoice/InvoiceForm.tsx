@@ -354,7 +354,16 @@ export function InvoiceForm({ invoice, onChange }: InvoiceFormProps) {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">VAT (7.5% of Total)</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-gray-700">VAT (7.5% of Total)</label>
+              <button
+                type="button"
+                onClick={() => onChange({ ...invoice, summary: { ...invoice.summary, vatEnabled: !invoice.summary.vatEnabled } })}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${(invoice.summary.vatEnabled ?? true) ? 'bg-[#FF8A2B]' : 'bg-gray-200'}`}
+              >
+                <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${(invoice.summary.vatEnabled ?? true) ? 'translate-x-4' : 'translate-x-1'}`} />
+              </button>
+            </div>
             <input
               type="number"
               placeholder="0.00"

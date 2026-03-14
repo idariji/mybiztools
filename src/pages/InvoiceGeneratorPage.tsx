@@ -53,6 +53,7 @@ export function InvoiceGeneratorPage() {
       totalDiscount: 0,
       totalTax: 0,
       bankCharges: 0,
+      vatEnabled: true,
       vat: 0,
       total: 0,
       amountInWords: '',
@@ -101,7 +102,7 @@ export function InvoiceGeneratorPage() {
     }, 0);
 
     const subtotalWithCharges = subtotal - totalDiscount + totalTax + invoice.summary.bankCharges;
-    const vat = subtotalWithCharges * 0.075;
+    const vat = (invoice.summary.vatEnabled ?? true) ? subtotalWithCharges * 0.075 : 0;
     const total = subtotalWithCharges + vat;
     const amountInWords = numberToWords(Math.floor(total));
 

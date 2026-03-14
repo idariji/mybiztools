@@ -36,6 +36,10 @@ import { DEDAChat } from './components/dashboard/DEDAChat';
 import { AdminDashboardPage } from './admin/pages/AdminDashboardPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
 import { AdminProtectedRoute } from './components/auth/AdminProtectedRoute';
+import { CustomersPage } from './pages/CustomersPage';
+import { InventoryPage } from './pages/InventoryPage';
+import { StorefrontPage } from './pages/StorefrontPage';
+import { FinancingPage } from './pages/FinancingPage';
 
 export function App() {
   return (
@@ -74,6 +78,10 @@ export function App() {
           <Route path="/dashboard/settings" element={<ProtectedRoute><DashboardLayout><SettingsPage /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/dedai" element={<ProtectedRoute><DashboardLayout><DEDAPage /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
+          <Route path="/dashboard/customers" element={<ProtectedRoute><CustomersPage /></ProtectedRoute>} />
+          <Route path="/dashboard/inventory" element={<ProtectedRoute><InventoryPage /></ProtectedRoute>} />
+          <Route path="/dashboard/storefront" element={<ProtectedRoute><StorefrontPage /></ProtectedRoute>} />
+          <Route path="/dashboard/financing" element={<ProtectedRoute><FinancingPage /></ProtectedRoute>} />
 
           {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminLoginPage />} />

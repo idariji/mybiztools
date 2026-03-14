@@ -5,7 +5,8 @@ import { canAccessFeature } from '../utils/planUtils';
 import {
   LayoutDashboard, FileText, FileSpreadsheet, Receipt, CreditCard,
   QrCode, Calendar, PieChart, TrendingDown, Calculator, Bot,
-  Settings, LogOut, ChevronLeft, Hexagon, Zap, Lock
+  Settings, LogOut, ChevronLeft, Hexagon, Zap, Lock,
+  Users, Package, Store, BarChart2
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -22,18 +23,22 @@ export function Sidebar({ collapsed, setCollapsed, mobileMenuOpen, setMobileMenu
   const plan = user?.current_plan;
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard',           path: '/dashboard',                exact: true,  featureKey: '' },
-    { icon: FileText,        label: 'Invoices',            path: '/dashboard/invoices',        exact: false, featureKey: '' },
-    { icon: FileSpreadsheet, label: 'Quotations',          path: '/dashboard/quotations',      exact: false, featureKey: '' },
-    { icon: Receipt,         label: 'Receipts',            path: '/dashboard/receipts',        exact: false, featureKey: '' },
-    { icon: CreditCard,      label: 'Payslips',            path: '/dashboard/payslips',        exact: false, featureKey: '' },
-    { icon: QrCode,          label: 'Business Card & QR', path: '/dashboard/business-card',   exact: false, featureKey: 'business-card' },
-    { icon: Calendar,        label: 'Social Media Planner',path: '/dashboard/social-planner', exact: false, featureKey: 'social-planner' },
-    { icon: TrendingDown,    label: 'Cost Manager',        path: '/dashboard/cost-manager',    exact: false, featureKey: '' },
-    { icon: PieChart,        label: 'Budget Tracker',      path: '/dashboard/budget-tracker',  exact: false, featureKey: 'budget-tracker' },
-    { icon: Calculator,      label: 'Tax Calculator',      path: '/dashboard/tax-calculator',  exact: false, featureKey: 'tax-calculator' },
-    { icon: Bot,             label: 'DEDAI Assistant',     path: '/dashboard/dedai',           exact: false, featureKey: 'dedai' },
-    { icon: Zap,             label: 'Subscription',        path: '/dashboard/subscription',    exact: false, featureKey: '' },
+    { icon: LayoutDashboard, label: 'Dashboard',           path: '/dashboard',                    exact: true,  featureKey: '' },
+    { icon: FileText,        label: 'Invoices',            path: '/dashboard/invoices',            exact: false, featureKey: '' },
+    { icon: FileSpreadsheet, label: 'Quotations',          path: '/dashboard/quotations',          exact: false, featureKey: '' },
+    { icon: Receipt,         label: 'Receipts',            path: '/dashboard/receipts',            exact: false, featureKey: '' },
+    { icon: CreditCard,      label: 'Payslips',            path: '/dashboard/payslips',            exact: false, featureKey: '' },
+    { icon: Users,           label: 'Customers (CRM)',     path: '/dashboard/customers',           exact: false, featureKey: '' },
+    { icon: Package,         label: 'Inventory',           path: '/dashboard/inventory',           exact: false, featureKey: '' },
+    { icon: Store,           label: 'Storefront',          path: '/dashboard/storefront',          exact: false, featureKey: '' },
+    { icon: BarChart2,       label: 'Financing Readiness', path: '/dashboard/financing',           exact: false, featureKey: '' },
+    { icon: QrCode,          label: 'Business Card & QR',  path: '/dashboard/business-card',       exact: false, featureKey: 'business-card' },
+    { icon: Calendar,        label: 'Social Planner',      path: '/dashboard/social-planner',      exact: false, featureKey: 'social-planner' },
+    { icon: TrendingDown,    label: 'Cost Manager',        path: '/dashboard/cost-manager',        exact: false, featureKey: '' },
+    { icon: PieChart,        label: 'Budget Tracker',      path: '/dashboard/budget-tracker',      exact: false, featureKey: 'budget-tracker' },
+    { icon: Calculator,      label: 'Tax Calculator',      path: '/dashboard/tax-calculator',      exact: false, featureKey: 'tax-calculator' },
+    { icon: Bot,             label: 'DEDAI Assistant',     path: '/dashboard/dedai',               exact: false, featureKey: 'dedai' },
+    { icon: Zap,             label: 'Subscription',        path: '/dashboard/subscription',        exact: false, featureKey: '' },
   ];
 
   const isActive = (item: { path: string; exact?: boolean }) =>

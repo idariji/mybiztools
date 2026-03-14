@@ -37,6 +37,7 @@ export interface InvoiceSummary {
   totalDiscount: number;
   totalTax: number;
   bankCharges: number;
+  vatEnabled?: boolean;
   vat: number;
   total: number;
   amountInWords: string;
