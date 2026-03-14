@@ -19,29 +19,29 @@ const faqs = [{
 }];
 export function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
-  return <section id="faq" className="py-32 bg-white">
+  return <section id="faq" className="py-16 sm:py-32 bg-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 sm:gap-12">
           <div className="lg:col-span-1">
-            <div className="sticky top-32">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-sm font-bold mb-6">
+            <div className="lg:sticky lg:top-32">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-sm font-bold mb-5 sm:mb-6">
                 <HelpCircle className="w-4 h-4" />
                 <span>Support</span>
               </div>
-              <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-6">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 mb-4 sm:mb-6">
                 Frequently Asked <br /> Questions
               </h2>
-              <p className="text-lg text-slate-600 mb-8">
+              <p className="text-base sm:text-lg text-slate-600 mb-6 sm:mb-8">
                 Can't find the answer you're looking for? Chat with our support
                 team.
               </p>
-              <button className="text-[#FF8A2B] font-bold hover:underline">
+              <button className="text-[#FF8A2B] font-bold hover:underline text-sm sm:text-base">
                 Contact Support →
               </button>
             </div>
           </div>
 
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-2 space-y-3 sm:space-y-4">
             {faqs.map((faq, index) => <motion.div key={index} initial={{
             opacity: 0,
             y: 10
@@ -53,12 +53,12 @@ export function FAQ() {
           }} transition={{
             delay: index * 0.1
           }} className={`border rounded-2xl overflow-hidden transition-all duration-300 ${openIndex === index ? 'border-[#FF8A2B]/30 shadow-lg shadow-[#FF8A2B]/5 bg-orange-50/10' : 'border-slate-200 bg-white'}`}>
-                <button onClick={() => setOpenIndex(openIndex === index ? null : index)} className="w-full flex items-center justify-between p-6 text-left focus:outline-none">
-                  <span className={`font-bold text-lg transition-colors ${openIndex === index ? 'text-[#FF8A2B]' : 'text-slate-900'}`}>
+                <button onClick={() => setOpenIndex(openIndex === index ? null : index)} className="w-full flex items-center justify-between p-4 sm:p-6 text-left focus:outline-none gap-3">
+                  <span className={`font-bold text-sm sm:text-lg transition-colors ${openIndex === index ? 'text-[#FF8A2B]' : 'text-slate-900'}`}>
                     {faq.question}
                   </span>
-                  <div className={`p-2 rounded-full transition-colors ${openIndex === index ? 'bg-orange-100 text-[#FF8A2B]' : 'bg-slate-100 text-slate-500'}`}>
-                    <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${openIndex === index ? 'rotate-180' : ''}`} />
+                  <div className={`p-1.5 sm:p-2 rounded-full transition-colors shrink-0 ${openIndex === index ? 'bg-orange-100 text-[#FF8A2B]' : 'bg-slate-100 text-slate-500'}`}>
+                    <ChevronDown className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 ${openIndex === index ? 'rotate-180' : ''}`} />
                   </div>
                 </button>
                 <AnimatePresence>
@@ -75,7 +75,7 @@ export function FAQ() {
                 duration: 0.3,
                 ease: 'easeInOut'
               }}>
-                      <div className="p-6 pt-0 text-slate-600 leading-relaxed">
+                      <div className="px-4 sm:px-6 pb-4 sm:pb-6 pt-0 text-sm sm:text-base text-slate-600 leading-relaxed">
                         {faq.answer}
                       </div>
                     </motion.div>}

@@ -77,13 +77,13 @@ const tools = [{
   bg: 'bg-amber-50'
 }];
 export function SolutionsGrid() {
-  return <section id="features" className="py-32 bg-slate-50 relative overflow-hidden">
+  return <section id="features" className="py-20 sm:py-32 bg-slate-50 relative overflow-hidden">
       {/* Decorative background elements */}
       <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent"></div>
       <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent"></div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center max-w-3xl mx-auto mb-20">
+        <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-20">
           <motion.div initial={{
           opacity: 0,
           scale: 0.9
@@ -92,7 +92,7 @@ export function SolutionsGrid() {
           scale: 1
         }} viewport={{
           once: true
-        }} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100/50 text-[#FF8A2B] text-sm font-bold border border-orange-200 mb-6">
+        }} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100/50 text-[#FF8A2B] text-sm font-bold border border-orange-200 mb-5 sm:mb-6">
             <Sparkles className="w-4 h-4" />
             <span>All-in-One Platform</span>
           </motion.div>
@@ -105,8 +105,8 @@ export function SolutionsGrid() {
           y: 0
         }} viewport={{
           once: true
-        }} className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6">
-            Everything You Need In One <br />
+        }} className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 mb-4 sm:mb-6">
+            Everything You Need In One <br className="hidden sm:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00]">
               Smart Workspace
             </span>
@@ -122,13 +122,13 @@ export function SolutionsGrid() {
           once: true
         }} transition={{
           delay: 0.1
-        }} className="text-xl text-slate-600">
+        }} className="text-base sm:text-xl text-slate-600">
             Replace dozens of disconnected apps with one integrated suite
             designed for African businesses.
           </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
           {tools.map((tool, index) => <motion.div key={index} initial={{
           opacity: 0,
           y: 30
@@ -141,25 +141,25 @@ export function SolutionsGrid() {
           duration: 0.4,
           delay: index * 0.05
         }}>
-              <Card hoverEffect className={`h-full p-6 flex flex-col group cursor-pointer border-slate-200/60 transition-all duration-300 ${tool.highlight ? 'ring-2 ring-[#FF8A2B]/20 bg-orange-50/30' : 'hover:bg-white'}`}>
-                <div className="flex justify-between items-start mb-4">
-                  <div className={`w-14 h-14 rounded-2xl ${tool.bg} ${tool.color} flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-sm`}>
-                    <tool.icon className="w-7 h-7" />
+              <Card hoverEffect className={`h-full p-4 sm:p-5 lg:p-6 flex flex-col group cursor-pointer border-slate-200/60 transition-all duration-300 ${tool.highlight ? 'ring-2 ring-[#FF8A2B]/20 bg-orange-50/30' : 'hover:bg-white'}`}>
+                <div className="flex justify-between items-start mb-3 sm:mb-4">
+                  <div className={`w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl ${tool.bg} ${tool.color} flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-sm shrink-0`}>
+                    <tool.icon className="w-5 h-5 sm:w-7 sm:h-7" />
                   </div>
-                  {tool.highlight && <span className="px-2 py-1 bg-orange-100 text-[#FF8A2B] text-xs font-bold rounded-full">
+                  {tool.highlight && <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-orange-100 text-[#FF8A2B] text-xs font-bold rounded-full">
                       New
                     </span>}
                 </div>
 
-                <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-[#FF8A2B] transition-colors">
+                <h3 className="text-sm sm:text-base lg:text-lg font-bold text-slate-900 mb-1.5 sm:mb-2 group-hover:text-[#FF8A2B] transition-colors leading-snug">
                   {tool.title}
                 </h3>
 
-                <p className="text-slate-600 text-sm mb-6 flex-grow leading-relaxed">
+                <p className="text-slate-600 text-xs sm:text-sm mb-3 sm:mb-6 flex-grow leading-relaxed">
                   {tool.desc}
                 </p>
 
-                <div className="flex items-center text-[#FF8A2B] text-sm font-bold opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+                <div className="hidden sm:flex items-center text-[#FF8A2B] text-sm font-bold opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
                   Try Now <ArrowRight className="w-4 h-4 ml-1" />
                 </div>
               </Card>

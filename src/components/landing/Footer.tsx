@@ -25,7 +25,7 @@ const TOOL_LINKS = [
 ];
 
 export function Footer() {
-  return <footer className="bg-slate-950 text-slate-300 pt-24 pb-12 border-t border-slate-800 relative overflow-hidden">
+  return <footer className="bg-slate-950 text-slate-300 pt-16 sm:pt-24 pb-10 sm:pb-12 border-t border-slate-800 relative overflow-hidden">
       {/* Top Gradient Line */}
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#FF8A2B] via-[#FF6B00] to-amber-500"></div>
 
@@ -33,22 +33,22 @@ export function Footer() {
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#FF8A2B]/20 rounded-full blur-[100px] pointer-events-none"></div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 lg:gap-12 mb-10 sm:mb-16">
           {/* Brand */}
-          <div>
-            <div className="flex items-center gap-2 text-white font-bold text-2xl mb-6">
+          <div className="sm:col-span-2 lg:col-span-1">
+            <div className="flex items-center gap-2 text-white font-bold text-xl sm:text-2xl mb-5 sm:mb-6">
               <Hexagon className="fill-[#FF8A2B] text-[#FF8A2B]" />
               MyBizTools
             </div>
-            <p className="text-slate-400 text-sm leading-relaxed mb-8 max-w-xs">
+            <p className="text-slate-400 text-sm leading-relaxed mb-6 sm:mb-8 max-w-xs">
               The all-in-one business operating system for African
               entrepreneurs. Run your business smarter, faster, and
               professionally.
             </p>
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               {SOCIAL_LINKS.map(({ Icon, href, label }) => (
                 <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label}
-                  className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-slate-400 hover:bg-[#FF8A2B] hover:text-white transition-all duration-300 hover:-translate-y-1">
+                  className="w-11 h-11 rounded-full bg-slate-900 flex items-center justify-center text-slate-400 hover:bg-[#FF8A2B] hover:text-white transition-all duration-300 hover:-translate-y-1">
                   <Icon size={18} />
                 </a>
               ))}
@@ -57,8 +57,8 @@ export function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-white font-bold mb-6 text-lg">Quick Links</h3>
-            <ul className="space-y-4 text-sm">
+            <h3 className="text-white font-bold mb-5 sm:mb-6 text-base sm:text-lg">Quick Links</h3>
+            <ul className="space-y-3 sm:space-y-4 text-sm">
               {QUICK_LINKS.map(({ label, to, external }) => (
                 <li key={label}>
                   {external ? (
@@ -79,8 +79,8 @@ export function Footer() {
 
           {/* Tools */}
           <div>
-            <h3 className="text-white font-bold mb-6 text-lg">Popular Tools</h3>
-            <ul className="space-y-4 text-sm">
+            <h3 className="text-white font-bold mb-5 sm:mb-6 text-base sm:text-lg">Popular Tools</h3>
+            <ul className="space-y-3 sm:space-y-4 text-sm">
               {TOOL_LINKS.map(({ label, to }) => (
                 <li key={label}>
                   <Link to={to} className="hover:text-[#FF8A2B] transition-colors flex items-center gap-2 group">
@@ -94,20 +94,20 @@ export function Footer() {
 
           {/* Newsletter */}
           <div>
-            <h3 className="text-white font-bold mb-6 text-lg">Stay Updated</h3>
+            <h3 className="text-white font-bold mb-5 sm:mb-6 text-base sm:text-lg">Stay Updated</h3>
             <p className="text-slate-400 text-sm mb-4">
               Get the latest business tips and tool updates.
             </p>
             <div className="flex gap-2">
-              <input type="email" placeholder="Enter your email" className="bg-slate-900 border border-slate-800 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500 w-full" />
-              <button className="bg-[#FF8A2B] hover:bg-[#FF6B00] text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+              <input type="email" placeholder="Enter your email" className="bg-slate-900 border border-slate-800 rounded-lg px-3 sm:px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#FF8A2B] w-full min-w-0" />
+              <button className="bg-[#FF8A2B] hover:bg-[#FF6B00] text-white px-3 sm:px-4 py-2.5 rounded-lg text-sm font-bold transition-colors shrink-0">
                 Join
               </button>
             </div>
           </div>
         </div>
 
-        <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500">
+        <div className="pt-6 sm:pt-8 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 text-xs sm:text-sm text-slate-500 text-center sm:text-left">
           <p>© 2025 MyBizTools. All rights reserved. &nbsp;·&nbsp; <Link to="/terms" className="hover:text-[#FF8A2B] transition-colors">Terms</Link> &nbsp;·&nbsp; <Link to="/privacy" className="hover:text-[#FF8A2B] transition-colors">Privacy</Link></p>
           <p className="flex items-center gap-1">
             Powered by{' '}

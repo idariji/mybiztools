@@ -35,7 +35,7 @@ export function Hero() {
       }
     }
   };
-  return <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-[#F2F4F7]">
+  return <section className="relative pt-24 pb-16 sm:pt-32 sm:pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-[#F2F4F7]">
       {/* Animated Background Mesh */}
       <div className="absolute inset-0 overflow-hidden z-0">
         <motion.div animate={{
@@ -62,18 +62,18 @@ export function Hero() {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div className="max-w-5xl mx-auto text-center" variants={containerVariants} initial="hidden" animate="visible">
-          <motion.div variants={itemVariants} className="flex justify-center mb-8">
+          <motion.div variants={itemVariants} className="flex justify-center mb-6 sm:mb-8">
             <motion.span whileHover={{
             scale: 1.05
-          }} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/80 backdrop-blur-md text-[#FF8A2B] text-sm font-bold border border-[#FFD6C2] shadow-sm cursor-default">
-              <Sparkles className="w-4 h-4 text-[#FF8A2B] fill-[#FF8A2B]" />
+          }} className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-white/80 backdrop-blur-md text-[#FF8A2B] text-xs sm:text-sm font-bold border border-[#FFD6C2] shadow-sm cursor-default">
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FF8A2B] fill-[#FF8A2B]" />
               <span className="bg-gradient-to-r from-[#FF8A2B] to-[#E56A00] bg-clip-text text-transparent">
                 Trusted by 10,000+ African Entrepreneurs
               </span>
             </motion.span>
           </motion.div>
 
-          <motion.h1 variants={itemVariants} className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-[#1F2D3D] mb-8 leading-[1.1]">
+          <motion.h1 variants={itemVariants} className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-[#1F2D3D] mb-6 sm:mb-8 leading-[1.1]">
             Run Your Business <br className="hidden sm:block" />
             <span className="relative inline-block">
               <span className="absolute -inset-1 bg-gradient-to-r from-[#FFD6C2]/50 to-[#FFE6D6]/50 blur-lg rounded-lg"></span>
@@ -83,19 +83,19 @@ export function Hero() {
             </span>
           </motion.h1>
 
-          <motion.p variants={itemVariants} className="text-xl sm:text-2xl text-[#1F2D3D]/80 mb-12 max-w-2xl mx-auto leading-relaxed font-medium">
+          <motion.p variants={itemVariants} className="text-base sm:text-xl text-[#1F2D3D]/80 mb-8 sm:mb-12 max-w-2xl mx-auto leading-relaxed font-medium px-2 sm:px-0">
             The all-in-one operating system for African businesses. Invoices,
             payments, taxes, and AI strategy—all in one place.
           </motion.p>
 
-          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-20">
-            <Button size="lg" className="w-full sm:w-auto min-w-[180px] text-lg bg-[#FF8A2B] hover:bg-[#E56A00] text-white shadow-lg shadow-[#FF8A2B]/30 border-none" onClick={() => window.location.href = '/login?signup=true'}>
+          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-12 sm:mb-20">
+            <Button size="lg" className="w-full sm:w-auto sm:min-w-[180px] text-base sm:text-lg bg-[#FF8A2B] hover:bg-[#E56A00] text-white shadow-lg shadow-[#FF8A2B]/30 border-none" onClick={() => window.location.href = '/login?signup=true'}>
               Get Started Free
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
-            <Button variant="outline" size="lg" className="w-full sm:w-auto min-w-[180px] text-lg group bg-white/50 backdrop-blur-sm border-[#FFD6C2] text-[#1F2D3D] hover:border-[#FF8A2B] hover:text-[#FF8A2B]"
+            <Button variant="outline" size="lg" className="w-full sm:w-auto sm:min-w-[180px] text-base sm:text-lg group bg-white/50 backdrop-blur-sm border-[#FFD6C2] text-[#1F2D3D] hover:border-[#FF8A2B] hover:text-[#FF8A2B]"
               onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>
-              <PlayCircle className="mr-2 h-5 w-5 text-[#FF8A2B] group-hover:scale-110 transition-transform" />
+              <PlayCircle className="mr-2 h-4 w-4 sm:h-5 sm:w-5 text-[#FF8A2B] group-hover:scale-110 transition-transform" />
               Watch Demo
             </Button>
           </motion.div>
@@ -121,7 +121,7 @@ export function Hero() {
           <DashboardMockup />
 
           {/* Floating Elements */}
-          <motion.div className="absolute -right-4 md:-right-12 top-20 bg-white p-4 rounded-xl shadow-xl shadow-[#FF8A2B]/10 hidden lg:block z-30 border border-[#FFD6C2]/30" animate={{
+          <motion.div className="absolute -right-4 md:-right-12 top-20 bg-white p-3 sm:p-4 rounded-xl shadow-xl shadow-[#FF8A2B]/10 hidden lg:block z-30 border border-[#FFD6C2]/30" animate={{
           y: [0, -20, 0]
         }} transition={{
           duration: 4,

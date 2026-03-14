@@ -87,7 +87,7 @@ export function Pricing() {
     variant: 'secondary',
     highlight: false,
   }];
-  return <section className="py-32 bg-white relative" id="pricing">
+  return <section className="py-20 sm:py-32 bg-white relative" id="pricing">
       {/* Background blobs */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-orange-50/50 rounded-full blur-3xl"></div>
@@ -95,17 +95,17 @@ export function Pricing() {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6">
+        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 mb-4 sm:mb-6">
             Simple Pricing That <br />
             <span className="text-[#FF8A2B]">Scales With You</span>
           </h2>
-          <p className="text-xl text-slate-600 mb-10">
+          <p className="text-base sm:text-xl text-slate-600 mb-8 sm:mb-10">
             Start for free, upgrade as you grow. No hidden fees.
           </p>
 
           {/* Toggle */}
-          <div className="flex items-center justify-center gap-6 mb-8">
+          <div className="flex items-center justify-center gap-4 sm:gap-6 mb-6 sm:mb-8">
             <span className={`text-sm font-bold ${!isAnnual ? 'text-slate-900' : 'text-slate-500'}`}>
               Monthly
             </span>
@@ -132,32 +132,32 @@ export function Pricing() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="max-w-4xl mx-auto mb-10"
+          className="max-w-4xl mx-auto mb-8 sm:mb-10"
         >
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
             <div className="flex items-center gap-2 shrink-0">
               <Info className="w-5 h-5 text-slate-400" />
               <span className="font-semibold text-slate-700 text-sm">No plan (Free)</span>
             </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500">
+            <div className="flex flex-wrap gap-x-3 sm:gap-x-4 gap-y-1.5 text-xs sm:text-sm text-slate-500">
               {freeTierItems.map((item, i) => (
                 <span key={i} className="flex items-center gap-1">
-                  <Check className="w-3.5 h-3.5 text-green-500 shrink-0" /> {item}
+                  <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-green-500 shrink-0" /> {item}
                 </span>
               ))}
               {freeLockedItems.map((item, i) => (
                 <span key={i} className="flex items-center gap-1 opacity-50">
-                  <X className="w-3.5 h-3.5 text-slate-400 shrink-0" /> {item}
+                  <X className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-400 shrink-0" /> {item}
                 </span>
               ))}
             </div>
-            <Button variant="outline" size="sm" className="shrink-0 ml-auto" onClick={() => window.location.href = '/login'}>
+            <Button variant="outline" size="sm" className="shrink-0 w-full sm:w-auto sm:ml-auto" onClick={() => window.location.href = '/login'}>
               Start Free
             </Button>
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto items-start">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-8 max-w-7xl mx-auto items-start">
           {tiers.map((tier, index) => <motion.div key={index} initial={{
           opacity: 0,
           y: 30
@@ -169,28 +169,28 @@ export function Pricing() {
         }} transition={{
           duration: 0.5,
           delay: index * 0.1
-        }} className={tier.highlight ? 'md:-mt-8 md:mb-8 z-10' : ''}>
-              <Card className={`h-full flex flex-col p-8 ${tier.highlight ? 'border-[#FF8A2B] ring-4 ring-[#FF8A2B]/10 shadow-2xl shadow-[#FF8A2B]/10 relative' : 'border-slate-200 hover:border-orange-200 transition-colors'}`} glass={tier.highlight}>
-                {tier.highlight && <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg shadow-[#FF8A2B]/30 flex items-center gap-1">
+        }} className={tier.highlight ? 'sm:col-span-2 lg:col-span-1 lg:-mt-8 lg:mb-8 z-10' : ''}>
+              <Card className={`h-full flex flex-col p-5 sm:p-6 lg:p-8 ${tier.highlight ? 'border-[#FF8A2B] ring-4 ring-[#FF8A2B]/10 shadow-2xl shadow-[#FF8A2B]/10 relative' : 'border-slate-200 hover:border-orange-200 transition-colors'}`} glass={tier.highlight}>
+                {tier.highlight && <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg shadow-[#FF8A2B]/30 flex items-center gap-1 whitespace-nowrap">
                     <Sparkles className="w-3 h-3" />
                     Most Popular
                   </div>}
 
-                <div className="mb-6">
-                  <h3 className="text-xl font-bold text-slate-900">
+                <div className="mb-4 sm:mb-6">
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-900">
                     {tier.name}
                   </h3>
-                  <p className="text-slate-500 text-sm mt-2 font-medium">
+                  <p className="text-slate-500 text-xs sm:text-sm mt-1.5 sm:mt-2 font-medium">
                     {tier.description}
                   </p>
                 </div>
 
-                <div className="mb-8">
-                  <div className="flex items-baseline">
-                    <span className="text-5xl font-extrabold text-slate-900 tracking-tight">
+                <div className="mb-5 sm:mb-8">
+                  <div className="flex items-baseline flex-wrap gap-x-1">
+                    <span className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight">
                       ₦{tier.price.toLocaleString()}
                     </span>
-                    <span className="text-slate-500 ml-2 font-medium">
+                    <span className="text-slate-500 font-medium text-sm">
                       /{isAnnual ? 'year' : 'month'}
                     </span>
                   </div>
@@ -199,24 +199,24 @@ export function Pricing() {
                   )}
                 </div>
 
-                <Button variant={tier.variant as any} className="w-full mb-8" onClick={() => window.location.href = '/login'}>
+                <Button variant={tier.variant as any} className="w-full mb-5 sm:mb-8" onClick={() => window.location.href = '/login'}>
                   {tier.cta}
                 </Button>
 
-                <div className="space-y-4 flex-grow">
-                  {tier.features.map((feature, i) => <div key={i} className="flex items-start gap-3">
-                      <div className="mt-0.5 w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
-                        <Check className="w-3 h-3 text-[#FF8A2B]" />
+                <div className="space-y-2.5 sm:space-y-4 flex-grow">
+                  {tier.features.map((feature, i) => <div key={i} className="flex items-start gap-2 sm:gap-3">
+                      <div className="mt-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
+                        <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#FF8A2B]" />
                       </div>
-                      <span className="text-slate-700 text-sm font-medium">
+                      <span className="text-slate-700 text-xs sm:text-sm font-medium">
                         {feature}
                       </span>
                     </div>)}
-                  {tier.notIncluded.map((feature, i) => <div key={i} className="flex items-start gap-3 opacity-40 grayscale">
-                      <div className="mt-0.5 w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                        <X className="w-3 h-3 text-slate-400" />
+                  {tier.notIncluded.map((feature, i) => <div key={i} className="flex items-start gap-2 sm:gap-3 opacity-40 grayscale">
+                      <div className="mt-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                        <X className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-slate-400" />
                       </div>
-                      <span className="text-slate-500 text-sm">{feature}</span>
+                      <span className="text-slate-500 text-xs sm:text-sm">{feature}</span>
                     </div>)}
                 </div>
               </Card>

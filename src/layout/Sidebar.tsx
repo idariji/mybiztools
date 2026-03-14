@@ -5,7 +5,7 @@ import { canAccessFeature } from '../utils/planUtils';
 import {
   LayoutDashboard, FileText, FileSpreadsheet, Receipt, CreditCard,
   QrCode, Calendar, PieChart, TrendingDown, Calculator, Bot,
-  Settings, LogOut, ChevronLeft, Hexagon, Zap, Lock,
+  Settings, LogOut, ChevronLeft, Hexagon, Zap, Lock, X,
   Users, Package, Store, BarChart2
 } from 'lucide-react';
 
@@ -58,17 +58,26 @@ export function Sidebar({ collapsed, setCollapsed, mobileMenuOpen, setMobileMenu
       {mobileMenuOpen && (
         <div className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
       )}
-      <aside className={`fixed left-0 top-0 h-screen bg-white border-r border-slate-200 text-slate-900 transition-transform duration-300 z-50 shadow-2xl
+      <aside className={`fixed left-0 top-0 h-screen bg-white border-r border-slate-200 text-slate-900 transition-transform duration-300 z-50 shadow-2xl flex flex-col
         ${collapsed ? 'lg:w-20' : 'lg:w-64'}
         ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        w-72 lg:w-64`}>
-        <div className="flex items-center justify-between p-4 lg:p-4 border-b border-slate-200">
+        w-[280px] max-w-[85vw] lg:w-64`}>
+        <div className="flex items-center justify-between p-4 border-b border-slate-200 shrink-0">
           {!collapsed && (
             <div className="flex items-center gap-2">
-              <Hexagon className="w-9 h-9 lg:w-8 lg:h-8 fill-[#FF8A2B] text-[#FF8A2B]" />
-              <span className="font-bold text-xl lg:text-lg text-slate-900">MyBizTools</span>
+              <Hexagon className="w-8 h-8 fill-[#FF8A2B] text-[#FF8A2B]" />
+              <span className="font-bold text-lg text-slate-900">MyBizTools</span>
             </div>
           )}
+          {/* Close button — visible only on mobile */}
+          <button
+            onClick={() => setMobileMenuOpen(false)}
+            className="p-2 hover:bg-slate-100 rounded-lg transition-colors lg:hidden"
+            aria-label="Close menu"
+          >
+            <X className="w-5 h-5 text-slate-600" />
+          </button>
+          {/* Collapse button — desktop only */}
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="p-2 hover:bg-slate-100 rounded-lg transition-colors hidden lg:block"
@@ -77,7 +86,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileMenuOpen, setMobileMenu
           </button>
         </div>
 
-        <nav className="p-3 lg:p-4 space-y-1.5 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 180px)' }}>
+        <nav className="flex-1 p-3 lg:p-4 space-y-1 overflow-y-auto overscroll-contain">
           {menuItems.map((item) => {
             const locked = !!(item.featureKey && !canAccessFeature(plan, item.featureKey));
             return (
@@ -85,7 +94,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileMenuOpen, setMobileMenu
                 key={item.path}
                 onClick={() => handleNavClick(item)}
                 title={locked ? 'Upgrade to access this feature' : item.label}
-                className={`w-full flex items-center gap-3 px-4 py-3.5 lg:py-3 rounded-xl transition-all active:scale-95 relative ${
+                className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all active:scale-95 relative ${
                   locked
                     ? 'text-slate-400 hover:bg-slate-50 cursor-pointer'
                     : isActive(item)
@@ -108,13 +117,13 @@ export function Sidebar({ collapsed, setCollapsed, mobileMenuOpen, setMobileMenu
           })}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-3 lg:p-4 border-t border-slate-200 space-y-1.5 bg-white">
+        <div className="shrink-0 p-3 lg:p-4 border-t border-slate-200 space-y-1 bg-white">
           <button
             onClick={() => {
               navigate('/dashboard/settings');
               setMobileMenuOpen(false);
             }}
-            className={`w-full flex items-center gap-3 px-4 py-3.5 lg:py-3 rounded-xl transition-all active:scale-95 ${location.pathname === '/dashboard/settings'
+            className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all active:scale-95 ${location.pathname === '/dashboard/settings'
                 ? 'bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] text-white shadow-lg'
                 : 'hover:bg-slate-100 text-slate-700 active:bg-slate-200'
               }`}
@@ -128,7 +137,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileMenuOpen, setMobileMenu
               navigate('/login');
               setMobileMenuOpen(false);
             }}
-            className="w-full flex items-center gap-3 px-4 py-3.5 lg:py-3 rounded-xl hover:bg-red-50 text-red-600 transition-all active:scale-95 active:bg-red-100"
+            className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-red-50 text-red-600 transition-all active:scale-95 active:bg-red-100"
           >
             <LogOut className="w-5 h-5 shrink-0" />
             {!collapsed && <span className="text-sm font-medium">Logout</span>}
