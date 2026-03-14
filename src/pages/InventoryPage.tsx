@@ -153,18 +153,18 @@ export function InventoryPage() {
 
   // ── Load from API ──────────────────────────────────────────────────────────
 
-  const loadProducts = useCallback(async () => {
-    setLoading(true);
+  const loadProducts = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     setApiError('');
     try {
       const res = await fetch(`${API_BASE_URL}/api/inventory`, { headers: authHeaders() });
       if (!res.ok) {
         const text = await res.text();
-        if (res.status === 502 || res.status === 503 || text.includes('<html')) {
-          setApiError('Server is starting up. Please wait a moment and try again.');
-        } else {
-          setApiError(`Server error (${res.status}). Please try again.`);
-        }
+        const isStartingUp = res.status === 502 || res.status === 503 || text.includes('<html');
+        setApiError(isStartingUp
+          ? 'Server is starting up — retrying in 15 s…'
+          : `Server error (${res.status}). Please try again.`);
+        if (isStartingUp) setTimeout(() => loadProducts(true), 15000);
         return;
       }
       const data = await res.json();

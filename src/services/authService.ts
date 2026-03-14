@@ -54,7 +54,13 @@ class AuthServiceClass {
     const userStr = localStorage.getItem(this.userKey);
     if (!userStr) return null;
     try {
-      return JSON.parse(userStr);
+      const u = JSON.parse(userStr) as any;
+      // Retroactively fix sessions stored before the camelCase→snake_case normalization
+      if (u.currentPlan && !u.current_plan) {
+        u.current_plan = u.currentPlan;
+        localStorage.setItem(this.userKey, JSON.stringify(u));
+      }
+      return u as User;
     } catch {
       return null;
     }

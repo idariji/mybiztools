@@ -27,6 +27,7 @@ import documentGeneratorRoutes from './routes/documentGeneratorRoutes.js';
 import supportRoutes from './routes/supportRoutes.js';
 import smsRoutes from './routes/smsRoutes.js';
 import inventoryRoutes from './routes/inventoryRoutes.js';
+import storeRoutes from './routes/storeRoutes.js';
 
 // APP INIT
 const app = express();
@@ -130,6 +131,7 @@ app.use('/api/generator', documentGeneratorRoutes);
 app.use('/api/admin/support', supportRoutes);
 app.use('/api/sms', smsRoutes);
 app.use('/api/inventory', inventoryRoutes);
+app.use('/api/store', storeRoutes);
 
 
 // 404 HANDLER

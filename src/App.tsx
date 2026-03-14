@@ -40,6 +40,7 @@ import { CustomersPage } from './pages/CustomersPage';
 import { InventoryPage } from './pages/InventoryPage';
 import { StorefrontPage } from './pages/StorefrontPage';
 import { FinancingPage } from './pages/FinancingPage';
+import { PublicStorefrontPage } from './pages/PublicStorefrontPage';
 
 export function App() {
   return (
@@ -56,6 +57,7 @@ export function App() {
           <Route path="/payment/callback" element={<PaymentCallbackPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/store/:userId" element={<PublicStorefrontPage />} />
 
           {/* Protected Dashboard Routes */}
           <Route path="/dashboard" element={<ProtectedRoute><DashboardHome /></ProtectedRoute>} />
