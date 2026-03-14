@@ -40,3 +40,5 @@ services:
         value: https://api.monnify.com
       - key: ANTHROPIC_API_KEY
         sync: false
+      - key: SETUP_SECRET
+        sync: false

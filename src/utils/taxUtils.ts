@@ -8,7 +8,7 @@ import {
   EDUCATION_TAX_RATE, WHT_RATES,
 } from '../types/tax';
 
-function applyBrackets(taxableIncome) {
+function applyBrackets(taxableIncome: number) {
   let remaining = taxableIncome, totalTax = 0;
   const breakdown = [];
   for (const bracket of PAYE_BRACKETS) {
@@ -23,7 +23,7 @@ function applyBrackets(taxableIncome) {
   return { totalTax, breakdown };
 }
 
-export function calculatePaye(annualGrossIncome) {
+export function calculatePaye(annualGrossIncome: number) {
   const cra = CRA_FIXED + CRA_VARIABLE_RATE * annualGrossIncome;
   const pension = PENSION_EMPLOYEE_RATE * annualGrossIncome;
   const nhf = NHF_RATE * annualGrossIncome;
@@ -38,7 +38,7 @@ export function calculatePaye(annualGrossIncome) {
   return { grossIncome: annualGrossIncome, cra, pension, nhf, nhis, totalRelief, taxableIncome, annualPaye, monthlyPaye, monthlyGross, monthlyNet, effectiveRate, bracketBreakdown: breakdown };
 }
 
-export function calculateCit(turnover, assessableProfit) {
+export function calculateCit(turnover: number, assessableProfit: number) {
   let companySize, citRate;
   if (turnover < CIT_SMALL_THRESHOLD) { companySize = 'small'; citRate = CIT_RATE_SMALL; }
   else if (turnover <= CIT_MEDIUM_THRESHOLD) { companySize = 'medium'; citRate = CIT_RATE_MEDIUM; }
@@ -51,19 +51,19 @@ export function calculateCit(turnover, assessableProfit) {
   return { turnover, assessableProfit, companySize, citRate, cit, educationTax, totalTax, effectiveRate, netProfit };
 }
 
-export function calculateWht(paymentTypeKey, grossAmount) {
+export function calculateWht(paymentTypeKey: string, grossAmount: number) {
   const entry = WHT_RATES.find(w => w.key === paymentTypeKey) ?? WHT_RATES[0];
   const whtAmount = grossAmount * entry.rate;
   return { paymentType: entry.label, grossAmount, whtRate: entry.rate, whtAmount, netPayable: grossAmount - whtAmount };
 }
 
-export function calculateVat(taxableAmount) {
+export function calculateVat(taxableAmount: number) {
   return { vat: taxableAmount * VAT_RATE, total: taxableAmount * (1 + VAT_RATE) };
 }
 
-export const calculateIncomeTax = (taxableIncome) => applyBrackets(taxableIncome).totalTax;
+export const calculateIncomeTax = (taxableIncome: number) => applyBrackets(taxableIncome).totalTax;
 
-export const calculateTax = (income, deductions, vatAmount = 0) => {
+export const calculateTax = (income: number, deductions: number, vatAmount = 0) => {
   const taxableIncome = Math.max(0, income - deductions);
   const incomeTax = calculateIncomeTax(taxableIncome);
   const vat = vatAmount > 0 ? vatAmount * VAT_RATE : 0;

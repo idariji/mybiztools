@@ -836,8 +836,8 @@ model Product {
   sku               String
   category          String   @default("Other")
   quantity          Int      @default(0)
-  unitCost          Decimal  @default(0) @db.Decimal(12, 2)
-  sellingPrice      Decimal  @default(0) @db.Decimal(12, 2)
+  unitCost          Float    @default(0)
+  sellingPrice      Float    @default(0)
   lowStockThreshold Int      @default(5)
   supplier          String?
   description       String?
