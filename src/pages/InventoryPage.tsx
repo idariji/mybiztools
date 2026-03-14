@@ -158,11 +158,20 @@ export function InventoryPage() {
     setApiError('');
     try {
       const res = await fetch(`${API_BASE_URL}/api/inventory`, { headers: authHeaders() });
+      if (!res.ok) {
+        const text = await res.text();
+        if (res.status === 502 || res.status === 503 || text.includes('<html')) {
+          setApiError('Server is starting up. Please wait a moment and try again.');
+        } else {
+          setApiError(`Server error (${res.status}). Please try again.`);
+        }
+        return;
+      }
       const data = await res.json();
       if (data.success) setProducts(data.data);
       else setApiError(data.message || 'Failed to load products');
     } catch {
-      setApiError('Could not reach server. Check your connection.');
+      setApiError('Connection error. Check your internet and try again.');
     } finally {
       setLoading(false);
     }

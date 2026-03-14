@@ -854,8 +854,9 @@ export function CustomersPage() {
       <div className="px-4 sm:px-6 py-5 sm:py-6">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">Customers</h1>
-            <p className="text-sm text-slate-500 mt-1">Manage your customer relationships</p>
+            <h1 className="text-xl sm:text-3xl font-bold text-slate-900">Customers</h1>
+            <div className="h-1 w-16 bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] rounded-full mt-2 mb-1" />
+            <p className="text-sm text-slate-500">Manage your customer relationships</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <button
