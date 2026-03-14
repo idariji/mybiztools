@@ -37,6 +37,7 @@ const corsOrigins: (string | RegExp)[] = [
   'https://www.mybiztools.ng',
   'https://mybiztools.ng',
   'https://mybiztools.onrender.com',
+  'https://admin.mybiztools.ng',
 ];
 if (env.frontendUrl && !corsOrigins.includes(env.frontendUrl)) {
   corsOrigins.push(env.frontendUrl);
