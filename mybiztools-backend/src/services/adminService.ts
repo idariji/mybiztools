@@ -61,10 +61,6 @@ export class AdminService {
       return { success: false, message: 'Invalid credentials', error: 'INVALID_CREDENTIALS' };
     }
 
-    if (!admin.isActive) {
-      return { success: false, message: 'Admin account is deactivated', error: 'ADMIN_DEACTIVATED' };
-    }
-
     await prisma.admin.update({
       where: { id: admin.id },
       data: { lastLoginAt: new Date() },

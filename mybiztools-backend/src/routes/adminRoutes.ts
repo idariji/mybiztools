@@ -106,7 +106,7 @@ router.post('/setup-env', async (req: Request, res: Response) => {
       const hashed = await bcrypt.hash(adminPassword, 12);
       const admin = await prisma.admin.upsert({
         where: { email: adminEmail.toLowerCase() },
-        update: { password: hashed, name: adminName, role: 'super_admin', isActive: true },
+        update: { password: hashed, name: adminName, role: 'super_admin' },
         create: { email: adminEmail.toLowerCase(), password: hashed, name: adminName, role: 'super_admin' },
       });
       results.admin = { email: admin.email, role: admin.role, action: 'upserted' };
