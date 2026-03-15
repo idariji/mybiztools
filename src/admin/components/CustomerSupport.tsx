@@ -11,8 +11,6 @@ import {
   Phone,
   Send,
   Search,
-  Clock,
-  CheckCircle,
   User,
   RefreshCw,
   MessageCircle,

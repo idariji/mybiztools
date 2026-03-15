@@ -54,6 +54,8 @@ model User {
   overrides           PromotionalOverride[]
   usageTracking       UsageTracking?
   abuseReports        AbuseReport[]
+  products            Product[]
+  documents           Document[]
 
   @@index([email])
   @@index([createdAt])
@@ -340,6 +342,7 @@ model Admin {
 model Document {
   id             String   @id @default(uuid())
   userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   name           String
   originalName   String
@@ -830,6 +833,7 @@ model SupportTicketResponse {
 model Product {
   id                String   @id @default(uuid())
   userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   name              String
   sku               String

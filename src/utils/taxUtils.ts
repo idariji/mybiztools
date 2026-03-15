@@ -1,5 +1,4 @@
 import {
-  TaxCalculation, PayeCalculation, CitCalculation, WhtCalculation,
   PAYE_BRACKETS, VAT_RATE,
   CRA_FIXED, CRA_VARIABLE_RATE,
   PENSION_EMPLOYEE_RATE, NHF_RATE, NHIS_RATE,
@@ -39,7 +38,7 @@ export function calculatePaye(annualGrossIncome: number) {
 }
 
 export function calculateCit(turnover: number, assessableProfit: number) {
-  let companySize, citRate;
+  let companySize: 'small' | 'medium' | 'large', citRate;
   if (turnover < CIT_SMALL_THRESHOLD) { companySize = 'small'; citRate = CIT_RATE_SMALL; }
   else if (turnover <= CIT_MEDIUM_THRESHOLD) { companySize = 'medium'; citRate = CIT_RATE_MEDIUM; }
   else { companySize = 'large'; citRate = CIT_RATE_LARGE; }

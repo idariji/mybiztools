@@ -10,8 +10,7 @@ import {
     Clock,
     AlertCircle,
     Check,
-    Upload,
-    Folder
+    Upload
 } from 'lucide-react';
 import {
     SocialPost,
@@ -24,7 +23,6 @@ import {
 import {
     validateContentLength,
     getMinCharLimit,
-    parseHashtags,
     generateHashtagSuggestions,
     fileToBase64,
     generateId,

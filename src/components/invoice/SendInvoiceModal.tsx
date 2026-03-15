@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X, Send, Mail, MessageSquare } from 'lucide-react';
 import { Invoice } from '../../types/invoice';
 

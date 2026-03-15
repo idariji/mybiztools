@@ -10,7 +10,7 @@ interface TemplatesPanelProps {
 
 export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
     onSelectTemplate,
-    selectedCategory
+    selectedCategory: _selectedCategory
 }) => {
     const [filter, setFilter] = React.useState<string>('all');
 

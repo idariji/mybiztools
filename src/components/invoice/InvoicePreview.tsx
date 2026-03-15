@@ -1,4 +1,3 @@
-import React from 'react';
 import { Invoice, CURRENCIES } from '../../types/invoice';
 import { formatCurrency, formatDate } from '../../utils/invoiceUtils';
 

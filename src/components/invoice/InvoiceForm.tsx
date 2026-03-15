@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, Upload, X } from 'lucide-react';
 import { Invoice, InvoiceItem, CURRENCIES, PAYMENT_TERMS } from '../../types/invoice';
-import { generateInvoiceNumber, calculateLineTotal } from '../../utils/invoiceUtils';
+import { calculateLineTotal } from '../../utils/invoiceUtils';
 
 interface InvoiceFormProps {
   invoice: Invoice;

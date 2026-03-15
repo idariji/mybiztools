@@ -145,7 +145,7 @@ export const AdminPermissionHelpers = {
   /**
    * Check if admin can perform action on resource
    */
-  canPerformAction(admin: AdminUser, action: string, resource: string): boolean {
+  canPerformAction(_admin: AdminUser, _action: string, _resource: string): boolean {
     // In production, check against RBAC system
     return true;
   },

@@ -11,8 +11,6 @@ import {
   FileText,
   ArrowRight,
   TrendingUp,
-  Receipt,
-  CreditCard,
   Edit,
 } from 'lucide-react';
 import { motion } from 'framer-motion';

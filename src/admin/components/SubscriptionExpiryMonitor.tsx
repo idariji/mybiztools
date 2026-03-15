@@ -3,8 +3,8 @@
  * Real-time monitoring of subscriptions, expirations, and abuse signals
  */
 
-import React, { useState } from 'react';
-import { Calendar, AlertTriangle, Clock, TrendingDown, Eye, Lock } from 'lucide-react';
+import { useState } from 'react';
+import { Calendar, AlertTriangle, Clock, TrendingDown, Eye } from 'lucide-react';
 
 interface ExpiringSubscription {
   id: string;

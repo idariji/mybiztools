@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X, Sparkles, Send } from 'lucide-react';
 import { Invoice, InvoiceItem } from '../../types/invoice';
-import { generateInvoiceNumber, calculateLineTotal } from '../../utils/invoiceUtils';
+import { calculateLineTotal } from '../../utils/invoiceUtils';
 
 interface DEDAInvoiceModalProps {
   isOpen: boolean;

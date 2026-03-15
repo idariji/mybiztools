@@ -193,7 +193,7 @@ export class AdminActionLogger {
   static async getAuditTrail(
     resourceType: string,
     resourceId: string,
-    limit: number = 50
+    _limit: number = 50
   ): Promise<AdminActionLog[]> {
     // In production, query from database
     // This is a placeholder
@@ -206,7 +206,7 @@ export class AdminActionLogger {
    */
   static async getAdminActivityLog(
     adminId: string,
-    limit: number = 100
+    _limit: number = 100
   ): Promise<AdminActionLog[]> {
     // In production, query from database
     console.log(`Fetching activity log for admin ${adminId}`);

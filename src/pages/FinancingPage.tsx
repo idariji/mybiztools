@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { BarChart2, CheckCircle, TrendingUp, FileText, Building2, ArrowRight, Sparkles, Star, AlertCircle } from 'lucide-react';
+import { CheckCircle, TrendingUp, FileText, Building2, ArrowRight, Sparkles, Star, AlertCircle } from 'lucide-react';
 import { DashboardLayout } from '../layout/DashboardLayout';
 
 const lenders = [

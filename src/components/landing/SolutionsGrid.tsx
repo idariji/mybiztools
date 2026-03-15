@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { FileText, Receipt, CreditCard, QrCode, Calendar, PieChart, Calculator, TrendingUp, Bot, ShieldCheck, Globe, FileSpreadsheet, ArrowRight, Layers } from 'lucide-react';
 import { Card } from '../ui/Card';

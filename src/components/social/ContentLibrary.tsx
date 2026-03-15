@@ -6,12 +6,10 @@ import {
     Image,
     Video,
     Search,
-    Tag,
     X,
     Plus,
     Grid,
-    List,
-    Filter
+    List
 } from 'lucide-react';
 import { ContentLibraryItem } from '../../types/social';
 import {
@@ -125,18 +123,6 @@ export const ContentLibrary: React.FC<ContentLibraryProps> = ({ onSelectMedia })
         saveLibrary(updatedItems);
         setNewTag('');
         setShowTagInput(null);
-    };
-
-    // Remove tag from item
-    const removeTagFromItem = (itemId: string, tag: string) => {
-        const updatedItems = items.map(item => {
-            if (item.id === itemId) {
-                return { ...item, tags: item.tags.filter(t => t !== tag) };
-            }
-            return item;
-        });
-        setItems(updatedItems);
-        saveLibrary(updatedItems);
     };
 
     // Create folder

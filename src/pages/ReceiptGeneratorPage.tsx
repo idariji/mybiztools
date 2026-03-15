@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Download, Printer, Save, ArrowLeft, Share2 } from 'lucide-react';
 import { ReceiptForm } from '../components/receipt/ReceiptForm';
@@ -10,7 +10,6 @@ import html2canvas from 'html2canvas';
 import { useToast } from '../utils/useToast';
 import { ToastContainer } from '../components/ui/Toast';
 import { safeGetJSON, safeSetJSON } from '../utils/storage';
-import { safePrint } from '../utils/printUtils';
 import { MobileBottomNav } from '../layout/MobileBottomNav';
 import { authService } from '../services/authService';
 import { hasWatermark } from '../utils/planUtils';

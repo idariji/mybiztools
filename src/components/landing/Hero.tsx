@@ -1,4 +1,3 @@
-import React from 'react';
 import { Button } from '../ui/Button';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight, PlayCircle, Zap } from 'lucide-react';

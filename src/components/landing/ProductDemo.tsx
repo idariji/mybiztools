@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Calculator, TrendingUp, MessageSquare, Receipt, Play } from 'lucide-react';
+import { FileText, Calculator, TrendingUp, Receipt, Play } from 'lucide-react';
 export function ProductDemo() {
   const [activeTab, setActiveTab] = useState(0);
   const tools = [{

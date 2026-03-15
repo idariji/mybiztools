@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, Printer, Save, Send, ArrowLeft, Link as LinkIcon, FileText } from 'lucide-react';
+import { Download, Printer, Save, ArrowLeft, Link as LinkIcon, FileText } from 'lucide-react';
 import { QuotationForm } from '../components/quotation/QuotationForm';
 import { QuotationPreview } from '../components/quotation/QuotationPreview';
 import { Quotation } from '../types/quotation';
@@ -10,7 +10,6 @@ import html2canvas from 'html2canvas';
 import { useToast } from '../utils/useToast';
 import { ToastContainer } from '../components/ui/Toast';
 import { safeGetJSON, safeSetJSON } from '../utils/storage';
-import { safePrint } from '../utils/printUtils';
 import { MobileBottomNav } from '../layout/MobileBottomNav';
 import { authService } from '../services/authService';
 import { hasWatermark } from '../utils/planUtils';

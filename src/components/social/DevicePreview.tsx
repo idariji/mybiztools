@@ -14,7 +14,6 @@ import {
     Eye
 } from 'lucide-react';
 import { SocialPost, Platform, PLATFORMS } from '../../types/social';
-import { format } from 'date-fns';
 
 interface DevicePreviewProps {
     post: Partial<SocialPost>;
@@ -25,7 +24,7 @@ interface DevicePreviewProps {
 export const DevicePreview: React.FC<DevicePreviewProps> = ({
     post,
     userName = 'Your Brand',
-    userAvatar
+    userAvatar: _userAvatar
 }) => {
     const [selectedPlatform, setSelectedPlatform] = useState<Platform>(
         post.platforms?.[0] || 'instagram'

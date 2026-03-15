@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { FileWarning, Calculator, CreditCard, Users, ArrowRight } from 'lucide-react';
 import { Card } from '../ui/Card';

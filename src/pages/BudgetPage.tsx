@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { DashboardLayout } from '../layout/DashboardLayout';
 import { TrendingUp, TrendingDown, DollarSign, PieChart } from 'lucide-react';

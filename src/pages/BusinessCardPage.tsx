@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, Share2, Save, Upload, Trash2, Copy, Mail, MessageCircle } from 'lucide-react';
+import { Download, Save, Upload, Trash2, Copy, Mail, MessageCircle } from 'lucide-react';
 import { BusinessCard } from '../types/businesscard';
 import { BusinessCardPreview } from '../components/businesscard/BusinessCardPreview';
 import { BusinessCardForm } from '../components/businesscard/BusinessCardForm';

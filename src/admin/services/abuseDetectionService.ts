@@ -5,7 +5,6 @@
 
 import {
   AbuseReport,
-  AbuseType,
   AbuseSeverity,
   AbuseStatus,
   UsageTracking,
@@ -22,8 +21,6 @@ export class AbuseDetectionService {
   // Abuse detection thresholds
   private static readonly QUOTA_ABUSE_THRESHOLD = 0.95; // 95% of limit
   private static readonly API_ABUSE_THRESHOLD = 1000; // requests/hour
-  private static readonly RAPID_SIGNUP_WINDOW = 24 * 60 * 60 * 1000; // 24 hours
-  private static readonly RAPID_SIGNUP_LIMIT = 5; // accounts from same IP
 
   /**
    * Detect quota abuse pattern

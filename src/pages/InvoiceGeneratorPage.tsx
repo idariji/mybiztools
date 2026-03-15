@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Download, Printer, Save, Send, Sparkles, ArrowLeft } from 'lucide-react';
 import { InvoiceForm } from '../components/invoice/InvoiceForm';
@@ -15,7 +15,6 @@ import { ToastContainer } from '../components/ui/Toast';
 import { authService } from '../services/authService';
 import { hasWatermark } from '../utils/planUtils';
 import { safeGetJSON, safeSetJSON } from '../utils/storage';
-import { safePrint } from '../utils/printUtils';
 import { MobileBottomNav } from '../layout/MobileBottomNav';
 
 export function InvoiceGeneratorPage() {

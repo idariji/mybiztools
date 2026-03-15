@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '../layout/DashboardLayout';
 import {
@@ -6,16 +6,12 @@ import {
   DollarSign,
   Clock,
   TrendingUp,
-  Plus,
   Receipt,
   CreditCard,
-  Bot,
   AlertCircle,
   CheckCircle,
-  Zap,
   ArrowRight,
   BarChart2,
-  User,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '../utils/useToast';
@@ -25,7 +21,6 @@ import { safeGetJSON } from '../utils/storage';
 import {
   normalisePlan,
   planDisplayName,
-  canCreateDocument,
   FREE_DOCUMENT_LIMIT,
 } from '../utils/planUtils';
 import { getRecentActivity } from '../utils/activityLogger';
@@ -198,7 +193,7 @@ export function DashboardHome() {
     // Welcome toast (once per session)
     const hasShownWelcome = sessionStorage.getItem('welcomeShown');
     if (!hasShownWelcome) {
-      const userName = currentUser?.firstName || currentUser?.name || 'there';
+      const userName = currentUser?.firstName || 'there';
       addToast(`Welcome back, ${userName}!`, 'success');
       sessionStorage.setItem('welcomeShown', 'true');
     }

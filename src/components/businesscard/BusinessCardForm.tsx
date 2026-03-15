@@ -1,6 +1,6 @@
 import React from 'react';
 import { Linkedin, Twitter, Instagram, MessageCircle, Facebook, Youtube, Music, Github } from 'lucide-react';
-import { BusinessCard, CARD_TEMPLATES, COLOR_PRESETS, SOCIAL_PLATFORMS } from '../../types/businesscard';
+import { BusinessCard, CARD_TEMPLATES, COLOR_PRESETS } from '../../types/businesscard';
 
 interface Props {
   card: BusinessCard;

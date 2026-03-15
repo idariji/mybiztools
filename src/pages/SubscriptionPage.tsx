@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Check, X, Loader2, Hexagon, Zap } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { authService } from '../services/authService';
 import { normalisePlan } from '../utils/planUtils';
@@ -70,7 +69,6 @@ const PLAN_CONFIG = [
 ];
 
 export function SubscriptionPage() {
-  const navigate = useNavigate();
   const [pricing, setPricing] = useState<Record<string, ApiPricing>>({});
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [loading, setLoading] = useState(true);

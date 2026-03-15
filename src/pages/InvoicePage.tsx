@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { DashboardLayout } from '../layout/DashboardLayout';
-import { Plus, Download, Eye, Trash2, FileText, Lock, Zap } from 'lucide-react';
+import { Plus, Eye, Trash2, FileText, Lock, Zap } from 'lucide-react';
 import { Invoice } from '../types/invoice';
 import { useToast } from '../utils/useToast';
 import { ToastContainer } from '../components/ui/Toast';

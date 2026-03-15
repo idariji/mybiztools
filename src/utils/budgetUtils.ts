@@ -1,4 +1,4 @@
-import { Budget, BudgetCategory } from '../types/budget';
+import { BudgetCategory } from '../types/budget';
 
 export const calculateBudgetProgress = (category: BudgetCategory): number => {
   if (category.budgeted === 0) return 0;

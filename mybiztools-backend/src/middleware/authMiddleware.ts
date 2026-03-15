@@ -186,16 +186,11 @@ export const authenticateAdmin = async (
 
     const admin = await prisma.admin.findUnique({
       where: { id: decoded.userId },
-      select: { id: true, email: true, name: true, role: true, isActive: true },
+      select: { id: true, email: true, name: true, role: true },
     });
 
     if (!admin) {
       res.status(401).json({ success: false, message: 'Admin not found', error: 'ADMIN_NOT_FOUND' });
-      return;
-    }
-
-    if (!admin.isActive) {
-      res.status(403).json({ success: false, message: 'Admin account is disabled', error: 'ACCOUNT_DISABLED' });
       return;
     }
 

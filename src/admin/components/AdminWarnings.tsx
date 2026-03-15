@@ -3,8 +3,7 @@
  * Displays intelligent alerts based on user behavior and risk signals
  */
 
-import React from 'react';
-import { AlertTriangle, Zap, TrendingDown, Eye, Lock, Shield } from 'lucide-react';
+import { AlertTriangle, Zap, Eye, Shield } from 'lucide-react';
 
 export interface AdminWarning {
   id: string;
@@ -181,25 +180,20 @@ export class AdminWarningGenerator {
         });
       }
 
-      // Abuse warnings for free plan overuse
-      if (user.plan === 'Free') {
-        // Simulated abuse detection - in production, this would pull real usage data
-        const mockUsageAlerts = Math.random() > 0.7; // 30% chance of alert for demo
-
-        if (mockUsageAlerts) {
-          warnings.push({
-            id: `abuse-${user.id}`,
-            userId: user.id,
-            userName: user.name,
-            email: user.email,
-            severity: 'warning',
-            type: 'abuse',
-            message: `${user.name} has hit free plan limits 3 times in the last 7 days. Monitor for potential abuse or consider prompting upgrade.`,
-            action: 'flag-account',
-            timestamp: new Date().toISOString(),
-            dismissed: false,
-          });
-        }
+      // Abuse warnings: only flag when documentCount is provided by the API
+      if (user.plan === 'Free' && user.documentCount != null && user.documentCount >= 5) {
+        warnings.push({
+          id: `abuse-${user.id}`,
+          userId: user.id,
+          userName: user.name,
+          email: user.email,
+          severity: 'warning',
+          type: 'abuse',
+          message: `${user.name} has reached the free plan document limit (${user.documentCount}/5). Consider prompting them to upgrade.`,
+          action: 'flag-account',
+          timestamp: new Date().toISOString(),
+          dismissed: false,
+        });
       }
 
       // Suspicious activity warnings

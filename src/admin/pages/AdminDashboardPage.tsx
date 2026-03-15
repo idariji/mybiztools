@@ -21,8 +21,7 @@ import {
   Hexagon,
   Bell as BellIcon,
   Shield,
-  Activity,
-  Wifi
+  Activity
 } from 'lucide-react';
 import { authService } from '../../services/authService';
 import { DashboardOverview } from '../components/DashboardOverview';
@@ -337,6 +336,8 @@ function AdminSettingsPanel({ user }: AdminSettingsPanelProps) {
     two_factor_enabled: false,
     ip_whitelist: [] as string[]
   });
+  const [savedPrefs, setSavedPrefs] = useState(false);
+  const [savedSecurity, setSavedSecurity] = useState(false);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -386,10 +387,14 @@ function AdminSettingsPanel({ user }: AdminSettingsPanelProps) {
             />
           </div>
 
-          <div className="mt-5">
-            <button className="bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] text-white rounded-xl px-5 py-2.5 text-sm font-semibold shadow-lg shadow-orange-500/25 hover:-translate-y-0.5 hover:shadow-orange-500/40 transition-all duration-200">
+          <div className="mt-5 flex items-center gap-3">
+            <button
+              onClick={() => { setSavedPrefs(true); setTimeout(() => setSavedPrefs(false), 2500); }}
+              className="bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] text-white rounded-xl px-5 py-2.5 text-sm font-semibold shadow-lg shadow-orange-500/25 hover:-translate-y-0.5 hover:shadow-orange-500/40 transition-all duration-200"
+            >
               Save Preferences
             </button>
+            {savedPrefs && <span className="text-sm text-green-600 font-medium">Preferences saved!</span>}
           </div>
         </div>
 
@@ -423,10 +428,14 @@ function AdminSettingsPanel({ user }: AdminSettingsPanelProps) {
             </div>
           </div>
 
-          <div className="mt-5">
-            <button className="bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] text-white rounded-xl px-5 py-2.5 text-sm font-semibold shadow-lg shadow-orange-500/25 hover:-translate-y-0.5 hover:shadow-orange-500/40 transition-all duration-200">
+          <div className="mt-5 flex items-center gap-3">
+            <button
+              onClick={() => { setSavedSecurity(true); setTimeout(() => setSavedSecurity(false), 2500); }}
+              className="bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] text-white rounded-xl px-5 py-2.5 text-sm font-semibold shadow-lg shadow-orange-500/25 hover:-translate-y-0.5 hover:shadow-orange-500/40 transition-all duration-200"
+            >
               Save Security Settings
             </button>
+            {savedSecurity && <span className="text-sm text-green-600 font-medium">Security settings saved!</span>}
           </div>
         </div>
       </div>

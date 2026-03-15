@@ -1,6 +1,5 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, FileText, Receipt, PieChart, Calculator, Bot, Settings, Bell, Search, TrendingUp, TrendingDown, Users, Clock, MoreHorizontal } from 'lucide-react';
+import { LayoutDashboard, FileText, Receipt, PieChart, Calculator, Bot, Settings, Bell, Search, TrendingUp, TrendingDown, Users, Clock } from 'lucide-react';
 export function DashboardMockup() {
   const navItems = [{
     icon: LayoutDashboard,

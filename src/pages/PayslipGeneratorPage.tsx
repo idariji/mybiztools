@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Download, Printer, Save, ArrowLeft } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Download, Printer, Save } from 'lucide-react';
 import { PayslipForm } from '../components/payslip/PayslipForm';
 import { PayslipPreview } from '../components/payslip/PayslipPreview';
 import { Payslip, calculatePAYE, calculatePension, calculateNHF } from '../types/payslip';
@@ -14,7 +13,6 @@ import { hasWatermark } from '../utils/planUtils';
 import { MobileBottomNav } from '../layout/MobileBottomNav';
 
 export function PayslipGeneratorPage() {
-  const navigate = useNavigate();
   const { toasts, addToast, removeToast } = useToast();
   const showWatermark = hasWatermark(authService.getCurrentUser()?.current_plan);
   const [payslip, setPayslip] = useState<Payslip>({

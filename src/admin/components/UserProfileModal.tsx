@@ -3,7 +3,7 @@
  * Shows subscription info, usage vs limits, payment history
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X, AlertTriangle, TrendingUp, Calendar, CreditCard, Shield } from 'lucide-react';
 
 interface UserFeatureUsage {
@@ -51,33 +51,30 @@ export function UserProfileModal({
   const [showActionModal, setShowActionModal] = useState(false);
   const [selectedAction, setSelectedAction] = useState<string>('');
 
-  // Mock usage data based on plan
+  // Plan limits — actual usage counters require a backend API call
   const getUsageData = (): UserFeatureUsage[] => {
     if (user.plan === 'Free') {
       return [
-        { feature: 'Invoices', used: 5, limit: 5, isOverused: false },
-        { feature: 'Receipts', used: 3, limit: 5, isOverused: false },
-        { feature: 'Quotations', used: 2, limit: 5, isOverused: false },
-        { feature: 'AI Prompts (Daily)', used: 45, limit: 50, resetDate: 'Dec 14, 2025', isOverused: false },
-        { feature: 'Team Members', used: 1, limit: 1, isOverused: false },
+        { feature: 'Invoices', used: 0, limit: 5 },
+        { feature: 'Receipts', used: 0, limit: 5 },
+        { feature: 'Quotations', used: 0, limit: 5 },
+        { feature: 'Team Members', used: 0, limit: 1 },
       ];
     } else if (user.plan === 'Pro') {
       return [
-        { feature: 'Invoices', used: 342, limit: -1, isOverused: false },
-        { feature: 'Receipts', used: 156, limit: -1, isOverused: false },
-        { feature: 'Quotations', used: 89, limit: -1, isOverused: false },
-        { feature: 'AI Prompts (Daily)', used: 420, limit: 500, resetDate: 'Dec 14, 2025', isOverused: false },
-        { feature: 'Team Members', used: 5, limit: 10, isOverused: false },
-        { feature: 'API Calls (Monthly)', used: 45000, limit: 100000, isOverused: false },
+        { feature: 'Invoices', used: 0, limit: -1 },
+        { feature: 'Receipts', used: 0, limit: -1 },
+        { feature: 'Quotations', used: 0, limit: -1 },
+        { feature: 'Team Members', used: 0, limit: 10 },
+        { feature: 'API Calls (Monthly)', used: 0, limit: 100000 },
       ];
     } else {
       return [
-        { feature: 'Invoices', used: 1200, limit: -1, isOverused: false },
-        { feature: 'Receipts', used: 890, limit: -1, isOverused: false },
-        { feature: 'Quotations', used: 450, limit: -1, isOverused: false },
-        { feature: 'AI Prompts (Daily)', used: 2000, limit: -1, isOverused: false },
-        { feature: 'Team Members', used: 45, limit: -1, isOverused: false },
-        { feature: 'API Calls (Monthly)', used: 1200000, limit: -1, isOverused: false },
+        { feature: 'Invoices', used: 0, limit: -1 },
+        { feature: 'Receipts', used: 0, limit: -1 },
+        { feature: 'Quotations', used: 0, limit: -1 },
+        { feature: 'Team Members', used: 0, limit: -1 },
+        { feature: 'API Calls (Monthly)', used: 0, limit: -1 },
       ];
     }
   };
@@ -326,7 +323,10 @@ export function UserProfileModal({
             {/* Usage Tab */}
             {activeTab === 'usage' && (
               <div className="space-y-4">
-                <h3 className="font-semibold text-gray-900">Usage vs Limits</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-gray-900">Usage vs Limits</h3>
+                  <span className="text-xs text-gray-400">Live counters require API sync</span>
+                </div>
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
@@ -408,27 +408,11 @@ export function UserProfileModal({
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-3 px-4">Dec 13, 2025</td>
-                        <td className="py-3 px-4 font-medium">₦25,000</td>
-                        <td className="py-3 px-4">{user.plan}</td>
-                        <td className="py-3 px-4">
-                          <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            Succeeded
-                          </span>
+                      <tr>
+                        <td colSpan={5} className="py-10 text-center text-gray-500 text-sm">
+                          <CreditCard className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                          No payment records found for this user.
                         </td>
-                        <td className="py-3 px-4 text-gray-600">TXN-2025-12-13001</td>
-                      </tr>
-                      <tr className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-3 px-4">Nov 13, 2025</td>
-                        <td className="py-3 px-4 font-medium">₦25,000</td>
-                        <td className="py-3 px-4">{user.plan}</td>
-                        <td className="py-3 px-4">
-                          <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            Succeeded
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-gray-600">TXN-2025-11-13001</td>
                       </tr>
                     </tbody>
                   </table>

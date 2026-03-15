@@ -4,7 +4,7 @@
  */
 
 import { sendSMS, validatePhoneNumber } from '../services/termiiService';
-import { sendInvoiceEmail } from '../services/emailService';
+
 import { Invoice } from '../types/invoice';
 
 export interface SendMessageOptions {

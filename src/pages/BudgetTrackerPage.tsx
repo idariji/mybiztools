@@ -1,12 +1,9 @@
 import React, { useState } from 'react';
-import { Plus, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { Budget, BudgetCategory, DEFAULT_CATEGORIES } from '../types/budget';
+import { BudgetCategory, DEFAULT_CATEGORIES } from '../types/budget';
 import { calculateBudgetProgress, getBudgetStatus, formatCurrency } from '../utils/budgetUtils';
-import { useToast } from '../utils/useToast';
-
 export const BudgetTrackerPage: React.FC = () => {
-  const { addToast } = useToast();
   const [categories, setCategories] = useState<BudgetCategory[]>(
     DEFAULT_CATEGORIES.map((cat, idx) => ({
       id: idx.toString(),

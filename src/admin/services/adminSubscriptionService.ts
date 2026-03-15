@@ -4,9 +4,7 @@
  */
 
 import {
-  UserSubscription,
   PlanName,
-  SubscriptionStatus,
   ManualSubscriptionChange,
   PromotionalOverride,
   AdminUser
@@ -376,7 +374,7 @@ export class AdminSubscriptionService {
   // PRIVATE HELPER METHODS
   // ========================================================================
 
-  private static isValidUpgrade(userId: string, newPlan: PlanName): boolean {
+  private static isValidUpgrade(_userId: string, _newPlan: PlanName): boolean {
     // In production, check current plan from database
     // This is a placeholder
     return true;

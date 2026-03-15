@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ChevronLeft,
@@ -24,7 +24,7 @@ import {
     isSameDay,
     isToday
 } from 'date-fns';
-import { SocialPost, PLATFORMS, Platform } from '../../types/social';
+import { SocialPost, PLATFORMS } from '../../types/social';
 import { getPostsForDate } from '../../utils/socialUtils';
 
 interface ContentCalendarProps {

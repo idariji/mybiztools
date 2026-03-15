@@ -194,7 +194,7 @@ export class AdminPaymentService {
    */
   static async getUserPaymentHistory(
     userId: string,
-    opts?: {
+    _opts?: {
       limit?: number;
       offset?: number;
       status?: string;
@@ -208,7 +208,7 @@ export class AdminPaymentService {
   /**
    * Get payment statistics
    */
-  static async getPaymentStatistics(opts?: {
+  static async getPaymentStatistics(_opts?: {
     date_from?: Date;
     date_to?: Date;
     status?: string;
@@ -264,7 +264,7 @@ export class AdminPaymentService {
   /**
    * Generate payment report
    */
-  static async generatePaymentReport(opts?: {
+  static async generatePaymentReport(_opts?: {
     date_from?: Date;
     date_to?: Date;
     group_by?: 'day' | 'week' | 'month';

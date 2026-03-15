@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, Send, Paperclip, Command, FileText, Receipt, Calculator, CreditCard, TrendingUp, DollarSign, Calendar, Briefcase, MoreVertical, Plus } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { Bot, Send, Paperclip, Command, FileText, Receipt, Calculator, CreditCard, TrendingUp, DollarSign, Calendar, Briefcase, MoreVertical } from 'lucide-react';
 import { DEDAI_GREETING, DEDAI_COMMANDS } from '../config/dedaSystemPrompt';
-import { authService } from '../services/authService';
 
 interface Message {
   id: string;
@@ -50,7 +49,6 @@ export function DEDAPage() {
     { id: '3', title: 'Budget Planning Q1', timestamp: new Date(), icon: '💰' }
   ]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const user = authService.getCurrentUser();
 
   useEffect(() => {
     setMessages([{

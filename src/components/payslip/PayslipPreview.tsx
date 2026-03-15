@@ -1,4 +1,3 @@
-import React from 'react';
 import { Payslip } from '../../types/payslip';
 import { formatCurrencyNGN } from '../../utils/payslipUtils';
 

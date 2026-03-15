@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Mail, Phone, Globe, MapPin, Linkedin, Twitter, Instagram, MessageCircle, Facebook, Youtube, Music, Github } from 'lucide-react';
+import { Mail, Phone, Globe, Linkedin, Twitter, Instagram, MessageCircle, Facebook, Youtube, Music, Github } from 'lucide-react';
 import { BusinessCard } from '../../types/businesscard';
 import { generateQRCode, generateVCard } from '../../utils/businesscardUtils';
 

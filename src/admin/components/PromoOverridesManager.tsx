@@ -4,7 +4,8 @@
  */
 
 import React, { useState } from 'react';
-import { Gift, Plus, Trash2, Calendar, Clock, Eye, EyeOff } from 'lucide-react';
+import { Gift, Plus, Trash2, Calendar, Eye, EyeOff } from 'lucide-react';
+import { authService } from '../../services/authService';
 
 interface Override {
   id: string;
@@ -56,7 +57,7 @@ export function PromoOverridesManager({ overrides = [], onAddOverride, onRemoveO
       reason: formData.reason,
       startDate: now.toISOString().split('T')[0],
       endDate: endDate.toISOString().split('T')[0],
-      appliedBy: 'admin@company.com', // In production, use actual admin email
+      appliedBy: authService.getCurrentUser()?.email || 'admin',
     });
 
     setFormData({

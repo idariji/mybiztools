@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
+import { timingSafeEqual } from 'crypto';
 import { AdminController } from '../controllers/adminController.js';
 import { authenticateAdmin, requireAdminRole } from '../middleware/authMiddleware.js';
 import { validate } from '../middleware/validate.js';
@@ -96,7 +97,13 @@ router.post('/login', validate(loginSchema), AdminController.login);
 router.post('/setup-env', async (req: Request, res: Response) => {
   const { setupSecret, adminEmail, adminPassword, adminName, userEmail, userPlan } = req.body;
   const expected = process.env.SETUP_SECRET;
-  if (!expected || setupSecret !== expected) {
+  if (!expected || !setupSecret) {
+    res.status(403).json({ success: false, message: 'Forbidden' });
+    return;
+  }
+  const a = Buffer.from(setupSecret as string);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) {
     res.status(403).json({ success: false, message: 'Forbidden' });
     return;
   }

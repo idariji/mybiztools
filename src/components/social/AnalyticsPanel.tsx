@@ -23,7 +23,7 @@ import {
     Pie,
     Cell
 } from 'recharts';
-import { SocialPost, PLATFORMS, CONTENT_CATEGORIES } from '../../types/social';
+import { SocialPost, PLATFORMS } from '../../types/social';
 import { generateSimulatedAnalytics } from '../../utils/socialUtils';
 
 interface AnalyticsPanelProps {
@@ -100,12 +100,6 @@ export const AnalyticsPanel: React.FC<AnalyticsPanelProps> = ({ posts }) => {
         name: PLATFORMS.find(p => p.id === platform)?.name || platform,
         value: count,
         color: PLATFORMS.find(p => p.id === platform)?.color || '#6B7280'
-    }));
-
-    const categoryChartData = Object.entries(analytics.categoryCounts).map(([cat, count]) => ({
-        name: CONTENT_CATEGORIES.find(c => c.id === cat)?.name || cat,
-        value: count,
-        color: CONTENT_CATEGORIES.find(c => c.id === cat)?.color || '#6B7280'
     }));
 
     const StatCard = ({

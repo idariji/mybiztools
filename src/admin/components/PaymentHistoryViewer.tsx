@@ -182,7 +182,29 @@ export function PaymentHistoryViewer({
             </select>
 
             {/* Export */}
-            <button className="bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-slate-950 text-white rounded-xl px-4 py-2 shadow-md hover:-translate-y-0.5 transition-all duration-200 text-sm font-medium flex items-center gap-2 justify-center">
+            <button
+              onClick={() => {
+                const rows = [
+                  ['Payment ID', 'User ID', 'Amount (NGN)', 'Status', 'Date'],
+                  ...filteredPayments.map(p => [
+                    p.id,
+                    p.user_id,
+                    p.amount.toString(),
+                    p.status,
+                    p.created_at.toLocaleDateString()
+                  ])
+                ];
+                const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `payments-${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-slate-950 text-white rounded-xl px-4 py-2 shadow-md hover:-translate-y-0.5 transition-all duration-200 text-sm font-medium flex items-center gap-2 justify-center"
+            >
               <Download className="w-4 h-4" />
               Export Report
             </button>

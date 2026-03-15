@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, TrendingUp } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { CostItem, COST_CATEGORIES, FREQUENCIES } from '../types/cost';
 import { calculateCostSummary, calculateYearlyCost } from '../utils/costUtils';
 import { formatCurrency } from '../utils/budgetUtils';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Quotation, QUOTATION_STATUSES } from '../../types/quotation';
 import { CURRENCIES } from '../../types/invoice';
 import { formatCurrency, formatDate } from '../../utils/invoiceUtils';

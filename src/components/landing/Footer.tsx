@@ -1,4 +1,3 @@
-import React from 'react';
 import { Facebook, Twitter, Linkedin, Instagram, Hexagon, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 

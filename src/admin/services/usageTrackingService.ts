@@ -149,8 +149,7 @@ export class UsageTrackingService {
     daysRemaining: number
   ): FeatureUsage[] {
     const usage = this.getUserUsage(userId, plan);
-    const now = new Date();
-    
+
     return usage.features.map((feature) => {
       if (feature.limit === null) {
         return feature; // No projection for unlimited

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Receipt } from '../../types/receipt';
 import { CURRENCIES } from '../../types/invoice';
 import { formatCurrency, formatDate } from '../../utils/invoiceUtils';
@@ -69,7 +68,7 @@ export function ReceiptPreview({ receipt, showWatermark, id = 'receipt-preview' 
           </tr>
         </thead>
         <tbody>
-          {receipt.items.map((item, index) => (
+          {receipt.items.map((item) => (
             <tr key={item.id} className="border-b border-gray-200">
               <td className="py-3 text-sm text-gray-900">{item.name}</td>
               <td className="text-center py-3 text-sm text-gray-900">{item.quantity}</td>
