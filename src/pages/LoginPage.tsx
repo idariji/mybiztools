@@ -16,6 +16,7 @@ export function LoginPage() {
   const { login, signup } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [retryIn, setRetryIn] = useState(0);
 
   // Auto-switch to signup tab if ?signup=true in URL
   useEffect(() => {
@@ -68,35 +69,51 @@ export function LoginPage() {
     if (Object.keys(newErrors).length === 0) {
       setLoading(true);
       try {
-        if (isLogin) {
-          // Login flow
-          const response = await login(formData.email, formData.password);
-
-          if (response.success) {
-            addToast(`Welcome back!`, 'success');
-            setTimeout(() => navigate('/dashboard'), 1500);
+        const doAuth = async () => {
+          if (isLogin) {
+            return login(formData.email, formData.password);
           } else {
-            addToast(response.message, 'error');
+            return signup({
+              firstName: formData.firstName,
+              lastName: formData.lastName,
+              businessName: formData.businessName,
+              email: formData.email,
+              password: formData.password
+            });
           }
-        } else {
-          // Signup flow
-          const response = await signup({
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            businessName: formData.businessName,
-            email: formData.email,
-            password: formData.password
-          });
+        };
 
-          if (response.success) {
+        let response = await doAuth();
+
+        // Server sleeping on Render free tier — auto-retry with countdown
+        if (!response.success && response.message.includes('Failed to connect')) {
+          addToast('Server is starting up. Retrying in 30 seconds…', 'info');
+          let count = 30;
+          setRetryIn(count);
+          const interval = setInterval(() => {
+            count -= 1;
+            setRetryIn(count);
+            if (count <= 0) clearInterval(interval);
+          }, 1000);
+          await new Promise(res => setTimeout(res, 30000));
+          clearInterval(interval);
+          setRetryIn(0);
+          response = await doAuth();
+        }
+
+        if (response.success) {
+          if (isLogin) {
+            addToast('Welcome back!', 'success');
+          } else {
             addToast(`Welcome, ${formData.firstName}! Your account has been created.`, 'success');
-            setTimeout(() => navigate('/dashboard'), 1500);
-          } else {
-            addToast(response.message, 'error');
           }
+          setTimeout(() => navigate('/dashboard'), 1500);
+        } else {
+          addToast(response.message, 'error');
         }
       } finally {
         setLoading(false);
+        setRetryIn(0);
       }
     }
   };
@@ -280,7 +297,7 @@ export function LoginPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
                     </svg>
-                    Please wait...
+                    {retryIn > 0 ? `Retrying in ${retryIn}s…` : 'Please wait…'}
                   </span>
                 ) : (isLogin ? 'Login' : 'Create Account')}
               </Button>

@@ -842,8 +842,62 @@ export function CustomersPage() {
     setSelectedCustomer(null);
   }, []);
 
-  const handleImportCSV = () => {
-    addToast('CSV import coming soon!', 'info');
+  const csvInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImportCSV = () => csvInputRef.current?.click();
+
+  const handleCSVFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+
+    const text = await file.text();
+    const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').map(l => l.trim()).filter(Boolean);
+    if (lines.length < 2) { addToast('CSV must have a header row and at least one data row', 'error'); return; }
+
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/[^a-z]/g, ''));
+    const VALID_TAGS: TagType[] = ['VIP', 'Wholesale', 'Retail', 'Inactive'];
+    let imported = 0, skipped = 0;
+
+    for (let i = 1; i < lines.length; i++) {
+      const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+      const row: Record<string, string> = {};
+      headers.forEach((h, idx) => { row[h] = values[idx] ?? ''; });
+
+      const firstName = row['firstname'] || row['first'] || '';
+      const lastName = row['lastname'] || row['last'] || '';
+      const phone = row['phone'] || row['phonenumber'] || '';
+      if (!firstName && !phone) { skipped++; continue; }
+
+      const rawTag = row['tag'] || row['type'] || 'Retail';
+      const tag = (VALID_TAGS.find(t => t.toLowerCase() === rawTag.toLowerCase()) ?? 'Retail') as TagType;
+
+      const payload = customerToContact({
+        firstName: firstName || 'Unknown',
+        lastName,
+        businessName: row['businessname'] || row['company'] || '',
+        phone,
+        email: row['email'] || '',
+        address: row['address'] || '',
+        tag,
+        notes: row['notes'] || '',
+        birthday: row['birthday'] || '',
+        lastContactAt: '',
+      });
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/contacts`, {
+          method: 'POST', headers: authHeaders(), body: JSON.stringify(payload),
+        });
+        const result = await res.json();
+        if (result.success) {
+          setCustomers(prev => [contactToCustomer(result.data), ...prev]);
+          imported++;
+        } else { skipped++; }
+      } catch { skipped++; }
+    }
+
+    addToast(`Import complete: ${imported} added, ${skipped} skipped`, imported > 0 ? 'success' : 'error');
   };
 
   const FILTER_TAGS: FilterTag[] = ['All', 'VIP', 'Wholesale', 'Retail', 'Inactive'];
@@ -859,6 +913,13 @@ export function CustomersPage() {
             <p className="text-sm text-slate-500">Manage your customer relationships</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
+            <input
+              ref={csvInputRef}
+              type="file"
+              accept=".csv,text/csv"
+              className="hidden"
+              onChange={handleCSVFile}
+            />
             <button
               onClick={handleImportCSV}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm font-semibold hover:bg-slate-50 shadow-[0_2px_8px_rgba(0,0,0,0.06)] transition-colors"
