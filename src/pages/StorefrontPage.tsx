@@ -59,7 +59,9 @@ export function StorefrontPage() {
   const user = authService.getCurrentUser();
   const userId = (user as any)?.id ?? '';
 
-  const storeUrl = `${window.location.origin}/store/${userId}`;
+  function slugify(name: string): string {
+    return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  }
 
   const [settings, setSettings] = useState<StoreSettings>(() => {
     try {
@@ -72,6 +74,9 @@ export function StorefrontPage() {
       return DEFAULT_SETTINGS;
     }
   });
+
+  const storeSlug = slugify(settings.storeName || userId);
+  const storeUrl = `${window.location.origin}/store/${storeSlug || userId}`;
 
   const [editingSettings, setEditingSettings] = useState(false);
   const [draft, setDraft] = useState<StoreSettings>(settings);

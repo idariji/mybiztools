@@ -171,7 +171,9 @@ export function InventoryPage() {
       if (data.success) setProducts(data.data);
       else setApiError(data.message || 'Failed to load products');
     } catch {
-      setApiError('Connection error. Check your internet and try again.');
+      // Render free tier sleeps — a total network failure usually means the server is spinning up
+      setApiError('Server is starting up — retrying in 15 s…');
+      setTimeout(() => loadProducts(true), 15000);
     } finally {
       setLoading(false);
     }

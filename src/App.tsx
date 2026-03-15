@@ -56,7 +56,7 @@ export function App() {
           <Route path="/payment/callback" element={<PaymentCallbackPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/store/:userId" element={<PublicStorefrontPage />} />
+          <Route path="/store/:storeId" element={<PublicStorefrontPage />} />
 
           {/* Protected Dashboard Routes */}
           <Route path="/dashboard" element={<ProtectedRoute><DashboardHome /></ProtectedRoute>} />

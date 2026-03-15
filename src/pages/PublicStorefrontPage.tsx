@@ -27,7 +27,7 @@ function formatNaira(amount: number) {
 }
 
 export function PublicStorefrontPage() {
-  const { userId } = useParams<{ userId: string }>();
+  const { storeId } = useParams<{ storeId: string }>();
   const navigate = useNavigate();
   const [data, setData] = useState<StoreData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -35,8 +35,8 @@ export function PublicStorefrontPage() {
   const [filterCat, setFilterCat] = useState('All');
 
   useEffect(() => {
-    if (!userId) return;
-    fetch(`${API_BASE_URL}/api/store/${userId}`)
+    if (!storeId) return;
+    fetch(`${API_BASE_URL}/api/store/${storeId}`)
       .then(r => r.json())
       .then(res => {
         if (res.success) setData(res.data);
@@ -44,7 +44,7 @@ export function PublicStorefrontPage() {
       })
       .catch(() => setError('Could not load store. Please try again.'))
       .finally(() => setLoading(false));
-  }, [userId]);
+  }, [storeId]);
 
   if (loading) {
     return (
