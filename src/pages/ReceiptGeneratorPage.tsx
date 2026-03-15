@@ -11,6 +11,7 @@ import { useToast } from '../utils/useToast';
 import { ToastContainer } from '../components/ui/Toast';
 import { safeGetJSON, safeSetJSON } from '../utils/storage';
 import { safePrint } from '../utils/printUtils';
+import { MobileBottomNav } from '../layout/MobileBottomNav';
 import { authService } from '../services/authService';
 import { hasWatermark } from '../utils/planUtils';
 
@@ -269,7 +270,7 @@ export function ReceiptGeneratorPage() {
         </div>
 
         {/* Two Column Layout */}
-        <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 p-3 sm:p-6">
+        <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 p-3 sm:p-6 pb-24 lg:pb-6">
           {/* Left: Form */}
           <div className={`${showPreview ? 'hidden lg:block' : 'block'}`}>
             <ReceiptForm receipt={receipt} onChange={setReceipt} />
@@ -303,6 +304,7 @@ export function ReceiptGeneratorPage() {
           #receipt-capture { display: none; }
         }
       `}</style>
+    <MobileBottomNav />
     </>
   );
 }

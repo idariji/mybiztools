@@ -11,6 +11,7 @@ import { useToast } from '../utils/useToast';
 import { ToastContainer } from '../components/ui/Toast';
 import { authService } from '../services/authService';
 import { hasWatermark } from '../utils/planUtils';
+import { MobileBottomNav } from '../layout/MobileBottomNav';
 
 export function PayslipGeneratorPage() {
   const navigate = useNavigate();
@@ -156,7 +157,7 @@ export function PayslipGeneratorPage() {
         </div>
 
         {/* Two Column Layout */}
-        <div className="grid lg:grid-cols-2 gap-3 sm:gap-6 p-3 sm:p-6">
+        <div className="grid lg:grid-cols-2 gap-3 sm:gap-6 p-3 sm:p-6 pb-24 lg:pb-6">
           <div className={`${showPreview ? 'hidden lg:block' : 'block'}`}>
             <div className="bg-white rounded-2xl shadow-sm p-3 sm:p-6 border border-slate-100">
               <PayslipForm payslip={payslip} onChange={setPayslip} />
@@ -194,6 +195,7 @@ export function PayslipGeneratorPage() {
           }
         `}</style>
       </div>
+    <MobileBottomNav />
     </>
   );
 }

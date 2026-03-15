@@ -16,6 +16,7 @@ import { authService } from '../services/authService';
 import { hasWatermark } from '../utils/planUtils';
 import { safeGetJSON, safeSetJSON } from '../utils/storage';
 import { safePrint } from '../utils/printUtils';
+import { MobileBottomNav } from '../layout/MobileBottomNav';
 
 export function InvoiceGeneratorPage() {
   const navigate = useNavigate();
@@ -361,7 +362,7 @@ export function InvoiceGeneratorPage() {
       </div>
 
       {/* Two Column Layout */}
-      <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 p-3 sm:p-6">
+      <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 p-3 sm:p-6 pb-24 lg:pb-6">
         {/* Left: Form */}
         <div className={`${showPreview ? 'hidden lg:block' : 'block'}`}>
           <InvoiceForm invoice={invoice} onChange={setInvoice} />
@@ -413,6 +414,7 @@ export function InvoiceGeneratorPage() {
       invoice={invoice}
       onSend={handleSendComplete}
     />
+    <MobileBottomNav />
     </>
   );
 }
