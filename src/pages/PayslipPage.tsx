@@ -8,6 +8,7 @@ import { useToast } from '../utils/useToast';
 import { ToastContainer } from '../components/ui/Toast';
 import { authService } from '../services/authService';
 import { canCreateDocument, FREE_DOCUMENT_LIMIT, normalisePlan } from '../utils/planUtils';
+import { PayslipSyncService } from '../services/documentSyncService';
 
 export function PayslipPage() {
   const navigate = useNavigate();
@@ -22,8 +23,8 @@ export function PayslipPage() {
     loadPayslips();
   }, []);
 
-  const loadPayslips = () => {
-    const saved = JSON.parse(localStorage.getItem('payslip-drafts') || '[]');
+  const loadPayslips = async () => {
+    const saved = await PayslipSyncService.getAll();
     setPayslips(saved);
   };
 

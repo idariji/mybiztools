@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle, TrendingUp, FileText, Building2, ArrowRight, Sparkles, Star, AlertCircle } from 'lucide-react';
 import { DashboardLayout } from '../layout/DashboardLayout';
@@ -9,7 +10,7 @@ const lenders = [
   { name: 'Lidya Africa', type: 'Fintech', interest: '3.5% monthly', minLoan: '₦150K', focus: 'SMEs with digital transaction history', eligible: false },
 ];
 
-const checklist = [
+const DEFAULT_CHECKLIST = [
   { item: 'CAC Business Registration Certificate', done: false },
   { item: 'Tax Identification Number (TIN)', done: false },
   { item: '6 months bank statements', done: false },
@@ -21,6 +22,25 @@ const checklist = [
 ];
 
 export function FinancingPage() {
+  const [checklist, setChecklist] = useState(DEFAULT_CHECKLIST);
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('financing-checklist');
+    if (saved) setChecklist(JSON.parse(saved));
+  }, []);
+
+  // Save on every change
+  useEffect(() => {
+    localStorage.setItem('financing-checklist', JSON.stringify(checklist));
+  }, [checklist]);
+
+  const toggleItem = (i: number) => {
+    setChecklist(prev => prev.map((c, idx) => idx === i ? { ...c, done: !c.done } : c));
+  };
+
+  const doneCount = checklist.filter(c => c.done).length;
+
   return (
     <DashboardLayout>
       <motion.div
@@ -80,14 +100,33 @@ export function FinancingPage() {
             </div>
             <h2 className="font-semibold text-slate-900">Loan Readiness Checklist</h2>
           </div>
-          <p className="text-sm text-slate-500 mb-4">Tick off these items before applying to any lender:</p>
+          <p className="text-sm text-slate-500 mb-3">Tick off these items before applying to any lender:</p>
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-semibold text-slate-600">{doneCount}/{checklist.length} complete</span>
+              <span className="text-xs text-slate-400">{Math.round((doneCount / checklist.length) * 100)}%</span>
+            </div>
+            <div className="w-full bg-slate-100 rounded-full h-2">
+              <div
+                className="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${(doneCount / checklist.length) * 100}%` }}
+              />
+            </div>
+          </div>
           <div className="space-y-2">
             {checklist.map((item, i) => (
-              <div key={i} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
-                <div className="w-5 h-5 rounded-full border-2 border-slate-300 flex items-center justify-center shrink-0">
-                  {item.done && <CheckCircle className="w-5 h-5 text-green-500" />}
+              <div
+                key={i}
+                onClick={() => toggleItem(i)}
+                className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors ${item.done ? 'bg-green-50 border border-green-100' : 'hover:bg-slate-50 border border-transparent'}`}
+              >
+                <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${item.done ? 'border-green-500' : 'border-slate-300'}">
+                  {item.done
+                    ? <CheckCircle className="w-5 h-5 text-green-500" />
+                    : <div className="w-5 h-5 rounded-full border-2 border-slate-300" />
+                  }
                 </div>
-                <span className="text-sm text-slate-700">{item.item}</span>
+                <span className={`text-sm transition-colors ${item.done ? 'text-green-700 font-medium line-through' : 'text-slate-700'}`}>{item.item}</span>
               </div>
             ))}
           </div>

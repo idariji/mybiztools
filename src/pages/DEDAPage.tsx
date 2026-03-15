@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Bot, Send, Paperclip, Command, FileText, Receipt, Calculator, CreditCard, TrendingUp, DollarSign, Calendar, Briefcase, MoreVertical } from 'lucide-react';
+import { Bot, Send, Paperclip, Command, FileText, Receipt, Calculator, CreditCard, TrendingUp, DollarSign, Calendar, Briefcase } from 'lucide-react';
 import { DEDAI_GREETING, DEDAI_COMMANDS } from '../config/dedaSystemPrompt';
 
 interface Message {
@@ -8,13 +8,6 @@ interface Message {
   text: string;
   sender: 'user' | 'dedai';
   timestamp: Date;
-}
-
-interface Chat {
-  id: string;
-  title: string;
-  timestamp: Date;
-  icon: string;
 }
 
 const quickTools = [
@@ -43,11 +36,6 @@ export function DEDAPage() {
   const [activeTab, setActiveTab] = useState(0);
   const [showCommands, setShowCommands] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [chats] = useState<Chat[]>([
-    { id: '1', title: 'Invoice for ABC Corp', timestamp: new Date(), icon: '📄' },
-    { id: '2', title: 'Tax Calculation Help', timestamp: new Date(), icon: '🧮' },
-    { id: '3', title: 'Budget Planning Q1', timestamp: new Date(), icon: '💰' }
-  ]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -155,24 +143,6 @@ export function DEDAPage() {
             </div>
           </div>
 
-          {/* Recent Chats */}
-          <div className="p-3 sm:p-4 flex-1">
-            <h3 className="text-xs font-bold text-slate-500 uppercase mb-3">Recent Chats</h3>
-            <div className="space-y-2">
-              {chats.map((chat) => (
-                <div key={chat.id} className="flex items-center gap-2 p-2 bg-white rounded-lg hover:shadow-sm transition-all cursor-pointer group border border-slate-100">
-                  <span className="text-lg sm:text-xl flex-shrink-0">{chat.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs sm:text-sm font-medium text-slate-900 truncate">{chat.title}</p>
-                    <p className="text-xs text-slate-500">2h ago</p>
-                  </div>
-                  <button className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                    <MoreVertical className="w-4 h-4 text-slate-400" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Chat Screen */}

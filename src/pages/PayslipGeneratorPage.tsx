@@ -11,6 +11,7 @@ import { ToastContainer } from '../components/ui/Toast';
 import { authService } from '../services/authService';
 import { hasWatermark } from '../utils/planUtils';
 import { MobileBottomNav } from '../layout/MobileBottomNav';
+import { PayslipSyncService } from '../services/documentSyncService';
 
 export function PayslipGeneratorPage() {
   const { toasts, addToast, removeToast } = useToast();
@@ -102,19 +103,12 @@ export function PayslipGeneratorPage() {
     }
   };
 
-  const handleSaveDraft = () => {
+  const handleSaveDraft = async () => {
     if (!payslip.employerInfo.name || !payslip.employeeInfo.name) {
       addToast('Please fill in employer and employee names', 'warning');
       return;
     }
-    const drafts = JSON.parse(localStorage.getItem('payslip-drafts') || '[]');
-    const existingIndex = drafts.findIndex((d: Payslip) => d.payslipNumber === payslip.payslipNumber);
-    if (existingIndex >= 0) {
-      drafts[existingIndex] = { ...payslip, status: 'draft', updatedAt: new Date().toISOString() };
-    } else {
-      drafts.push({ ...payslip, status: 'draft', createdAt: new Date().toISOString() });
-    }
-    localStorage.setItem('payslip-drafts', JSON.stringify(drafts));
+    await PayslipSyncService.save({ ...payslip, status: 'draft', updatedAt: new Date().toISOString() });
     addToast('Payslip saved as draft!', 'success');
   };
 
@@ -182,14 +176,17 @@ export function PayslipGeneratorPage() {
         {/* Print Styles */}
         <style>{`
           @media print {
-            body * { visibility: hidden; }
-            #payslip-preview, #payslip-preview * { visibility: visible; }
+            body > * { display: none !important; }
             #payslip-preview {
-              position: absolute;
-              left: 0; top: 0;
-              width: 100%;
+              display: block !important;
+              position: fixed !important;
+              top: 0 !important; left: 0 !important;
+              width: 100% !important;
+              height: auto !important;
+              overflow: visible !important;
+              z-index: 9999 !important;
             }
-            #payslip-capture { display: none; }
+            #payslip-capture { display: none !important; }
           }
         `}</style>
       </div>

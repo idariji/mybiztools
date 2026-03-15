@@ -8,6 +8,7 @@ import { useToast } from '../utils/useToast';
 import { ToastContainer } from '../components/ui/Toast';
 import { authService } from '../services/authService';
 import { canCreateDocument, FREE_DOCUMENT_LIMIT, normalisePlan } from '../utils/planUtils';
+import { InvoiceSyncService } from '../services/documentSyncService';
 
 export function InvoicePage() {
   const navigate = useNavigate();
@@ -22,8 +23,8 @@ export function InvoicePage() {
     loadInvoices();
   }, []);
 
-  const loadInvoices = () => {
-    const saved = JSON.parse(localStorage.getItem('invoice-drafts') || '[]');
+  const loadInvoices = async () => {
+    const saved = await InvoiceSyncService.getAll();
     setInvoices(saved);
   };
 

@@ -6,6 +6,7 @@ import { Plus, Download, Eye, Edit, Copy, Trash2, FileText, Search, Lock, Zap } 
 import { Quotation, QUOTATION_STATUSES } from '../types/quotation';
 import { authService } from '../services/authService';
 import { canCreateDocument, FREE_DOCUMENT_LIMIT, normalisePlan } from '../utils/planUtils';
+import { QuotationSyncService } from '../services/documentSyncService';
 
 export function QuotationPage() {
   const navigate = useNavigate();
@@ -18,8 +19,7 @@ export function QuotationPage() {
   const isFree = normalisePlan(plan) === 'free';
 
   useEffect(() => {
-    const drafts = JSON.parse(localStorage.getItem('quotation-drafts') || '[]');
-    setQuotations(drafts);
+    QuotationSyncService.getAll().then(drafts => setQuotations(drafts));
   }, []);
 
   const filteredQuotations = quotations.filter(q => {

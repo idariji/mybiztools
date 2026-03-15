@@ -19,8 +19,8 @@ export function DEDAChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isFirstVisit, setIsFirstVisit] = useState(true);
 
-  // Hide widget on DEDAI full page - moved after all hooks
-  const shouldHide = location.pathname === '/dashboard/dedai';
+  // Hide widget on non-dashboard pages and on the DEDAI full page
+  const shouldHide = !location.pathname.startsWith('/dashboard/') || location.pathname === '/dashboard/dedai';
 
   useEffect(() => {
     if (isOpen && isFirstVisit) {

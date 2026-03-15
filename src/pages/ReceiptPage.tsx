@@ -6,6 +6,7 @@ import { Plus, Download, Eye, Trash2, Search, Lock, Zap } from 'lucide-react';
 import { Receipt } from '../types/receipt';
 import { authService } from '../services/authService';
 import { canCreateDocument, FREE_DOCUMENT_LIMIT, normalisePlan } from '../utils/planUtils';
+import { ReceiptSyncService } from '../services/documentSyncService';
 
 export function ReceiptPage() {
   const navigate = useNavigate();
@@ -17,8 +18,7 @@ export function ReceiptPage() {
   const isFree = normalisePlan(plan) === 'free';
 
   useEffect(() => {
-    const drafts = JSON.parse(localStorage.getItem('receipt-drafts') || '[]');
-    setReceipts(drafts);
+    ReceiptSyncService.getAll().then(drafts => setReceipts(drafts));
   }, []);
 
   const filteredReceipts = receipts.filter(r =>

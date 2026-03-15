@@ -9,7 +9,8 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useToast } from '../utils/useToast';
 import { ToastContainer } from '../components/ui/Toast';
-import { safeGetJSON, safeSetJSON } from '../utils/storage';
+import { safeGetJSON } from '../utils/storage';
+import { QuotationSyncService } from '../services/documentSyncService';
 import { MobileBottomNav } from '../layout/MobileBottomNav';
 import { authService } from '../services/authService';
 import { hasWatermark } from '../utils/planUtils';
@@ -155,22 +156,13 @@ export function QuotationGeneratorPage() {
     addToast('Opening print dialog...', 'info');
   };
 
-  const handleSaveDraft = () => {
+  const handleSaveDraft = async () => {
     if (!quotation.businessInfo.name || !quotation.clientInfo.name) {
       addToast('Please fill in business and client names to save draft', 'warning');
       return;
     }
 
-    const drafts = safeGetJSON<Quotation[]>('quotation-drafts', []);
-    const existingIndex = drafts.findIndex((d: Quotation) => d.quotationNumber === quotation.quotationNumber);
-
-    if (existingIndex >= 0) {
-      drafts[existingIndex] = { ...quotation, status: 'draft', updatedAt: new Date().toISOString() };
-    } else {
-      drafts.push({ ...quotation, status: 'draft', createdAt: new Date().toISOString() });
-    }
-
-    safeSetJSON('quotation-drafts', drafts);
+    await QuotationSyncService.save({ ...quotation, status: 'draft', updatedAt: new Date().toISOString() });
     addToast('Quotation saved as draft!', 'success');
   };
 
@@ -323,10 +315,17 @@ export function QuotationGeneratorPage() {
 
       <style>{`
         @media print {
-          body * { visibility: hidden; }
-          #quotation-preview, #quotation-preview * { visibility: visible; }
-          #quotation-preview { position: absolute; left: 0; top: 0; width: 100%; }
-          #quotation-capture { display: none; }
+          body > * { display: none !important; }
+          #quotation-preview {
+            display: block !important;
+            position: fixed !important;
+            top: 0 !important; left: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            overflow: visible !important;
+            z-index: 9999 !important;
+          }
+          #quotation-capture { display: none !important; }
         }
       `}</style>
     <MobileBottomNav />

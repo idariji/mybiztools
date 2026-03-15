@@ -7,12 +7,10 @@ export const generateInvoiceNumber = (): string => {
   return `INV-${year}${month}${day}-${random}`;
 };
 
-export const numberToWords = (num: number): string => {
+export const numberToWords = (num: number, currency: string = 'NGN'): string => {
   const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
   const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
   const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
-
-  if (num === 0) return 'Zero';
 
   const convertHundreds = (n: number): string => {
     let str = '';
@@ -31,18 +29,41 @@ export const numberToWords = (num: number): string => {
     return str;
   };
 
-  let result = '';
-  if (num >= 1000000) {
-    result += convertHundreds(Math.floor(num / 1000000)) + 'Million ';
-    num %= 1000000;
-  }
-  if (num >= 1000) {
-    result += convertHundreds(Math.floor(num / 1000)) + 'Thousand ';
-    num %= 1000;
-  }
-  result += convertHundreds(num);
+  const convertToWords = (n: number): string => {
+    if (n === 0) return 'Zero';
+    let result = '';
+    if (n >= 1000000) {
+      result += convertHundreds(Math.floor(n / 1000000)) + 'Million ';
+      n %= 1000000;
+    }
+    if (n >= 1000) {
+      result += convertHundreds(Math.floor(n / 1000)) + 'Thousand ';
+      n %= 1000;
+    }
+    result += convertHundreds(n);
+    return result.trim();
+  };
 
-  return result.trim();
+  const whole = Math.floor(num);
+  const cents = Math.round((num - whole) * 100);
+
+  const currencyMap: Record<string, { main: string; sub: string }> = {
+    NGN: { main: 'Naira', sub: 'Kobo' },
+    USD: { main: 'Dollar', sub: 'Cent' },
+    GBP: { main: 'Pound', sub: 'Penny' },
+    EUR: { main: 'Euro', sub: 'Cent' },
+  };
+
+  const names = currencyMap[currency];
+  const wholeWords = convertToWords(whole);
+
+  if (names) {
+    const centsWords = cents > 0 ? convertToWords(cents) : '';
+    return `${wholeWords} ${names.main}${cents > 0 ? `, ${centsWords} ${names.sub}` : ''} Only`;
+  } else {
+    const centsWords = cents > 0 ? convertToWords(cents) : '';
+    return `${wholeWords} ${currency}${cents > 0 ? `, ${centsWords}` : ''} Only`;
+  }
 };
 
 export const formatCurrency = (amount: number, currencySymbol: string): string => {

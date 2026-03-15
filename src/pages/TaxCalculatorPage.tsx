@@ -158,6 +158,14 @@ function CitTab() {
             <Row label="Total Tax" value={fmt(result.totalTax)} negative highlight />
             <Row label="Net Profit After Tax" value={fmt(result.netProfit)} positive highlight />
             <p className="text-xs text-slate-500 pt-1">Effective tax rate: <strong>{pct(result.effectiveRate)}</strong></p>
+            <div className="mt-4 pt-4 border-t border-slate-100">
+              <p className="text-xs font-bold text-slate-600 mb-2 uppercase tracking-wide">Monthly Breakdown</p>
+              <Row label="Monthly CIT Provision" value={fmt(result.cit / 12)} negative />
+              <Row label="Monthly Education Tax" value={fmt(result.educationTax / 12)} negative />
+              <Row label="Total Monthly Tax" value={fmt(result.totalTax / 12)} negative highlight />
+              <Row label="Monthly Net Profit" value={fmt(result.netProfit / 12)} positive highlight />
+              <p className="text-xs text-slate-400 mt-1">Based on equal monthly distribution of annual figures</p>
+            </div>
           </div>
         )}
       </div>

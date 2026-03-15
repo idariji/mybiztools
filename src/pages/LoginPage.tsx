@@ -15,6 +15,7 @@ export function LoginPage() {
   const { toasts, addToast, removeToast } = useToast();
   const { login, signup } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // Auto-switch to signup tab if ?signup=true in URL
   useEffect(() => {
@@ -65,32 +66,37 @@ export function LoginPage() {
 
     setErrors(newErrors);
     if (Object.keys(newErrors).length === 0) {
-      if (isLogin) {
-        // Login flow
-        const response = await login(formData.email, formData.password);
+      setLoading(true);
+      try {
+        if (isLogin) {
+          // Login flow
+          const response = await login(formData.email, formData.password);
 
-        if (response.success) {
-          addToast(`Welcome back!`, 'success');
-          setTimeout(() => navigate('/dashboard'), 1500);
+          if (response.success) {
+            addToast(`Welcome back!`, 'success');
+            setTimeout(() => navigate('/dashboard'), 1500);
+          } else {
+            addToast(response.message, 'error');
+          }
         } else {
-          addToast(response.message, 'error');
-        }
-      } else {
-        // Signup flow
-        const response = await signup({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          businessName: formData.businessName,
-          email: formData.email,
-          password: formData.password
-        });
+          // Signup flow
+          const response = await signup({
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            businessName: formData.businessName,
+            email: formData.email,
+            password: formData.password
+          });
 
-        if (response.success) {
-          addToast(`Welcome, ${formData.firstName}! Your account has been created.`, 'success');
-          setTimeout(() => navigate('/dashboard'), 1500);
-        } else {
-          addToast(response.message, 'error');
+          if (response.success) {
+            addToast(`Welcome, ${formData.firstName}! Your account has been created.`, 'success');
+            setTimeout(() => navigate('/dashboard'), 1500);
+          } else {
+            addToast(response.message, 'error');
+          }
         }
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -265,9 +271,18 @@ export function LoginPage() {
 
               <Button
                 type="submit"
+                disabled={loading}
                 className="w-full bg-gradient-to-r from-[#1e3a8a] to-[#1e40af] hover:from-[#1e40af] hover:to-[#2563eb] text-white font-bold py-4 rounded-xl shadow-lg mb-4"
               >
-                {isLogin ? 'Login' : 'Create Account'}
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                    </svg>
+                    Please wait...
+                  </span>
+                ) : (isLogin ? 'Login' : 'Create Account')}
               </Button>
 
               {isLogin && (

@@ -9,7 +9,8 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useToast } from '../utils/useToast';
 import { ToastContainer } from '../components/ui/Toast';
-import { safeGetJSON, safeSetJSON } from '../utils/storage';
+import { safeGetJSON } from '../utils/storage';
+import { ReceiptSyncService } from '../services/documentSyncService';
 import { MobileBottomNav } from '../layout/MobileBottomNav';
 import { authService } from '../services/authService';
 import { hasWatermark } from '../utils/planUtils';
@@ -137,22 +138,13 @@ export function ReceiptGeneratorPage() {
     addToast('Opening print dialog...', 'info');
   };
 
-  const handleSaveDraft = () => {
+  const handleSaveDraft = async () => {
     if (!receipt.businessInfo.name || !receipt.customerInfo.name) {
       addToast('Please fill in business and customer names to save', 'warning');
       return;
     }
 
-    const drafts = safeGetJSON<Receipt[]>('receipt-drafts', []);
-    const existingIndex = drafts.findIndex((d: Receipt) => d.receiptNumber === receipt.receiptNumber);
-
-    if (existingIndex >= 0) {
-      drafts[existingIndex] = { ...receipt, status: 'draft', updatedAt: new Date().toISOString() };
-    } else {
-      drafts.push({ ...receipt, status: 'draft', createdAt: new Date().toISOString() });
-    }
-
-    safeSetJSON('receipt-drafts', drafts);
+    await ReceiptSyncService.save({ ...receipt, status: 'draft', updatedAt: new Date().toISOString() });
     addToast('Receipt saved as draft!', 'success');
   };
 
@@ -297,10 +289,17 @@ export function ReceiptGeneratorPage() {
 
       <style>{`
         @media print {
-          body * { visibility: hidden; }
-          #receipt-preview, #receipt-preview * { visibility: visible; }
-          #receipt-preview { position: absolute; left: 0; top: 0; width: 100%; }
-          #receipt-capture { display: none; }
+          body > * { display: none !important; }
+          #receipt-preview {
+            display: block !important;
+            position: fixed !important;
+            top: 0 !important; left: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            overflow: visible !important;
+            z-index: 9999 !important;
+          }
+          #receipt-capture { display: none !important; }
         }
       `}</style>
     <MobileBottomNav />

@@ -14,7 +14,8 @@ import { useToast } from '../utils/useToast';
 import { ToastContainer } from '../components/ui/Toast';
 import { authService } from '../services/authService';
 import { hasWatermark } from '../utils/planUtils';
-import { safeGetJSON, safeSetJSON } from '../utils/storage';
+import { safeGetJSON } from '../utils/storage';
+import { InvoiceSyncService } from '../services/documentSyncService';
 import { MobileBottomNav } from '../layout/MobileBottomNav';
 
 export function InvoiceGeneratorPage() {
@@ -104,7 +105,7 @@ export function InvoiceGeneratorPage() {
     const subtotalWithCharges = subtotal - totalDiscount + totalTax + invoice.summary.bankCharges;
     const vat = (invoice.summary.vatEnabled ?? true) ? subtotalWithCharges * 0.075 : 0;
     const total = subtotalWithCharges + vat;
-    const amountInWords = numberToWords(Math.floor(total));
+    const amountInWords = numberToWords(total, invoice.currency);
 
     setInvoice(prev => ({
       ...prev,
@@ -185,22 +186,13 @@ export function InvoiceGeneratorPage() {
     addToast('Opening print dialog...', 'info');
   };
 
-  const handleSaveDraft = () => {
+  const handleSaveDraft = async () => {
     if (!invoice.businessInfo.name || !invoice.clientInfo.name) {
       addToast('Please fill in business and client names to save draft', 'warning');
       return;
     }
 
-    const drafts = safeGetJSON<Invoice[]>('invoice-drafts', []);
-    const existingIndex = drafts.findIndex((d: Invoice) => d.invoiceNumber === invoice.invoiceNumber);
-
-    if (existingIndex >= 0) {
-      drafts[existingIndex] = { ...invoice, status: 'draft', updatedAt: new Date().toISOString() };
-    } else {
-      drafts.push({ ...invoice, status: 'draft', createdAt: new Date().toISOString() });
-    }
-
-    safeSetJSON('invoice-drafts', drafts);
+    await InvoiceSyncService.save({ ...invoice, status: 'draft', updatedAt: new Date().toISOString() });
     addToast('Invoice saved as draft!', 'success');
   };
 
@@ -389,14 +381,17 @@ export function InvoiceGeneratorPage() {
       {/* Print Styles */}
       <style>{`
         @media print {
-          body * { visibility: hidden; }
-          #invoice-preview, #invoice-preview * { visibility: visible; }
+          body > * { display: none !important; }
           #invoice-preview {
-            position: absolute;
-            left: 0; top: 0;
-            width: 100%;
+            display: block !important;
+            position: fixed !important;
+            top: 0 !important; left: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            overflow: visible !important;
+            z-index: 9999 !important;
           }
-          #invoice-capture { display: none; }
+          #invoice-capture { display: none !important; }
         }
       `}</style>
     </div>
