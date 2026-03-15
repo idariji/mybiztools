@@ -32,6 +32,9 @@ import storeRoutes from './routes/storeRoutes.js';
 // APP INIT
 const app = express();
 
+// Trust Render's reverse proxy so express-rate-limit can read X-Forwarded-For
+app.set('trust proxy', 1);
+
 // CORS
 const corsOrigins: (string | RegExp)[] = [
   'https://www.mybiztools.ng',
