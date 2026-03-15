@@ -79,7 +79,7 @@ export function App() {
           <Route path="/dashboard/profile" element={<ProtectedRoute><DashboardLayout><ProfilePage /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/settings" element={<ProtectedRoute><DashboardLayout><SettingsPage /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/dedai" element={<ProtectedRoute><DashboardLayout><DEDAPage /></DashboardLayout></ProtectedRoute>} />
-          <Route path="/dashboard/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
+          <Route path="/dashboard/subscription" element={<ProtectedRoute><DashboardLayout><SubscriptionPage /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/customers" element={<ProtectedRoute><DashboardLayout><CustomersPage /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/inventory" element={<ProtectedRoute><InventoryPage /></ProtectedRoute>} />
           <Route path="/dashboard/storefront" element={<ProtectedRoute><StorefrontPage /></ProtectedRoute>} />

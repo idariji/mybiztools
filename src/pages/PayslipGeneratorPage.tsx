@@ -54,21 +54,51 @@ export function PayslipGeneratorPage() {
     }));
   }, [payslip.earnings, payslip.deductions.loans, payslip.deductions.other]);
 
-  const handleDownloadPDF = async () => {
-    if (!validatePayslip()) return;
-    const element = document.getElementById('payslip-preview');
-    if (!element) return;
-
+  const generatePDFBlob = async (): Promise<Blob | null> => {
+    const element = document.getElementById('payslip-capture');
+    if (!element) return null;
     try {
-      const canvas = await html2canvas(element, { scale: 2, useCORS: true, logging: false });
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight,
+      });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`${payslip.payslipNumber}.pdf`);
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+      heightLeft -= pageHeight;
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      return pdf.output('blob');
+    } catch {
+      return null;
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!validatePayslip()) return;
+    try {
+      const blob = await generatePDFBlob();
+      if (!blob) { addToast('Failed to generate PDF', 'error'); return; }
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${payslip.payslipNumber || 'payslip'}.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
       addToast('Payslip downloaded successfully!', 'success');
-    } catch (error) {
+    } catch {
       addToast('Failed to download PDF', 'error');
     }
   };
@@ -144,6 +174,25 @@ export function PayslipGeneratorPage() {
             </div>
           </div>
         </div>
+
+        {/* Off-screen capture div — always rendered, used for PDF generation */}
+        <div style={{ position: 'absolute', left: '-9999px', top: 0, width: '794px', zIndex: -1 }}>
+          <PayslipPreview id="payslip-capture" payslip={payslip} showWatermark={showWatermark} />
+        </div>
+
+        {/* Print Styles */}
+        <style>{`
+          @media print {
+            body * { visibility: hidden; }
+            #payslip-preview, #payslip-preview * { visibility: visible; }
+            #payslip-preview {
+              position: absolute;
+              left: 0; top: 0;
+              width: 100%;
+            }
+            #payslip-capture { display: none; }
+          }
+        `}</style>
       </div>
     </>
   );

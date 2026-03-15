@@ -138,7 +138,7 @@ export function SubscriptionPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#F0F3F5]">
+      <div className="flex items-center justify-center py-24">
         <Loader2 className="w-8 h-8 animate-spin text-[#FF8A2B]" />
       </div>
     );
@@ -149,7 +149,7 @@ export function SubscriptionPage() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen bg-[#F0F3F5] py-8 sm:py-12 px-4"
+      className="py-4 sm:py-8"
     >
       <div className="max-w-6xl mx-auto">
 
