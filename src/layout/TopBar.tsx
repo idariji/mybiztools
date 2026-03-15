@@ -24,9 +24,14 @@ export function TopBar({ onMenuClick }: TopBarProps = {}) {
 
   return (
     <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-white/40 shadow-[0_1px_20px_rgba(0,0,0,0.06)] px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
-      <button onClick={onMenuClick} className="lg:hidden p-2 hover:bg-slate-100/80 rounded-lg active:scale-95 transition-colors">
+      {/* Hamburger only on desktop sidebar toggle — hidden on mobile since bottom nav is used */}
+      <button onClick={onMenuClick} className="hidden lg:block p-2 hover:bg-slate-100/80 rounded-lg active:scale-95 transition-colors">
         <Menu className="w-6 h-6 text-slate-600" />
       </button>
+      {/* Mobile: show app name instead */}
+      <div className="flex items-center gap-2 lg:hidden">
+        <span className="font-bold text-slate-900 text-base">MyBizTools</span>
+      </div>
       <div className="flex-1 max-w-xl hidden md:block">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />

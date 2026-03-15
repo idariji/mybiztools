@@ -91,7 +91,7 @@ export function QuotationGeneratorPage() {
   }, [quotation.items, quotation.summary.discount, quotation.summary.discountType]);
 
   const generatePDFBlob = async (): Promise<Blob | null> => {
-    const element = document.getElementById('quotation-preview');
+    const element = document.getElementById('quotation-capture');
     if (!element) return null;
 
     try {
@@ -99,14 +99,27 @@ export function QuotationGeneratorPage() {
         scale: 2,
         useCORS: true,
         logging: false,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight,
       });
 
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      let heightLeft = imgHeight;
+      let position = 0;
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+      heightLeft -= pageHeight;
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
       return pdf.output('blob');
     } catch (error) {
       return null;
@@ -138,13 +151,8 @@ export function QuotationGeneratorPage() {
 
   const handlePrint = () => {
     if (!validateQuotation()) return;
-
-    const success = safePrint(`Quotation ${quotation.quotationNumber}`, 'quotation-preview');
-    if (success) {
-      addToast('Opening print dialog...', 'info');
-    } else {
-      addToast('Failed to open print dialog', 'error');
-    }
+    window.print();
+    addToast('Opening print dialog...', 'info');
   };
 
   const handleSaveDraft = () => {
@@ -307,6 +315,20 @@ export function QuotationGeneratorPage() {
           </div>
         </div>
       </div>
+
+      {/* Off-screen capture div for PDF generation */}
+      <div style={{ position: 'absolute', left: '-9999px', top: 0, width: '794px', zIndex: -1 }}>
+        <QuotationPreview id="quotation-capture" quotation={quotation} showWatermark={showWatermark} />
+      </div>
+
+      <style>{`
+        @media print {
+          body * { visibility: hidden; }
+          #quotation-preview, #quotation-preview * { visibility: visible; }
+          #quotation-preview { position: absolute; left: 0; top: 0; width: 100%; }
+          #quotation-capture { display: none; }
+        }
+      `}</style>
     </>
   );
 }

@@ -6,15 +6,16 @@ import { formatCurrency, formatDate } from '../../utils/invoiceUtils';
 interface QuotationPreviewProps {
   quotation: Quotation;
   showWatermark?: boolean;
+  id?: string;
 }
 
-export function QuotationPreview({ quotation, showWatermark }: QuotationPreviewProps) {
+export function QuotationPreview({ quotation, showWatermark, id = 'quotation-preview' }: QuotationPreviewProps) {
   const currency = CURRENCIES.find(c => c.code === quotation.currency);
   const currencySymbol = currency?.symbol || '$';
   const status = QUOTATION_STATUSES.find(s => s.value === quotation.status);
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-8 max-w-4xl mx-auto relative overflow-hidden" id="quotation-preview">
+    <div className="bg-white rounded-xl shadow-lg p-8 max-w-4xl mx-auto relative overflow-hidden" id={id}>
       {showWatermark && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-10 rotate-[-35deg] opacity-10 select-none">
           <span className="text-[80px] font-black text-gray-800 whitespace-nowrap tracking-widest">MYBIZTOOLS FREE</span>
