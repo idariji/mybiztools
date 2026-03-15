@@ -29,12 +29,11 @@ interface User {
   lastName: string | null;
   businessName: string | null;
   phone: string | null;
-  current_plan: string;
-  subscription_status: string;
+  currentPlan: string;
+  subscriptionStatus: string;
   emailVerified: boolean;
-  created_at: string;
-  last_login_at: string | null;
-  mrr_value?: number;
+  createdAt: string;
+  lastLoginAt: string | null;
 }
 
 import { API_BASE_URL as API_URL } from '../../config/apiConfig';
@@ -91,11 +90,11 @@ export function UserManagement() {
   };
 
   const calculateStats = (userList: User[]) => {
-    const freeUsers = userList.filter(u => u.current_plan === 'free').length;
-    const proUsers = userList.filter(u => u.current_plan === 'pro').length;
-    const enterpriseUsers = userList.filter(u => u.current_plan === 'enterprise').length;
-    const activeUsers = userList.filter(u => u.subscription_status === 'active').length;
-    const suspendedUsers = userList.filter(u => u.subscription_status === 'suspended').length;
+    const freeUsers = userList.filter(u => u.currentPlan === 'free').length;
+    const proUsers = userList.filter(u => u.currentPlan === 'pro').length;
+    const enterpriseUsers = userList.filter(u => u.currentPlan === 'enterprise').length;
+    const activeUsers = userList.filter(u => u.subscriptionStatus === 'active').length;
+    const suspendedUsers = userList.filter(u => u.subscriptionStatus === 'suspended').length;
     setStats({ totalUsers: userList.length, freeUsers, paidUsers: proUsers + enterpriseUsers, proUsers, enterpriseUsers, activeUsers, suspendedUsers });
   };
 
@@ -112,13 +111,13 @@ export function UserManagement() {
     }
     if (userFilter !== 'all') {
       switch (userFilter) {
-        case 'free': filtered = filtered.filter(u => u.current_plan === 'free'); break;
-        case 'paid': filtered = filtered.filter(u => u.current_plan !== 'free'); break;
-        case 'pro': filtered = filtered.filter(u => u.current_plan === 'pro'); break;
-        case 'enterprise': filtered = filtered.filter(u => u.current_plan === 'enterprise'); break;
+        case 'free': filtered = filtered.filter(u => u.currentPlan === 'free'); break;
+        case 'paid': filtered = filtered.filter(u => u.currentPlan !== 'free'); break;
+        case 'pro': filtered = filtered.filter(u => u.currentPlan === 'pro'); break;
+        case 'enterprise': filtered = filtered.filter(u => u.currentPlan === 'enterprise'); break;
       }
     }
-    if (statusFilter !== 'all') filtered = filtered.filter(u => u.subscription_status === statusFilter);
+    if (statusFilter !== 'all') filtered = filtered.filter(u => u.subscriptionStatus === statusFilter);
     setFilteredUsers(filtered);
     setCurrentPage(1);
   };
@@ -133,7 +132,7 @@ export function UserManagement() {
         body: JSON.stringify({ suspended: true, reason: 'Admin action' })
       });
       if (response.ok) {
-        setUsers(users.map(u => u.id === userId ? { ...u, subscription_status: 'suspended' } : u));
+        setUsers(users.map(u => u.id === userId ? { ...u, subscriptionStatus: 'suspended' } : u));
       }
     } catch { /* ignore */ }
   };
@@ -147,7 +146,7 @@ export function UserManagement() {
         body: JSON.stringify({ suspended: false, reason: 'Admin reactivation' })
       });
       if (response.ok) {
-        setUsers(users.map(u => u.id === userId ? { ...u, subscription_status: 'active' } : u));
+        setUsers(users.map(u => u.id === userId ? { ...u, subscriptionStatus: 'active' } : u));
       }
     } catch { /* ignore */ }
   };
@@ -159,10 +158,10 @@ export function UserManagement() {
         u.email,
         `${u.firstName || ''} ${u.lastName || ''}`.trim(),
         u.businessName || '',
-        u.current_plan,
-        u.subscription_status,
-        new Date(u.created_at).toLocaleDateString(),
-        u.last_login_at ? new Date(u.last_login_at).toLocaleDateString() : 'Never'
+        u.currentPlan,
+        u.subscriptionStatus,
+        new Date(u.createdAt).toLocaleDateString(),
+        u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString() : 'Never'
       ].join(','))
     ].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -330,22 +329,22 @@ export function UserManagement() {
                     </td>
                     <td className="px-5 py-4 text-sm text-slate-600">{user.businessName || '—'}</td>
                     <td className="px-5 py-4">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${getPlanBadge(user.current_plan)}`}>
-                        {user.current_plan === 'enterprise' && <Crown className="w-3 h-3" />}
-                        {user.current_plan === 'pro' && <Zap className="w-3 h-3" />}
-                        {user.current_plan.charAt(0).toUpperCase() + user.current_plan.slice(1)}
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${getPlanBadge(user.currentPlan)}`}>
+                        {user.currentPlan === 'enterprise' && <Crown className="w-3 h-3" />}
+                        {user.currentPlan === 'pro' && <Zap className="w-3 h-3" />}
+                        {user.currentPlan.charAt(0).toUpperCase() + user.currentPlan.slice(1)}
                       </span>
                     </td>
                     <td className="px-5 py-4">
-                      <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusBadge(user.subscription_status)}`}>
-                        {user.subscription_status}
+                      <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusBadge(user.subscriptionStatus)}`}>
+                        {user.subscriptionStatus}
                       </span>
                     </td>
                     <td className="px-5 py-4 text-sm text-slate-500">
-                      {new Date(user.created_at).toLocaleDateString()}
+                      {new Date(user.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-5 py-4 text-sm text-slate-500">
-                      {user.last_login_at ? new Date(user.last_login_at).toLocaleDateString() : 'Never'}
+                      {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Never'}
                     </td>
                     <td className="px-5 py-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
@@ -356,7 +355,7 @@ export function UserManagement() {
                         >
                           <Eye className="w-4 h-4" />
                         </button>
-                        {user.subscription_status === 'active' ? (
+                        {user.subscriptionStatus === 'active' ? (
                           <button
                             onClick={() => handleSuspendUser(user.id)}
                             className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-600 transition-colors"
@@ -458,10 +457,10 @@ function UserDetailModal({ user, onClose }: { user: User; onClose: () => void })
             {[
               { label: 'Business Name', value: user.businessName || 'Not set' },
               { label: 'Phone', value: user.phone || 'Not set' },
-              { label: 'Plan', value: user.current_plan.charAt(0).toUpperCase() + user.current_plan.slice(1) },
-              { label: 'Status', value: user.subscription_status.charAt(0).toUpperCase() + user.subscription_status.slice(1) },
+              { label: 'Plan', value: user.currentPlan.charAt(0).toUpperCase() + user.currentPlan.slice(1) },
+              { label: 'Status', value: user.subscriptionStatus.charAt(0).toUpperCase() + user.subscriptionStatus.slice(1) },
               { label: 'Email Verified', value: user.emailVerified ? 'Yes' : 'No' },
-              { label: 'Created', value: new Date(user.created_at).toLocaleDateString() }
+              { label: 'Created', value: new Date(user.createdAt).toLocaleDateString() }
             ].map(({ label, value }) => (
               <div key={label} className="bg-slate-50 rounded-xl p-3 border border-slate-100">
                 <p className="text-xs text-slate-500 font-medium mb-0.5">{label}</p>
