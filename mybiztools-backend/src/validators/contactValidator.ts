@@ -4,7 +4,7 @@ import Joi from 'joi';
 // CONTACT VALIDATORS
 // ============================================================================
 
-const VALID_TYPES = ['customer', 'supplier', 'partner', 'lead', 'other'];
+const VALID_TYPES = ['customer', 'supplier', 'partner', 'lead', 'other', 'VIP', 'Wholesale', 'Retail', 'Inactive'];
 
 const baseContactFields = {
   email: Joi.string().email().optional().messages({
