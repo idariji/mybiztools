@@ -57,7 +57,13 @@ export const PLAN_PRICING = {
 // Paystack API helpers
 // --------------------------------------------------------------------------
 
-async function paystackPost(path: string, body: object) {
+interface PaystackApiResponse {
+  status: boolean;
+  message: string;
+  data: any;
+}
+
+async function paystackPost(path: string, body: object): Promise<PaystackApiResponse> {
   const res = await fetch(`${PAYSTACK_BASE}${path}`, {
     method: 'POST',
     headers: {
@@ -66,14 +72,14 @@ async function paystackPost(path: string, body: object) {
     },
     body: JSON.stringify(body),
   });
-  return res.json();
+  return res.json() as Promise<PaystackApiResponse>;
 }
 
-async function paystackGet(path: string) {
+async function paystackGet(path: string): Promise<PaystackApiResponse> {
   const res = await fetch(`${PAYSTACK_BASE}${path}`, {
     headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` },
   });
-  return res.json();
+  return res.json() as Promise<PaystackApiResponse>;
 }
 
 // --------------------------------------------------------------------------
