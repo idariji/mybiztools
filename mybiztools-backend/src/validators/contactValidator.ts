@@ -28,10 +28,8 @@ const baseContactFields = {
     'string.uri': 'Website must be a valid URL',
   }),
   notes: Joi.string().trim().max(2000).optional(),
-  tags: Joi.alternatives().try(
-    Joi.array().items(Joi.string()),
-    Joi.string()
-  ).optional(),
+  tags: Joi.any().optional(),
+  lastContactedAt: Joi.string().optional().allow('', null),
 };
 
 export const createContactSchema = Joi.object({
