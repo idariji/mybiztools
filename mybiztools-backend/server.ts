@@ -5,6 +5,7 @@ validateEnv();
 
 import app from './src/app.js';
 import { env } from './src/config/env.js';
+import { startScheduler } from './src/lib/scheduler.js';
 
 // SERVER BOOTSTRAP
 const server = app.listen(env.port, env.host, () => {
@@ -12,6 +13,7 @@ const server = app.listen(env.port, env.host, () => {
   console.log(`Environment: ${env.nodeEnv}`);
   console.log('Docs: GET /api/docs');
   console.log('Health: GET /health');
+  startScheduler();
 });
 
 // GRACEFUL SHUTDOWN

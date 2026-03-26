@@ -68,6 +68,13 @@ export class DocumentController {
       return;
     }
 
+    // Cloudinary: redirect to signed URL
+    if (result.data.redirectUrl) {
+      res.redirect(302, result.data.redirectUrl);
+      return;
+    }
+
+    // Local: stream buffer
     res.setHeader('Content-Type', result.data.mimeType);
     res.setHeader('Content-Disposition', `attachment; filename="${result.data.filename}"`);
     res.send(result.data.buffer);

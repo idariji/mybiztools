@@ -29,7 +29,7 @@ const formatPayment = (p: any) => ({
   amount: Number(p.amount) / 100,
   currency: p.currency,
   status: p.status,
-  stripePaymentId: p.stripePaymentId,
+  paystackReference: p.paystackReference,
   billingPeriodStart: p.billingPeriodStart?.toISOString() ?? null,
   billingPeriodEnd: p.billingPeriodEnd?.toISOString() ?? null,
   failureReason: p.failureReason,

@@ -117,8 +117,9 @@ model Payment {
   currency           String    @default("NGN")
   status             String    // "succeeded" | "failed" | "pending" | "refunded"
 
-  stripePaymentId    String?   @unique
-  stripeInvoiceId    String?
+  paystackReference  String?   @unique
+  plan               String?   // "starter" | "pro" | "enterprise"
+  billingCycle       String?   // "monthly" | "yearly"
 
   billingPeriodStart DateTime?
   billingPeriodEnd   DateTime?
@@ -140,7 +141,7 @@ model Payment {
   @@index([userId])
   @@index([status])
   @@index([createdAt])
-  @@index([stripePaymentId])
+  @@index([paystackReference])
 }
 
 model RefundLog {
@@ -503,6 +504,7 @@ model Invoice {
   notes            String?
   terms            String?
   documentUrl      String?
+  documentData     Json?    // full frontend object stored for round-trip fidelity
 
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt

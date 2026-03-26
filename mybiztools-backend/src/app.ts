@@ -84,7 +84,16 @@ app.use(
 );
 
 // BODY PARSERS
-app.use(express.json({ limit: '50mb' }));
+// The verify callback captures the raw body Buffer on every request.
+// The Paystack webhook route reads req.rawBody for signature verification.
+app.use(
+  express.json({
+    limit: '50mb',
+    verify: (req: any, _res, buf) => {
+      req.rawBody = buf;
+    },
+  }),
+);
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // GLOBAL RATE LIMITER (fallback for unprotected routes)

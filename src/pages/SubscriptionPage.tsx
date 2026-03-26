@@ -305,7 +305,7 @@ export function SubscriptionPage() {
         {/* Footer note */}
         <p className="text-center text-sm text-slate-500 mt-8">
           All plans are billed in Nigerian Naira (₦). You can cancel or change your plan at any time.
-          Payments processed securely via Monipoint.
+          Payments processed securely via Paystack.
         </p>
       </div>
     </motion.div>

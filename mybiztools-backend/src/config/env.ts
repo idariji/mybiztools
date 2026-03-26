@@ -24,6 +24,14 @@ export const env = {
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
   adminUrl: process.env.ADMIN_URL || '',
 
+  // Paystack
+  paystackSecretKey: process.env.PAYSTACK_SECRET_KEY ?? '',
+
+  // Cloudinary (document storage)
+  cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME ?? '',
+  cloudinaryApiKey:    process.env.CLOUDINARY_API_KEY ?? '',
+  cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET ?? '',
+
   // OTP
   otpExpiresInMinutes: parseInt(process.env.OTP_EXPIRES_MINUTES || '10', 10),
 } as const;
@@ -46,6 +54,14 @@ export const validateEnv = (): void => {
 
   if (!env.resendApiKey) {
     warnings.push('RESEND_API_KEY is missing — emails will not be sent');
+  }
+
+  if (!env.paystackSecretKey) {
+    warnings.push('PAYSTACK_SECRET_KEY is missing — payments will not work');
+  }
+
+  if (!env.cloudinaryCloudName || !env.cloudinaryApiKey || !env.cloudinaryApiSecret) {
+    warnings.push('CLOUDINARY_* vars missing — uploads will fall back to local disk (not persistent on Render)');
   }
 
   if (warnings.length) {

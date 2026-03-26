@@ -531,13 +531,31 @@ import type { ServiceResponse } from '../types/index.js';
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY ?? '';
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
-const MODEL = 'claude-sonnet-4-20250514';
 
+// ── Cost-aware limits ────────────────────────────────────────────────────────
+// Pro  (₦4,500/mo ≈ $3):   Haiku model keeps COGS under $0.80/user/month
+// Ent  (₦12,000/mo ≈ $8):  Sonnet model for higher quality, still capped
+//
+// Rough cost check (Haiku: $0.25/MTok in, $1.25/MTok out):
+//   Pro  20 msg/day × 30 × 1500 out tokens = 900K tokens → ~$1.13/user/mo  ← acceptable
+//   Ent  50 msg/day × 30 × 3000 out tokens = 4.5M tokens → ~$5.63/user/mo  ← acceptable
+// ---------------------------------------------------------------------------
 const USAGE_LIMITS = {
-  free:       { messagesPerDay: 10,   tokensPerMessage: 1000 },
-  pro:        { messagesPerDay: 100,  tokensPerMessage: 4000 },
-  enterprise: { messagesPerDay: 1000, tokensPerMessage: 8000 },
+  pro: {
+    messagesPerDay:   20,
+    messagesPerMonth: 200,
+    tokensPerMessage: 1500,
+    model: 'claude-haiku-4-5-20251001', // cost-efficient for pro tier
+  },
+  enterprise: {
+    messagesPerDay:   50,
+    messagesPerMonth: 500,
+    tokensPerMessage: 3000,
+    model: 'claude-sonnet-4-6',         // higher quality for enterprise tier
+  },
 } as const;
+
+type Plan = keyof typeof USAGE_LIMITS;
 
 const SYSTEM_PROMPT = `You are DEDA, an AI business assistant for MyBizTools, a platform designed for African entrepreneurs.
 
@@ -615,25 +633,40 @@ export class DedaService {
       select: { currentPlan: true },
     }) as any;
 
-    const plan = (user?.currentPlan ?? 'free') as keyof typeof USAGE_LIMITS;
-    const limits = USAGE_LIMITS[plan] ?? USAGE_LIMITS.free;
+    const rawPlan = user?.currentPlan ?? 'free';
+    // Free users are blocked at the route level (requirePlan); this is a safety fallback
+    const plan: Plan = rawPlan in USAGE_LIMITS ? (rawPlan as Plan) : 'pro';
+    const limits = USAGE_LIMITS[plan];
 
-    // Daily usage check
+    // Daily + monthly usage check (run in parallel)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const todayMessages = await prisma.chatMessage.count({
-      where: {
-        conversation: { userId },
-        role: 'user',
-        createdAt: { gte: today },
-      },
-    });
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const [todayMessages, monthMessages] = await Promise.all([
+      prisma.chatMessage.count({
+        where: { conversation: { userId }, role: 'user', createdAt: { gte: today } },
+      }),
+      prisma.chatMessage.count({
+        where: { conversation: { userId }, role: 'user', createdAt: { gte: startOfMonth } },
+      }),
+    ]);
+
+    if (monthMessages >= limits.messagesPerMonth) {
+      return {
+        success: false,
+        message: `You've reached your monthly limit of ${limits.messagesPerMonth} messages. Your limit resets on the 1st of next month.`,
+        error: 'MONTHLY_LIMIT_REACHED',
+      };
+    }
 
     if (todayMessages >= limits.messagesPerDay) {
       return {
         success: false,
-        message: `You've reached your daily limit of ${limits.messagesPerDay} messages. Upgrade your plan for more.`,
+        message: `You've reached your daily limit of ${limits.messagesPerDay} messages. Come back tomorrow or upgrade your plan.`,
         error: 'DAILY_LIMIT_REACHED',
       };
     }
@@ -647,7 +680,7 @@ export class DedaService {
         include: {
           messages: {
             orderBy: { createdAt: 'desc' },
-            take: 10,
+            take: 6,
           },
         },
       });
@@ -683,7 +716,7 @@ export class DedaService {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: MODEL,
+        model: limits.model,
         max_tokens: limits.tokensPerMessage,
         system: context
           ? `${SYSTEM_PROMPT}\n\nAdditional context about the user's business:\n${context}`
@@ -898,7 +931,7 @@ export class DedaService {
     }) as any;
 
     const plan = (user?.currentPlan ?? 'free') as keyof typeof USAGE_LIMITS;
-    const limits = USAGE_LIMITS[plan] ?? USAGE_LIMITS.free;
+    const limits = USAGE_LIMITS[plan] ?? USAGE_LIMITS.pro;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);

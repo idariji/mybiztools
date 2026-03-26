@@ -789,41 +789,59 @@ export class InvoiceService {
     };
   }
 
+  // Normalise incoming data — frontend sends summary.total / invoiceDate,
+  // admin/API clients may send total / issueDate directly
+  private static normalise(data: any) {
+    const s = data.summary ?? {};
+    return {
+      subtotal:       data.subtotal       ?? s.subtotal       ?? 0,
+      taxAmount:      data.taxAmount      ?? (s.totalTax ?? 0) + (s.vat ?? 0),
+      discountAmount: data.discountAmount ?? s.totalDiscount   ?? 0,
+      total:          data.total          ?? s.total           ?? 0,
+      issueDate:      data.issueDate      ?? data.invoiceDate  ?? new Date(),
+      dueDate:        data.dueDate        ?? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    };
+  }
+
   static async create(userId: string, data: any): Promise<ServiceResponse> {
+    const norm = InvoiceService.normalise(data);
+
     const invoice = await prisma.invoice.create({
       data: {
         userId,
         contactId: data.contactId,
         invoiceNumber: data.invoiceNumber || genNumber('INV'),
-        subtotal: toKobo(data.subtotal),
-        taxAmount: toKobo(data.taxAmount),
-        discountAmount: toKobo(data.discountAmount),
-        total: toKobo(data.total),
-        currency: data.currency ?? 'NGN',
-        status: data.status ?? 'draft',
-        issueDate: new Date(data.issueDate || Date.now()),
-        dueDate: new Date(data.dueDate || Date.now()),
-        paymentMethod: data.paymentMethod,
+        subtotal:        toKobo(norm.subtotal),
+        taxAmount:       toKobo(norm.taxAmount),
+        discountAmount:  toKobo(norm.discountAmount),
+        total:           toKobo(norm.total),
+        currency:        data.currency ?? 'NGN',
+        status:          data.status   ?? 'draft',
+        issueDate:       new Date(norm.issueDate),
+        dueDate:         new Date(norm.dueDate),
+        paymentMethod:   data.paymentMethod,
         paymentReference: data.paymentReference,
-        notes: data.notes,
-        terms: data.terms,
-        documentUrl: data.documentUrl,
+        notes:           data.notes,
+        terms:           data.terms,
+        documentUrl:     data.documentUrl,
+        documentData:    data, // store full frontend object for round-trip fidelity
         items: {
           create: (data.items || []).map((item: any) => ({
-            description: item.description,
-            quantity: item.quantity ?? 1,
-            unitPrice: toKobo(item.unitPrice),
-            amount: toKobo(item.amount),
+            description: item.description ?? '',
+            quantity:    item.quantity    ?? 1,
+            unitPrice:   toKobo(item.unitPrice),
+            amount:      toKobo(item.amount),
           })),
         },
       },
       include: { items: true, contact: { select: { name: true, email: true } } },
     });
 
+    // Return the original frontend object with the new DB id attached
     return {
       success: true,
       message: 'Invoice created successfully',
-      data: { invoice: this.format(invoice) },
+      data: { invoice: { ...data, id: invoice.id } },
     };
   }
 
@@ -847,11 +865,16 @@ export class InvoiceService {
       prisma.invoice.count({ where }),
     ]);
 
+    // Return documentData (frontend format) when available, otherwise formatted DB fields
+    const mapped = (invoices as any[]).map((i) =>
+      i.documentData ? { ...(i.documentData as any), id: i.id } : this.format(i)
+    );
+
     return {
       success: true,
       message: 'Invoices retrieved successfully',
       data: {
-        invoices: (invoices as any[]).map((i) => this.format(i)),
+        invoices: mapped,
         pagination: { current: page, limit, total, pages: Math.ceil(total / limit) },
       },
     };
@@ -867,7 +890,10 @@ export class InvoiceService {
       return { success: false, message: 'Invoice not found', error: 'NOT_FOUND' };
     }
 
-    return { success: true, message: 'Invoice retrieved successfully', data: { invoice: this.format(invoice) } };
+    const result = (invoice as any).documentData
+      ? { ...(invoice as any).documentData, id: invoice.id }
+      : this.format(invoice);
+    return { success: true, message: 'Invoice retrieved successfully', data: { invoice: result } };
   }
 
   static async update(userId: string, invoiceId: string, data: any): Promise<ServiceResponse> {
@@ -876,36 +902,38 @@ export class InvoiceService {
       return { success: false, message: 'Invoice not found', error: 'NOT_FOUND' };
     }
 
+    const norm = InvoiceService.normalise(data);
+
     if (data.items) {
       await prisma.invoiceItem.deleteMany({ where: { invoiceId } });
     }
 
-    const invoice = await prisma.invoice.update({
+    await prisma.invoice.update({
       where: { id: invoiceId },
       data: {
-        subtotal: data.subtotal ? toKobo(data.subtotal) : undefined,
-        taxAmount: data.taxAmount ? toKobo(data.taxAmount) : undefined,
-        discountAmount: data.discountAmount ? toKobo(data.discountAmount) : undefined,
-        total: data.total ? toKobo(data.total) : undefined,
-        status: data.status,
-        dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
-        paidDate: data.paidDate ? new Date(data.paidDate) : undefined,
-        paymentMethod: data.paymentMethod,
-        notes: data.notes,
-        terms: data.terms,
+        subtotal:        norm.subtotal       ? toKobo(norm.subtotal)       : undefined,
+        taxAmount:       norm.taxAmount      ? toKobo(norm.taxAmount)      : undefined,
+        discountAmount:  norm.discountAmount ? toKobo(norm.discountAmount) : undefined,
+        total:           norm.total          ? toKobo(norm.total)          : undefined,
+        status:          data.status,
+        dueDate:         data.dueDate  ? new Date(data.dueDate)  : undefined,
+        paidDate:        data.paidDate ? new Date(data.paidDate) : undefined,
+        paymentMethod:   data.paymentMethod,
+        notes:           data.notes,
+        terms:           data.terms,
+        documentData:    data,
         items: data.items ? {
           create: data.items.map((item: any) => ({
-            description: item.description,
-            quantity: item.quantity ?? 1,
-            unitPrice: toKobo(item.unitPrice),
-            amount: toKobo(item.amount),
+            description: item.description ?? '',
+            quantity:    item.quantity    ?? 1,
+            unitPrice:   toKobo(item.unitPrice),
+            amount:      toKobo(item.amount),
           })),
         } : undefined,
       },
-      include: { items: true },
     });
 
-    return { success: true, message: 'Invoice updated successfully', data: { invoice: this.format(invoice) } };
+    return { success: true, message: 'Invoice updated successfully', data: { invoice: { ...data, id: invoiceId } } };
   }
 
   static async delete(userId: string, invoiceId: string): Promise<ServiceResponse> {

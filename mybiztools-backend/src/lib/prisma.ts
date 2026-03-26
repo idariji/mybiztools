@@ -76,7 +76,21 @@ declare global {
 }
 
 const createPrismaClient = () => {
-  const pool = new pg.Pool({ connectionString: env.databaseUrl });
+  // Connection pool limits
+  // Render free Postgres allows max 25 connections.
+  // Keep max low so multiple deploys / migrations don't exhaust the limit.
+  // Phase 2 (1K–50K users): move to PgBouncer or Neon's pooled connection string.
+  const pool = new pg.Pool({
+    connectionString:      env.databaseUrl,
+    max:                   5,     // max open connections per process
+    idleTimeoutMillis:     30_000, // release idle connection after 30 s
+    connectionTimeoutMillis: 5_000, // fail fast if pool is exhausted
+  });
+
+  pool.on('error', (err) => {
+    console.error('[PG Pool] Unexpected client error:', err.message);
+  });
+
   const adapter = new PrismaPg(pool);
   return new PrismaClient({
     adapter,

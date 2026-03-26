@@ -383,6 +383,7 @@ import prisma from '../lib/prisma.js';
 import { EmailNotificationService } from './emailNotificationService.js';
 import { SmsService } from './smsService.js';
 import type { ServiceResponse } from '../types/index.js';
+import { fire } from '../lib/fire.js';
 
 // ============================================================================
 // SUPPORT TICKET SERVICE
@@ -539,25 +540,21 @@ export class SupportService {
       },
     });
 
-    // Send confirmation email — best effort, don't fail ticket creation
-    try {
-      await EmailNotificationService.sendEmail({
-        to: data.customerEmail,
-        subject: `Support Ticket Created — ${ticketNumber}`,
-        html: `
-          <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:32px;">
-            <h2>Your support request has been received</h2>
-            <p>Dear ${data.customerName},</p>
-            <p>We have received your request and created ticket <strong>${ticketNumber}</strong>.</p>
-            <p><strong>Subject:</strong> ${data.subject}</p>
-            <p>Our support team will respond as soon as possible.</p>
-            <p>Thank you for contacting MyBizTools Support.</p>
-          </div>
-        `,
-      });
-    } catch (emailError) {
-      console.error('[SupportService] Failed to send confirmation email:', emailError);
-    }
+    // Send confirmation email — fire-and-forget, don't block ticket creation response
+    fire(() => EmailNotificationService.sendEmail({
+      to: data.customerEmail,
+      subject: `Support Ticket Created — ${ticketNumber}`,
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:32px;">
+          <h2>Your support request has been received</h2>
+          <p>Dear ${data.customerName},</p>
+          <p>We have received your request and created ticket <strong>${ticketNumber}</strong>.</p>
+          <p><strong>Subject:</strong> ${data.subject}</p>
+          <p>Our support team will respond as soon as possible.</p>
+          <p>Thank you for contacting MyBizTools Support.</p>
+        </div>
+      `,
+    }), 'support-ticket-confirmation');
 
     return {
       success: true,

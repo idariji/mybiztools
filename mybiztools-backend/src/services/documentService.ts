@@ -474,12 +474,60 @@ import prisma from '../lib/prisma.js';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs/promises';
 import path from 'path';
+import { v2 as cloudinary } from 'cloudinary';
+import type { UploadApiResponse } from 'cloudinary';
 import type { ServiceResponse } from '../types/index.js';
 
 // ============================================================================
 // DOCUMENT SERVICE
 // ============================================================================
 
+// ── Cloudinary configuration ─────────────────────────────────────────────────
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+  secure: true,
+});
+
+const CLOUDINARY_ENABLED = !!(
+  process.env.CLOUDINARY_CLOUD_NAME &&
+  process.env.CLOUDINARY_API_KEY &&
+  process.env.CLOUDINARY_API_SECRET
+);
+
+// Map MIME type to Cloudinary resource type
+const cloudinaryResourceType = (mimeType: string): 'image' | 'raw' =>
+  mimeType.startsWith('image/') ? 'image' : 'raw';
+
+// Wrap upload_stream in a Promise
+const uploadToCloudinary = (
+  buffer: Buffer,
+  publicId: string,
+  resourceType: 'image' | 'raw'
+): Promise<UploadApiResponse> =>
+  new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { public_id: publicId, resource_type: resourceType },
+      (err, result) => {
+        if (err || !result) return reject(err ?? new Error('Cloudinary upload failed'));
+        resolve(result);
+      }
+    );
+    stream.end(buffer);
+  });
+
+// storagePath format for Cloudinary: "{resourceType}/{publicId}"
+// e.g. "raw/mybiztools/userId/uuid"  or  "image/mybiztools/userId/uuid"
+const parseCloudinaryPath = (storagePath: string): { resourceType: string; publicId: string } => {
+  const slashIdx = storagePath.indexOf('/');
+  return {
+    resourceType: storagePath.substring(0, slashIdx),
+    publicId:     storagePath.substring(slashIdx + 1),
+  };
+};
+
+// ── Local-disk fallback ───────────────────────────────────────────────────────
 const UPLOAD_DIR = process.env.UPLOAD_DIR || './uploads';
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -535,8 +583,12 @@ export class DocumentService {
   // --------------------------------------------------------------------------
 
   static async initializeStorage(): Promise<void> {
-    await fs.mkdir(UPLOAD_DIR, { recursive: true });
-    console.log(`📁 Upload directory ready: ${UPLOAD_DIR}`);
+    if (CLOUDINARY_ENABLED) {
+      console.log('[DocumentService] Storage: Cloudinary');
+    } else {
+      await fs.mkdir(UPLOAD_DIR, { recursive: true });
+      console.log(`[DocumentService] Storage: local disk (${UPLOAD_DIR})`);
+    }
   }
 
   // --------------------------------------------------------------------------
@@ -560,14 +612,24 @@ export class DocumentService {
       };
     }
 
-    const userDir = path.join(UPLOAD_DIR, input.userId);
-    await fs.mkdir(userDir, { recursive: true });
+    let storagePath: string;
+    let storageType: string;
 
-    const ext = path.extname(input.originalName);
-    const filename = `${uuidv4()}${ext}`;
-    const storagePath = path.join(userDir, filename);
-
-    await fs.writeFile(storagePath, input.buffer);
+    if (CLOUDINARY_ENABLED) {
+      const resourceType = cloudinaryResourceType(input.mimeType);
+      const publicId = `mybiztools/${input.userId}/${uuidv4()}`;
+      const result = await uploadToCloudinary(input.buffer, publicId, resourceType);
+      storagePath = `${resourceType}/${result.public_id}`;
+      storageType = 'cloudinary';
+    } else {
+      const userDir = path.join(UPLOAD_DIR, input.userId);
+      await fs.mkdir(userDir, { recursive: true });
+      const ext = path.extname(input.originalName);
+      const filename = `${uuidv4()}${ext}`;
+      storagePath = path.join(userDir, filename);
+      await fs.writeFile(storagePath, input.buffer);
+      storageType = 'local';
+    }
 
     const document = await prisma.document.create({
       data: {
@@ -577,7 +639,7 @@ export class DocumentService {
         mimeType: input.mimeType,
         size: BigInt(input.size),
         storagePath,
-        storageType: 'local',
+        storageType,
         category: input.category ?? 'other',
         tags: input.tags ?? [],
         description: input.description,
@@ -677,7 +739,7 @@ export class DocumentService {
   static async downloadDocument(
     userId: string,
     documentId: string
-  ): Promise<ServiceResponse<{ buffer: Buffer; filename: string; mimeType: string }>> {
+  ): Promise<ServiceResponse<{ buffer?: Buffer; redirectUrl?: string; filename: string; mimeType: string }>> {
     const document = await prisma.document.findFirst({
       where: { id: documentId, userId },
     }) as any;
@@ -686,24 +748,32 @@ export class DocumentService {
       return { success: false, message: 'Document not found', error: 'DOCUMENT_NOT_FOUND' };
     }
 
-    const buffer = await fs.readFile(document.storagePath);
-
     await prisma.document.update({
       where: { id: documentId },
-      data: {
-        downloadCount: { increment: 1 },
-        lastAccessedAt: new Date(),
-      },
+      data: { downloadCount: { increment: 1 }, lastAccessedAt: new Date() },
     });
 
+    if (document.storageType === 'cloudinary') {
+      const { resourceType, publicId } = parseCloudinaryPath(document.storagePath);
+      // Generate a stable Cloudinary URL (public_id is UUID-based — security via obscurity)
+      const url = cloudinary.url(publicId, {
+        resource_type: resourceType as any,
+        secure: true,
+        flags: 'attachment',
+      });
+      return {
+        success: true,
+        message: 'Document ready for download',
+        data: { redirectUrl: url, filename: document.originalName, mimeType: document.mimeType },
+      };
+    }
+
+    // Local fallback
+    const buffer = await fs.readFile(document.storagePath);
     return {
       success: true,
       message: 'Document ready for download',
-      data: {
-        buffer,
-        filename: document.originalName,
-        mimeType: document.mimeType,
-      },
+      data: { buffer, filename: document.originalName, mimeType: document.mimeType },
     };
   }
 
@@ -754,11 +824,16 @@ export class DocumentService {
       return { success: false, message: 'Document not found', error: 'DOCUMENT_NOT_FOUND' };
     }
 
-    // Best-effort file deletion — don't fail if file is already gone
+    // Best-effort file deletion — don't fail the response if storage delete fails
     try {
-      await fs.unlink(document.storagePath);
+      if (document.storageType === 'cloudinary') {
+        const { resourceType, publicId } = parseCloudinaryPath(document.storagePath);
+        await cloudinary.uploader.destroy(publicId, { resource_type: resourceType as any });
+      } else {
+        await fs.unlink(document.storagePath);
+      }
     } catch {
-      console.warn(`[DocumentService] File not found on disk: ${document.storagePath}`);
+      console.warn(`[DocumentService] Could not delete file: ${document.storagePath}`);
     }
 
     await prisma.document.delete({ where: { id: documentId } });
