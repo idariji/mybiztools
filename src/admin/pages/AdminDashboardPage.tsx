@@ -3,8 +3,7 @@
  * Entry point for all admin operations
  */
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   BarChart3,
@@ -23,7 +22,7 @@ import {
   Shield,
   Activity
 } from 'lucide-react';
-import { authService } from '../../services/authService';
+import { useAdminAuth } from '../../../admin-portal/src/contexts/AdminAuthContext';
 import { DashboardOverview } from '../components/DashboardOverview';
 import { UserBillingManager } from '../components/UserBillingManager';
 import { UserManagement } from '../components/UserManagement';
@@ -34,32 +33,17 @@ import { CustomerSupport } from '../components/CustomerSupport';
 type AdminTab = 'overview' | 'users' | 'user-management' | 'payments' | 'support' | 'abuse' | 'settings';
 
 export function AdminDashboardPage() {
-  const navigate = useNavigate();
+  const { admin, logout } = useAdminAuth();
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [user, setUser] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const currentUser = authService.getCurrentUser();
-    if (!currentUser) {
-      navigate('/admin/login');
-      return;
-    }
-    setUser(currentUser);
-    setIsLoading(false);
-  }, [navigate]);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-slate-900 to-slate-800">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-[#FF8A2B]/30 border-t-[#FF8A2B] rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-white/70 text-sm">Loading Admin Panel...</p>
-        </div>
-      </div>
-    );
-  }
+  // Map admin user to expected shape
+  const user = admin ? {
+    firstName: admin.firstName,
+    lastName: admin.lastName,
+    email: admin.email,
+    role: admin.role,
+  } : null;
 
   const navItems: { id: AdminTab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
@@ -83,6 +67,7 @@ export function AdminDashboardPage() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
         user={user}
+        onSignOut={logout}
       />
 
       {/* Main Content */}
@@ -149,6 +134,7 @@ interface AdminSidebarProps {
   activeTab: AdminTab;
   onTabChange: (tab: AdminTab) => void;
   user: any;
+  onSignOut: () => void;
 }
 
 function AdminSidebar({
@@ -157,11 +143,10 @@ function AdminSidebar({
   navItems,
   activeTab,
   onTabChange,
-  user
+  user,
+  onSignOut
 }: AdminSidebarProps) {
-  const handleSignOut = () => {
-    authService.logout();
-  };
+  const handleSignOut = onSignOut;
 
   const initials = user
     ? `${(user.firstName || '')[0] || ''}${(user.lastName || '')[0] || ''}`.toUpperCase() || 'A'
