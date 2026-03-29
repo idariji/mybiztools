@@ -63,9 +63,10 @@ export class AdminService {
     }
 
     // Best-effort lastLoginAt update — don't fail login if this errors
-    prisma.admin.update({ where: { id: admin.id }, data: { lastLoginAt: new Date() } }).catch(
-      (err) => console.warn('[Admin] lastLoginAt update failed:', err?.message)
-    );
+    prisma.admin.update({
+      where: { id: admin.id },
+      data: { lastLoginAt: new Date(), updatedAt: new Date() },
+    }).catch((err) => console.warn('[Admin] lastLoginAt update failed:', err?.message));
 
     const token = AuthService.generateToken(admin.id, admin.email);
 
@@ -86,13 +87,31 @@ export class AdminService {
   static async bootstrap(input: CreateAdminInput): Promise<ServiceResponse> {
     const count = await prisma.admin.count();
     if (count > 0) {
-      return { success: false, message: 'An admin already exists. Use /api/admin/create instead.', error: 'ADMIN_EXISTS' };
+      return {
+        success: false,
+        message: 'An admin already exists. Use /api/admin/create instead.',
+        error: 'ADMIN_EXISTS',
+      };
     }
+
     const hashedPassword = await bcrypt.hash(input.password, 12);
+    const now = new Date();
+
     const admin = await prisma.admin.create({
-      data: { email: input.email.toLowerCase(), password: hashedPassword, name: input.name, role: 'super_admin' },
+      data: {
+        email: input.email.toLowerCase(),
+        password: hashedPassword,
+        name: input.name,
+        role: 'super_admin',
+        updatedAt: now,
+      },
     });
-    return { success: true, message: 'First super_admin created', data: { admin: { id: admin.id, email: admin.email, name: admin.name, role: admin.role } } };
+
+    return {
+      success: true,
+      message: 'First super_admin created',
+      data: { admin: { id: admin.id, email: admin.email, name: admin.name, role: admin.role } },
+    };
   }
 
   // --------------------------------------------------------------------------
@@ -109,6 +128,7 @@ export class AdminService {
     }
 
     const hashedPassword = await bcrypt.hash(input.password, 12);
+    const now = new Date();
 
     const admin = await prisma.admin.create({
       data: {
@@ -116,6 +136,7 @@ export class AdminService {
         password: hashedPassword,
         name: input.name,
         role: input.role ?? 'viewer',
+        updatedAt: now,
       },
     });
 
@@ -146,8 +167,8 @@ export class AdminService {
       ];
     }
 
-    if (filters.plan)   where.currentPlan         = filters.plan;
-    if (filters.status) where.subscriptionStatus  = filters.status;
+    if (filters.plan)   where.currentPlan        = filters.plan;
+    if (filters.status) where.subscriptionStatus = filters.status;
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({

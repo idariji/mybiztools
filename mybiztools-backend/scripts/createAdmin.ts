@@ -2,23 +2,23 @@ import bcrypt from 'bcryptjs';
 import prisma from '../src/lib/prisma.js';
 
 async function createAdmin() {
-  const hashedPassword = await bcrypt.hash('Admin123!', 10);
+  const hashedPassword = await bcrypt.hash('MyBizSetup2024!', 10);
 
   const admin = await prisma.admin.upsert({
-    where: { email: 'admin@mybiztools.ng' },
+    where: { email: 'demo@mybiztools.ng' },
     update: {},
     create: {
-      email: 'admin@mybiztools.ng',
+      email: 'demo@mybiztools.ng',
       password: hashedPassword,
-      name: 'Super Admin',
+      name: 'Admin',
       role: 'super_admin',
-      isActive: true
+      isActive: true,
     }
   });
 
   console.log('Admin created successfully!');
   console.log('Email:', admin.email);
-  console.log('Password: Admin123!');
+  console.log('Password: MyBizSetup2024!');
   console.log('Role:', admin.role);
 
   await prisma.$disconnect();

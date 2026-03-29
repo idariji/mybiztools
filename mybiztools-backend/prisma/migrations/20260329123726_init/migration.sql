@@ -58,8 +58,9 @@ CREATE TABLE "Payment" (
     "amount" BIGINT NOT NULL,
     "currency" TEXT NOT NULL DEFAULT 'NGN',
     "status" TEXT NOT NULL,
-    "stripePaymentId" TEXT,
-    "stripeInvoiceId" TEXT,
+    "paystackReference" TEXT,
+    "plan" TEXT,
+    "billingCycle" TEXT,
     "billingPeriodStart" TIMESTAMP(3),
     "billingPeriodEnd" TIMESTAMP(3),
     "failureReason" TEXT,
@@ -205,10 +206,10 @@ CREATE TABLE "Admin" (
     "password" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "role" TEXT NOT NULL DEFAULT 'viewer',
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-    "lastLoginAt" TIMESTAMP(3),
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    "last_login_at" TIMESTAMP(3),
 
     CONSTRAINT "Admin_pkey" PRIMARY KEY ("id")
 );
@@ -327,6 +328,7 @@ CREATE TABLE "Invoice" (
     "notes" TEXT,
     "terms" TEXT,
     "documentUrl" TEXT,
+    "documentData" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -545,6 +547,39 @@ CREATE TABLE "SupportTicketResponse" (
     CONSTRAINT "SupportTicketResponse_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "Product" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "sku" TEXT NOT NULL,
+    "category" TEXT NOT NULL DEFAULT 'Other',
+    "quantity" INTEGER NOT NULL DEFAULT 0,
+    "unitCost" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "sellingPrice" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "lowStockThreshold" INTEGER NOT NULL DEFAULT 5,
+    "supplier" TEXT,
+    "description" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Product_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "StockMovement" (
+    "id" TEXT NOT NULL,
+    "productId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "quantity" INTEGER NOT NULL,
+    "reason" TEXT NOT NULL,
+    "notes" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "StockMovement_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
@@ -553,6 +588,9 @@ CREATE UNIQUE INDEX "User_verificationToken_key" ON "User"("verificationToken");
 
 -- CreateIndex
 CREATE INDEX "User_email_idx" ON "User"("email");
+
+-- CreateIndex
+CREATE INDEX "User_createdAt_idx" ON "User"("createdAt");
 
 -- CreateIndex
 CREATE INDEX "User_subscriptionStatus_idx" ON "User"("subscriptionStatus");
@@ -579,7 +617,7 @@ CREATE INDEX "Subscription_status_idx" ON "Subscription"("status");
 CREATE INDEX "Subscription_currentPeriodEnd_idx" ON "Subscription"("currentPeriodEnd");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Payment_stripePaymentId_key" ON "Payment"("stripePaymentId");
+CREATE UNIQUE INDEX "Payment_paystackReference_key" ON "Payment"("paystackReference");
 
 -- CreateIndex
 CREATE INDEX "Payment_userId_idx" ON "Payment"("userId");
@@ -591,7 +629,7 @@ CREATE INDEX "Payment_status_idx" ON "Payment"("status");
 CREATE INDEX "Payment_createdAt_idx" ON "Payment"("createdAt");
 
 -- CreateIndex
-CREATE INDEX "Payment_stripePaymentId_idx" ON "Payment"("stripePaymentId");
+CREATE INDEX "Payment_paystackReference_idx" ON "Payment"("paystackReference");
 
 -- CreateIndex
 CREATE INDEX "RefundLog_paymentId_idx" ON "RefundLog"("paymentId");
@@ -694,6 +732,9 @@ CREATE INDEX "Expense_status_idx" ON "Expense"("status");
 
 -- CreateIndex
 CREATE INDEX "Contact_userId_idx" ON "Contact"("userId");
+
+-- CreateIndex
+CREATE INDEX "Contact_userId_email_idx" ON "Contact"("userId", "email");
 
 -- CreateIndex
 CREATE INDEX "Contact_type_idx" ON "Contact"("type");
@@ -806,6 +847,21 @@ CREATE INDEX "SupportTicketResponse_ticketId_idx" ON "SupportTicketResponse"("ti
 -- CreateIndex
 CREATE INDEX "SupportTicketResponse_senderType_idx" ON "SupportTicketResponse"("senderType");
 
+-- CreateIndex
+CREATE INDEX "Product_userId_idx" ON "Product"("userId");
+
+-- CreateIndex
+CREATE INDEX "Product_category_idx" ON "Product"("category");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Product_userId_sku_key" ON "Product"("userId", "sku");
+
+-- CreateIndex
+CREATE INDEX "StockMovement_productId_idx" ON "StockMovement"("productId");
+
+-- CreateIndex
+CREATE INDEX "StockMovement_userId_idx" ON "StockMovement"("userId");
+
 -- AddForeignKey
 ALTER TABLE "Subscription" ADD CONSTRAINT "Subscription_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -831,6 +887,9 @@ ALTER TABLE "AbuseReport" ADD CONSTRAINT "AbuseReport_userId_fkey" FOREIGN KEY (
 ALTER TABLE "AdminAuditLog" ADD CONSTRAINT "AdminAuditLog_targetUserId_fkey" FOREIGN KEY ("targetUserId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Document" ADD CONSTRAINT "Document_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Expense" ADD CONSTRAINT "Expense_budgetId_fkey" FOREIGN KEY ("budgetId") REFERENCES "Budget"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -850,3 +909,9 @@ ALTER TABLE "ChatMessage" ADD CONSTRAINT "ChatMessage_conversationId_fkey" FOREI
 
 -- AddForeignKey
 ALTER TABLE "SupportTicketResponse" ADD CONSTRAINT "SupportTicketResponse_ticketId_fkey" FOREIGN KEY ("ticketId") REFERENCES "SupportTicket"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Product" ADD CONSTRAINT "Product_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "StockMovement" ADD CONSTRAINT "StockMovement_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
