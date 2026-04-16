@@ -80,7 +80,9 @@ export function PayslipPreview({ payslip, showWatermark, id = 'payslip-preview' 
         {/* Footer */}
         <div className="mt-6 pt-4 border-t border-gray-200 text-center">
           <p className="text-xs text-gray-500">Payment Date: {new Date(payslip.paymentDate).toLocaleDateString()}</p>
-          <p className="text-xs text-gray-500 mt-1">Bank Account: {payslip.employeeInfo.bankAccount}</p>
+          {payslip.employeeInfo.bankName && <p className="text-xs text-gray-500 mt-1">Bank: {payslip.employeeInfo.bankName}</p>}
+          {payslip.employeeInfo.accountName && <p className="text-xs text-gray-500">Account Name: {payslip.employeeInfo.accountName}</p>}
+          <p className="text-xs text-gray-500">Account No: {payslip.employeeInfo.bankAccount}</p>
           <p className="text-xs text-gray-400 mt-3">This is a computer-generated payslip</p>
         </div>
       </div>

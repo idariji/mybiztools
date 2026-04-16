@@ -3,10 +3,12 @@ import { Save, User, Mail, Building, Phone, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { authService } from '../services/authService';
 import { useToast } from '../utils/useToast';
+import { ToastContainer } from '../components/ui/Toast';
 
 export const ProfilePage: React.FC = () => {
-  const { addToast } = useToast();
+  const { toasts, addToast, removeToast } = useToast();
   const [user, setUser] = useState<any>(null);
+  const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -37,14 +39,26 @@ export const ProfilePage: React.FC = () => {
     setFormData({ ...formData, [field]: value });
   };
 
-  const handleSave = () => {
-    const updatedUser = { ...user, ...formData };
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-    setUser(updatedUser);
-    addToast('Profile updated successfully!', 'success');
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const result = await authService.updateProfile(formData);
+      if (result.success) {
+        setUser(result.data?.user ?? { ...user, ...formData });
+        addToast('Profile updated successfully!', 'success');
+      } else {
+        addToast(result.message || 'Failed to update profile', 'error');
+      }
+    } catch {
+      addToast('Could not reach server. Changes not saved.', 'error');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
+    <>
+    <ToastContainer toasts={toasts} removeToast={removeToast} />
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -172,15 +186,17 @@ export const ProfilePage: React.FC = () => {
 
               <button
                 onClick={handleSave}
-                className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] hover:from-[#FF6B00] hover:to-[#E55A00] text-white rounded-xl font-semibold shadow-lg shadow-orange-500/30 hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2"
+                disabled={saving}
+                className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] hover:from-[#FF6B00] hover:to-[#E55A00] text-white rounded-xl font-semibold shadow-lg shadow-orange-500/30 hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60"
               >
                 <Save size={20} />
-                Save Changes
+                {saving ? 'Saving…' : 'Save Changes'}
               </button>
             </div>
           </div>
         </div>
       </div>
     </motion.div>
+    </>
   );
 };

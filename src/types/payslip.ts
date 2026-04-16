@@ -35,6 +35,8 @@ export interface Payslip {
     position: string;
     email: string;
     bankAccount: string;
+    bankName: string;
+    accountName: string;
   };
   earnings: Earnings;
   deductions: Deductions;

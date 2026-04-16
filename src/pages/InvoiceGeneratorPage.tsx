@@ -217,9 +217,11 @@ export function InvoiceGeneratorPage() {
         }
         
         await sendInvoiceEmail(invoice, message, pdfBlob);
+        setShowSendModal(false);
         addToast(`Invoice sent to ${invoice.clientInfo.email}`, 'success');
       } else {
         sendInvoiceWhatsApp(invoice, message);
+        setShowSendModal(false);
         addToast('Opening WhatsApp...', 'success');
       }
     } catch (error) {

@@ -21,7 +21,7 @@ export function PayslipGeneratorPage() {
     month: new Date().toLocaleString('default', { month: 'long' }),
     year: new Date().getFullYear(),
     employerInfo: { name: '', address: '', email: '', phone: '' },
-    employeeInfo: { name: '', employeeId: '', department: '', position: '', email: '', bankAccount: '' },
+    employeeInfo: { name: '', employeeId: '', department: '', position: '', email: '', bankAccount: '', bankName: '', accountName: '' },
     earnings: { basicSalary: 0, housing: 0, transport: 0, bonus: 0, overtime: 0, other: 0 },
     deductions: { paye: 0, pension: 0, nhf: 0, loans: 0, other: 0 },
     summary: { grossPay: 0, totalDeductions: 0, netPay: 0 },

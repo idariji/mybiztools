@@ -17,6 +17,10 @@ export function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [retryIn, setRetryIn] = useState(0);
+  const [showOtp, setShowOtp] = useState(false);
+  const [signupEmail, setSignupEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [otpLoading, setOtpLoading] = useState(false);
 
   // Auto-switch to signup tab if ?signup=true in URL
   useEffect(() => {
@@ -104,10 +108,12 @@ export function LoginPage() {
         if (response.success) {
           if (isLogin) {
             addToast('Welcome back!', 'success');
+            setTimeout(() => navigate('/dashboard'), 1500);
           } else {
-            addToast(`Welcome, ${formData.firstName}! Your account has been created.`, 'success');
+            setSignupEmail(formData.email);
+            setShowOtp(true);
+            addToast(`A 6-digit code was sent to ${formData.email}`, 'info');
           }
-          setTimeout(() => navigate('/dashboard'), 1500);
         } else {
           addToast(response.message, 'error');
         }
@@ -115,6 +121,44 @@ export function LoginPage() {
         setLoading(false);
         setRetryIn(0);
       }
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otp.length !== 6) { addToast('Enter the 6-digit code', 'error'); return; }
+    setOtpLoading(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: signupEmail, otp }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        addToast('Email verified! Welcome to MyBizTools.', 'success');
+        setTimeout(() => navigate('/dashboard'), 1500);
+      } else {
+        addToast(data.message || 'Invalid or expired code', 'error');
+      }
+    } catch {
+      addToast('Could not reach server. Try again.', 'error');
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/auth/resend-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: signupEmail }),
+      });
+      const data = await res.json();
+      addToast(data.success ? 'New code sent!' : (data.message || 'Failed to resend'), data.success ? 'success' : 'error');
+    } catch {
+      addToast('Could not reach server.', 'error');
     }
   };
 
@@ -184,6 +228,42 @@ export function LoginPage() {
           className="w-full max-w-md mt-16 sm:mt-0"
         >
           <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-6 sm:p-8 border border-white/20">
+            {/* OTP Verification Screen */}
+            {showOtp ? (
+              <div>
+                <div className="text-center mb-6">
+                  <div className="w-14 h-14 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-3">
+                    <Mail className="w-7 h-7 text-[#FF8A2B]" />
+                  </div>
+                  <h2 className="text-xl font-bold text-[#1e3a8a]">Verify your email</h2>
+                  <p className="text-sm text-slate-500 mt-1">We sent a 6-digit code to <strong>{signupEmail}</strong></p>
+                </div>
+                <form onSubmit={handleVerifyOtp}>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                    placeholder="000000"
+                    className="w-full text-center text-3xl font-bold tracking-[0.5em] px-4 py-4 border-2 border-slate-200 rounded-xl focus:border-[#FF8A2B] focus:outline-none mb-4"
+                  />
+                  <button
+                    type="submit"
+                    disabled={otpLoading}
+                    className="w-full bg-gradient-to-r from-[#1e3a8a] to-[#1e40af] text-white font-bold py-4 rounded-xl shadow-lg mb-3"
+                  >
+                    {otpLoading ? 'Verifying…' : 'Verify Email'}
+                  </button>
+                </form>
+                <div className="text-center">
+                  <button onClick={handleResendOtp} className="text-sm text-[#FF8A2B] font-semibold hover:underline">
+                    Didn't get the code? Resend
+                  </button>
+                </div>
+              </div>
+            ) : (
+            <>
             {/* Tabs */}
             <div className="flex gap-2 mb-8 p-1 bg-slate-100 rounded-xl">
               <button
@@ -310,6 +390,8 @@ export function LoginPage() {
                 </div>
               )}
             </form>
+          </>
+          )}
           </div>
 
           <p className="text-center text-sm text-slate-600 mt-6">
