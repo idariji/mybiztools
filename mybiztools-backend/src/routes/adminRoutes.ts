@@ -7,6 +7,8 @@ import { authenticateAdmin, requireAdminRole } from '../middleware/authMiddlewar
 import { validate } from '../middleware/validate.js';
 import prisma from '../lib/prisma.js';
 import Joi from 'joi';
+import { EmailNotificationService } from '../services/emailNotificationService.js';
+import { env } from '../config/env.js';
 
 // ============================================================================
 // ADMIN ROUTES
@@ -173,6 +175,31 @@ router.post('/setup-env', async (req: Request, res: Response) => {
     res.json({ success: true, message: 'Setup complete', data: results });
   } catch (err: any) {
     res.status(500).json({ success: false, message: err.message, partialResults: results });
+  }
+});
+
+// TEST EMAIL — gated by SETUP_SECRET, sends a real email and returns full result
+router.post('/test-email', async (req: Request, res: Response) => {
+  const { setupSecret, to } = req.body;
+  const expected = process.env.SETUP_SECRET;
+  if (!expected || !setupSecret) { res.status(403).json({ success: false, message: 'Forbidden' }); return; }
+  const a = Buffer.from(setupSecret as string);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) { res.status(403).json({ success: false, message: 'Forbidden' }); return; }
+
+  const recipient = (to as string) || 'test@example.com';
+  const config = {
+    resendApiKeySet: !!env.resendApiKey,
+    resendApiKeyPrefix: env.resendApiKey ? env.resendApiKey.substring(0, 8) + '...' : 'NOT SET',
+    fromEmail: env.fromEmail,
+    nodeEnv: env.nodeEnv,
+  };
+
+  try {
+    await EmailNotificationService.sendOtpEmail(recipient, 'Test', '123456', 'email_verification');
+    res.json({ success: true, message: `Test email sent to ${recipient}`, config });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message, config });
   }
 });
 

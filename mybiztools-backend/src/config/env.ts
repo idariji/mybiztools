@@ -16,9 +16,13 @@ export const env = {
   // Database
   databaseUrl: process.env.DATABASE_URL || '',
 
-  // Email (Resend)
+  // Email (Resend) — strip any "Name <email>" wrapper so fromEmail is always a plain address
   resendApiKey: process.env.RESEND_API_KEY || '',
-  fromEmail: process.env.FROM_EMAIL || 'noreply@mybiztools.ng',
+  fromEmail: (() => {
+    const raw = process.env.FROM_EMAIL || 'noreply@mybiztools.ng';
+    const match = raw.match(/<([^>]+)>/);
+    return match ? match[1].trim() : raw.trim();
+  })(),
 
   // Frontend
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
