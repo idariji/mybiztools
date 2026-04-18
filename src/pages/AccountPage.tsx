@@ -48,11 +48,13 @@ export const AccountPage: React.FC = () => {
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
     setUser(currentUser);
+    const uid = currentUser?.id;
+    const key = (base: string) => uid ? `${base}-${uid}` : base;
 
-    setInvoices(safeGetJSON<any[]>('invoice-drafts', []));
-    setQuotations(safeGetJSON<any[]>('quotation-drafts', []));
-    setReceipts(safeGetJSON<any[]>('receipt-drafts', []));
-    setPayslips(safeGetJSON<any[]>('payslip-drafts', []));
+    setInvoices(safeGetJSON<any[]>(key('invoice-drafts'), []));
+    setQuotations(safeGetJSON<any[]>(key('quotation-drafts'), []));
+    setReceipts(safeGetJSON<any[]>(key('receipt-drafts'), []));
+    setPayslips(safeGetJSON<any[]>(key('payslip-drafts'), []));
   }, []);
 
   const totalDocs = invoices.length + quotations.length + receipts.length + payslips.length;

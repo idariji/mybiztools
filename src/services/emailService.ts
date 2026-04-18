@@ -421,7 +421,11 @@ export const sendInvoiceWhatsApp = (
   invoice: Invoice,
   message: string
 ): void => {
-  const phoneNumber = invoice.clientInfo.phone.replace(/[\s\-\(\)]/g, '');
+  let phoneNumber = invoice.clientInfo.phone.replace(/[\s\-\(\)\+]/g, '');
+  // Normalise Nigerian numbers: 0XXXXXXXXXX → 234XXXXXXXXXX
+  if (phoneNumber.startsWith('0') && phoneNumber.length === 11) {
+    phoneNumber = '234' + phoneNumber.slice(1);
+  }
   const encodedMessage = encodeURIComponent(message);
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
   window.open(whatsappUrl, '_blank');

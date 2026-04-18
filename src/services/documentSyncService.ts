@@ -21,12 +21,17 @@ async function apiFetch(path: string, options: RequestInit = {}) {
 }
 
 // Backend response shape: { success: true, data: { [key]: value } }
-// These helpers extract the nested data safely
 const extract = (resp: any, key: string): any[] =>
   resp?.data?.[key] ?? resp?.[key] ?? [];
 
 const extractId = (resp: any, key: string): string | undefined =>
   resp?.data?.[key]?.id ?? resp?.data?.id ?? resp?.id ?? resp?.[key]?.id;
+
+// Returns a user-scoped localStorage key so different users never share data
+function localKey(base: string): string {
+  const userId = authService.getCurrentUser()?.id;
+  return userId ? `${base}-${userId}` : base;
+}
 
 // ── INVOICES ──
 export const InvoiceSyncService = {
@@ -35,7 +40,7 @@ export const InvoiceSyncService = {
       const resp = await apiFetch('/invoices');
       return extract(resp, 'invoices');
     } catch {
-      const raw = localStorage.getItem('invoice-drafts');
+      const raw = localStorage.getItem(localKey('invoice-drafts'));
       return raw ? JSON.parse(raw) : [];
     }
   },
@@ -55,12 +60,12 @@ export const InvoiceSyncService = {
         invoice.id = extractId(result, 'invoice');
       }
     } catch {
-      // fallback: save to localStorage
-      const drafts = JSON.parse(localStorage.getItem('invoice-drafts') || '[]');
+      const key = localKey('invoice-drafts');
+      const drafts = JSON.parse(localStorage.getItem(key) || '[]');
       const idx = drafts.findIndex((d: any) => d.invoiceNumber === invoice.invoiceNumber);
       if (idx >= 0) drafts[idx] = invoice;
       else drafts.push(invoice);
-      localStorage.setItem('invoice-drafts', JSON.stringify(drafts));
+      localStorage.setItem(key, JSON.stringify(drafts));
     }
   },
 
@@ -80,7 +85,7 @@ export const QuotationSyncService = {
       const resp = await apiFetch('/quotations');
       return extract(resp, 'quotations');
     } catch {
-      const raw = localStorage.getItem('quotation-drafts');
+      const raw = localStorage.getItem(localKey('quotation-drafts'));
       return raw ? JSON.parse(raw) : [];
     }
   },
@@ -100,11 +105,12 @@ export const QuotationSyncService = {
         quotation.id = extractId(result, 'quotation');
       }
     } catch {
-      const drafts = JSON.parse(localStorage.getItem('quotation-drafts') || '[]');
+      const key = localKey('quotation-drafts');
+      const drafts = JSON.parse(localStorage.getItem(key) || '[]');
       const idx = drafts.findIndex((d: any) => d.quotationNumber === quotation.quotationNumber);
       if (idx >= 0) drafts[idx] = quotation;
       else drafts.push(quotation);
-      localStorage.setItem('quotation-drafts', JSON.stringify(drafts));
+      localStorage.setItem(key, JSON.stringify(drafts));
     }
   },
 
@@ -124,7 +130,7 @@ export const ReceiptSyncService = {
       const resp = await apiFetch('/receipts');
       return extract(resp, 'receipts');
     } catch {
-      const raw = localStorage.getItem('receipt-drafts');
+      const raw = localStorage.getItem(localKey('receipt-drafts'));
       return raw ? JSON.parse(raw) : [];
     }
   },
@@ -144,11 +150,12 @@ export const ReceiptSyncService = {
         receipt.id = extractId(result, 'receipt');
       }
     } catch {
-      const drafts = JSON.parse(localStorage.getItem('receipt-drafts') || '[]');
+      const key = localKey('receipt-drafts');
+      const drafts = JSON.parse(localStorage.getItem(key) || '[]');
       const idx = drafts.findIndex((d: any) => d.receiptNumber === receipt.receiptNumber);
       if (idx >= 0) drafts[idx] = receipt;
       else drafts.push(receipt);
-      localStorage.setItem('receipt-drafts', JSON.stringify(drafts));
+      localStorage.setItem(key, JSON.stringify(drafts));
     }
   },
 
@@ -168,7 +175,7 @@ export const PayslipSyncService = {
       const resp = await apiFetch('/payslips');
       return extract(resp, 'payslips');
     } catch {
-      const raw = localStorage.getItem('payslip-drafts');
+      const raw = localStorage.getItem(localKey('payslip-drafts'));
       return raw ? JSON.parse(raw) : [];
     }
   },
@@ -188,11 +195,12 @@ export const PayslipSyncService = {
         payslip.id = extractId(result, 'payslip');
       }
     } catch {
-      const drafts = JSON.parse(localStorage.getItem('payslip-drafts') || '[]');
+      const key = localKey('payslip-drafts');
+      const drafts = JSON.parse(localStorage.getItem(key) || '[]');
       const idx = drafts.findIndex((d: any) => d.payslipNumber === payslip.payslipNumber);
       if (idx >= 0) drafts[idx] = payslip;
       else drafts.push(payslip);
-      localStorage.setItem('payslip-drafts', JSON.stringify(drafts));
+      localStorage.setItem(key, JSON.stringify(drafts));
     }
   },
 

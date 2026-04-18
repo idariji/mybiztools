@@ -22,6 +22,10 @@ export const updateProfileSchema = Joi.object({
     .pattern(/^[+\d\s\-()]{7,20}$/)
     .optional()
     .messages({ 'string.pattern.base': 'Please provide a valid phone number' }),
+  address: Joi.string().trim().max(300).optional().allow(''),
+  website: Joi.string().uri().optional().allow('').messages({
+    'string.uri': 'Website must be a valid URL',
+  }),
   avatarUrl: Joi.string().uri().optional().messages({
     'string.uri': 'Avatar URL must be a valid URL',
   }),

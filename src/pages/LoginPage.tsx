@@ -58,6 +58,7 @@ export function LoginPage() {
     if (!isLogin) {
       if (!formData.firstName) newErrors.firstName = 'First name is required';
       if (!formData.lastName) newErrors.lastName = 'Last name is required';
+      if (!formData.businessName.trim()) newErrors.businessName = 'Business name is required';
       if (!validatePassword(formData.password)) {
         newErrors.password = 'Password must be 8+ chars with uppercase, number, and symbol';
       }
@@ -306,9 +307,10 @@ export function LoginPage() {
                     />
                   </div>
                   <Input
-                    label="Business Name (Optional)"
+                    label="Business Name"
                     value={formData.businessName}
                     onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
+                    error={errors.businessName}
                   />
                 </>
               )}
