@@ -149,6 +149,12 @@ app.use('/api/sms', smsRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/store', storeRoutes);
 
+app.post('/api/emails/send', authenticateUser, async (req: Request, res: Response) => {
+  const { to, subject, html } = req.body;
+  const result = await EmailNotificationService.sendEmail({ to, subject, html });
+  res.status(result.success ? 200 : 400).json(result);
+});
+
 
 // 404 HANDLER
 
