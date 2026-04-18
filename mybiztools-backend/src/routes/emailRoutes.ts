@@ -9,12 +9,17 @@ const upload = multer();
 router.post('/send', authenticateUser, upload.any(), async (req, res) => {
   console.log('[Email Route] Request body:', JSON.stringify(req.body));
   
-  const { to, recipient, email, subject, html, body } = req.body;
-  const recipientEmail = to || recipient || email;
-  const emailBody = html || body;
+  const { to, subject, html, body, message } = req.body;
+  const recipientEmail = to;
+  const emailBody = html || body || (message ? `<pre style="font-family:Arial,sans-serif;white-space:pre-wrap;">${message}</pre>` : null);
 
   if (!recipientEmail) {
     res.status(400).json({ success: false, message: 'Missing recipient email' });
+    return;
+  }
+
+  if (!emailBody) {
+    res.status(400).json({ success: false, message: 'Missing email body' });
     return;
   }
 
