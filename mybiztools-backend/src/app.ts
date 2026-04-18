@@ -152,8 +152,24 @@ app.use('/api/inventory', inventoryRoutes);
 app.use('/api/store', storeRoutes);
 
 app.post('/api/emails/send', authenticateUser, async (req: Request, res: Response) => {
-  const { to, subject, html } = req.body;
-  const result = await EmailNotificationService.sendEmail({ to, subject, html });
+  console.log('[Emil] Request Body:', JSON.stringify(req.body));
+  const { to, recipient, email, subject, html, body, attachments } = req.body;
+  
+  const recipientEmail = to || recipient || email;
+  const emailBody = html || body;
+
+  if (!recipientEmail) {
+    res.status(400).json({ success: false, message: 'Missing recipient email' });
+    return;
+  }
+
+  const result = await EmailNotificationService.sendEmail({ 
+    to: recipientEmail, 
+    subject, 
+    html: emailBody, 
+    attachments 
+  });
+  
   res.status(result.success ? 200 : 400).json(result);
 });
 
