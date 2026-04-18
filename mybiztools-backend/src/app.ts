@@ -6,8 +6,9 @@ import { createRequire } from 'module';
 import multer from 'multer';
 import { env } from './config/env.js';
 import { swaggerSpec } from './config/swagger.js';
-import { authenticateUser } from './middleware/authMiddleware.js';
-import { EmailNotificationService } from './services/emailNotificationService.js';
+
+// import { authenticateUser } from './middleware/authMiddleware.js';
+// import { EmailNotificationService } from './services/emailNotificationService.js';
 // import * as swaggerUi from 'swagger-ui-express';
 
 const require = createRequire(import.meta.url);
@@ -30,6 +31,7 @@ import supportRoutes from './routes/supportRoutes.js';
 import smsRoutes from './routes/smsRoutes.js';
 import inventoryRoutes from './routes/inventoryRoutes.js';
 import storeRoutes from './routes/storeRoutes.js';
+import emailRoutes from './routes/emailRoutes.js';
 
 // APP INIT
 const app = express();
@@ -150,28 +152,9 @@ app.use('/api/admin/support', supportRoutes);
 app.use('/api/sms', smsRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/store', storeRoutes);
+app.use('/api/emails', emailRoutes);
 
-app.post('/api/emails/send', authenticateUser, async (req: Request, res: Response) => {
-  console.log('[Emil] Request Body:', JSON.stringify(req.body));
-  const { to, recipient, email, subject, html, body, attachments } = req.body;
-  
-  const recipientEmail = to || recipient || email;
-  const emailBody = html || body;
 
-  if (!recipientEmail) {
-    res.status(400).json({ success: false, message: 'Missing recipient email' });
-    return;
-  }
-
-  const result = await EmailNotificationService.sendEmail({ 
-    to: recipientEmail, 
-    subject, 
-    html: emailBody, 
-    attachments 
-  });
-  
-  res.status(result.success ? 200 : 400).json(result);
-});
 
 
 // 404 HANDLER
