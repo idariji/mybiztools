@@ -737,26 +737,19 @@
 import prisma from '../lib/prisma.js';
 import { v4 as uuidv4 } from 'uuid';
 import type { ServiceResponse } from '../types/index.js';
+import { EmailNotificationService } from './emailNotificationService.js';
 
-// ============================================================================
+
 // DOCUMENT GENERATOR SERVICE
-// Handles Invoice, Quotation, Receipt, and Payslip CRUD operations
-// ============================================================================
 
-// Helper to generate document numbers
 const genNumber = (prefix: string) =>
   `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
-// Helper to convert amount to BigInt kobo
 const toKobo = (amount: number) => BigInt(Math.round((amount || 0) * 100));
-
-// Helper to convert BigInt kobo to number
 const fromKobo = (amount: any) => Number(amount) / 100;
 
-// ============================================================================
-// INVOICE SERVICE
-// ============================================================================
 
+// INVOICE SERVICE
 export class InvoiceService {
   private static format(invoice: any) {
     return {
@@ -789,8 +782,6 @@ export class InvoiceService {
     };
   }
 
-  // Normalise incoming data — frontend sends summary.total / invoiceDate,
-  // admin/API clients may send total / issueDate directly
   private static normalise(data: any) {
     const s = data.summary ?? {};
     return {
@@ -809,22 +800,22 @@ export class InvoiceService {
     const invoice = await prisma.invoice.create({
       data: {
         userId,
-        contactId: data.contactId,
-        invoiceNumber: data.invoiceNumber || genNumber('INV'),
-        subtotal:        toKobo(norm.subtotal),
-        taxAmount:       toKobo(norm.taxAmount),
-        discountAmount:  toKobo(norm.discountAmount),
-        total:           toKobo(norm.total),
-        currency:        data.currency ?? 'NGN',
-        status:          data.status   ?? 'draft',
-        issueDate:       new Date(norm.issueDate),
-        dueDate:         new Date(norm.dueDate),
-        paymentMethod:   data.paymentMethod,
+        contactId:        data.contactId,
+        invoiceNumber:    data.invoiceNumber || genNumber('INV'),
+        subtotal:         toKobo(norm.subtotal),
+        taxAmount:        toKobo(norm.taxAmount),
+        discountAmount:   toKobo(norm.discountAmount),
+        total:            toKobo(norm.total),
+        currency:         data.currency ?? 'NGN',
+        status:           data.status   ?? 'draft',
+        issueDate:        new Date(norm.issueDate),
+        dueDate:          new Date(norm.dueDate),
+        paymentMethod:    data.paymentMethod,
         paymentReference: data.paymentReference,
-        notes:           data.notes,
-        terms:           data.terms,
-        documentUrl:     data.documentUrl,
-        documentData:    data, // store full frontend object for round-trip fidelity
+        notes:            data.notes,
+        terms:            data.terms,
+        documentUrl:      data.documentUrl,
+        documentData:     data,
         items: {
           create: (data.items || []).map((item: any) => ({
             description: item.description ?? '',
@@ -837,7 +828,48 @@ export class InvoiceService {
       include: { items: true, contact: { select: { name: true, email: true } } },
     });
 
-    // Return the original frontend object with the new DB id attached
+    // Send invoice email if client email is provided
+    const recipientEmail = data.clientEmail || data.contactEmail || invoice.contact?.email;
+    if (recipientEmail) {
+      const clientName = data.clientName || invoice.contact?.name || 'there';
+      const currency = data.currency ?? 'NGN';
+      const totalAmount = fromKobo(invoice.total).toLocaleString();
+      const dueDate = new Date(norm.dueDate).toLocaleDateString('en-NG', {
+        year: 'numeric', month: 'long', day: 'numeric',
+      });
+
+      EmailNotificationService.sendEmail({
+        to: recipientEmail,
+        subject: `Invoice ${invoice.invoiceNumber} from MyBizTools`,
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:32px;border:1px solid #e5e7eb;border-radius:8px;">
+            <h2 style="color:#111827;margin-bottom:4px;">Invoice ${invoice.invoiceNumber}</h2>
+            <p style="color:#6b7280;margin-top:0;">Sent via MyBizTools</p>
+            <p style="color:#374151;">Hi ${clientName},</p>
+            <p style="color:#374151;">Please find your invoice details below:</p>
+            <table style="width:100%;border-collapse:collapse;margin:16px 0;background:#f9fafb;border-radius:8px;">
+              <tr>
+                <td style="padding:12px 16px;color:#6b7280;">Invoice Number</td>
+                <td style="padding:12px 16px;font-weight:bold;color:#111827;">${invoice.invoiceNumber}</td>
+              </tr>
+              <tr style="background:#f3f4f6;">
+                <td style="padding:12px 16px;color:#6b7280;">Amount Due</td>
+                <td style="padding:12px 16px;font-weight:bold;color:#111827;">${currency} ${totalAmount}</td>
+              </tr>
+              <tr>
+                <td style="padding:12px 16px;color:#6b7280;">Due Date</td>
+                <td style="padding:12px 16px;color:#111827;">${dueDate}</td>
+              </tr>
+              ${data.notes ? `<tr style="background:#f3f4f6;"><td style="padding:12px 16px;color:#6b7280;">Notes</td><td style="padding:12px 16px;color:#374151;">${data.notes}</td></tr>` : ''}
+            </table>
+            <p style="color:#374151;font-size:14px;">If you have any questions, please reply to this email.</p>
+            <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;" />
+            <p style="color:#9ca3af;font-size:12px;text-align:center;">© ${new Date().getFullYear()} MyBizTools. All rights reserved.</p>
+          </div>
+        `,
+      }).catch(err => console.error('[Invoice] Failed to send email:', err?.message));
+    }
+
     return {
       success: true,
       message: 'Invoice created successfully',
@@ -865,7 +897,6 @@ export class InvoiceService {
       prisma.invoice.count({ where }),
     ]);
 
-    // Return documentData (frontend format) when available, otherwise formatted DB fields
     const mapped = (invoices as any[]).map((i) =>
       i.documentData ? { ...(i.documentData as any), id: i.id } : this.format(i)
     );
@@ -945,12 +976,71 @@ export class InvoiceService {
     await prisma.invoice.delete({ where: { id: invoiceId } });
     return { success: true, message: 'Invoice deleted successfully' };
   }
+
+  // Send invoice email manually
+  static async sendEmail(userId: string, invoiceId: string, recipientEmail?: string): Promise<ServiceResponse> {
+    const invoice = await prisma.invoice.findFirst({
+      where: { id: invoiceId, userId },
+      include: { items: true, contact: { select: { name: true, email: true } } },
+    }) as any;
+
+    if (!invoice) {
+      return { success: false, message: 'Invoice not found', error: 'NOT_FOUND' };
+    }
+
+    const toEmail = recipientEmail || invoice.contact?.email || (invoice.documentData as any)?.clientEmail;
+    if (!toEmail) {
+      return { success: false, message: 'No recipient email found', error: 'NO_EMAIL' };
+    }
+
+    const data = (invoice.documentData as any) ?? {};
+    const clientName = data.clientName || invoice.contact?.name || 'there';
+    const currency = invoice.currency ?? 'NGN';
+    const totalAmount = fromKobo(invoice.total).toLocaleString();
+    const dueDate = invoice.dueDate
+      ? new Date(invoice.dueDate).toLocaleDateString('en-NG', { year: 'numeric', month: 'long', day: 'numeric' })
+      : 'N/A';
+
+    const result = await EmailNotificationService.sendEmail({
+      to: toEmail,
+      subject: `Invoice ${invoice.invoiceNumber} from MyBizTools`,
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:32px;border:1px solid #e5e7eb;border-radius:8px;">
+          <h2 style="color:#111827;margin-bottom:4px;">Invoice ${invoice.invoiceNumber}</h2>
+          <p style="color:#6b7280;margin-top:0;">Sent via MyBizTools</p>
+          <p style="color:#374151;">Hi ${clientName},</p>
+          <p style="color:#374151;">Please find your invoice details below:</p>
+          <table style="width:100%;border-collapse:collapse;margin:16px 0;background:#f9fafb;border-radius:8px;">
+            <tr>
+              <td style="padding:12px 16px;color:#6b7280;">Invoice Number</td>
+              <td style="padding:12px 16px;font-weight:bold;color:#111827;">${invoice.invoiceNumber}</td>
+            </tr>
+            <tr style="background:#f3f4f6;">
+              <td style="padding:12px 16px;color:#6b7280;">Amount Due</td>
+              <td style="padding:12px 16px;font-weight:bold;color:#111827;">${currency} ${totalAmount}</td>
+            </tr>
+            <tr>
+              <td style="padding:12px 16px;color:#6b7280;">Due Date</td>
+              <td style="padding:12px 16px;color:#111827;">${dueDate}</td>
+            </tr>
+          </table>
+          <p style="color:#374151;font-size:14px;">If you have any questions, please reply to this email.</p>
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;" />
+          <p style="color:#9ca3af;font-size:12px;text-align:center;">© ${new Date().getFullYear()} MyBizTools. All rights reserved.</p>
+        </div>
+      `,
+    });
+
+    if (!result.success) {
+      return { success: false, message: 'Failed to send invoice email', error: result.error };
+    }
+
+    return { success: true, message: 'Invoice email sent successfully', data: { messageId: result.messageId } };
+  }
 }
 
-// ============================================================================
-// QUOTATION SERVICE
-// ============================================================================
 
+// QUOTATION SERVICE
 export class QuotationService {
   private static format(quotation: any) {
     return {
@@ -990,20 +1080,20 @@ export class QuotationService {
       data: {
         userId,
         quotationNumber: data.quotationNumber || genNumber('QT'),
-        clientName: data.clientName,
-        clientEmail: data.clientEmail,
-        clientPhone: data.clientPhone,
-        clientAddress: data.clientAddress,
-        subtotal: toKobo(data.subtotal),
-        taxAmount: toKobo(data.taxAmount),
-        discountAmount: toKobo(data.discountAmount),
-        total: toKobo(data.total),
-        currency: data.currency ?? 'NGN',
-        status: data.status ?? 'draft',
-        issueDate: new Date(data.issueDate || Date.now()),
-        validUntil: new Date(data.validUntil || Date.now() + 30 * 24 * 60 * 60 * 1000),
-        notes: data.notes,
-        terms: data.terms,
+        clientName:      data.clientName,
+        clientEmail:     data.clientEmail,
+        clientPhone:     data.clientPhone,
+        clientAddress:   data.clientAddress,
+        subtotal:        toKobo(data.subtotal),
+        taxAmount:       toKobo(data.taxAmount),
+        discountAmount:  toKobo(data.discountAmount),
+        total:           toKobo(data.total),
+        currency:        data.currency ?? 'NGN',
+        status:          data.status ?? 'draft',
+        issueDate:       new Date(data.issueDate || Date.now()),
+        validUntil:      new Date(data.validUntil || Date.now() + 30 * 24 * 60 * 60 * 1000),
+        notes:           data.notes,
+        terms:           data.terms,
         publicLink,
         publicLinkExpires: publicLink
           ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
@@ -1012,14 +1102,41 @@ export class QuotationService {
         items: {
           create: (data.items || []).map((item: any) => ({
             description: item.description,
-            quantity: item.quantity ?? 1,
-            unitPrice: toKobo(item.unitPrice),
-            amount: toKobo(item.amount),
+            quantity:    item.quantity ?? 1,
+            unitPrice:   toKobo(item.unitPrice),
+            amount:      toKobo(item.amount),
           })),
         },
       },
       include: { items: true },
     });
+
+    // Send quotation email if client email provided
+    if (data.clientEmail) {
+      const currency = data.currency ?? 'NGN';
+      const totalAmount = fromKobo(quotation.total).toLocaleString();
+      const validUntil = new Date(data.validUntil || Date.now() + 30 * 24 * 60 * 60 * 1000)
+        .toLocaleDateString('en-NG', { year: 'numeric', month: 'long', day: 'numeric' });
+
+      EmailNotificationService.sendEmail({
+        to: data.clientEmail,
+        subject: `Quotation ${quotation.quotationNumber} from MyBizTools`,
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:32px;border:1px solid #e5e7eb;border-radius:8px;">
+            <h2 style="color:#111827;">Quotation ${quotation.quotationNumber}</h2>
+            <p style="color:#374151;">Hi ${data.clientName ?? 'there'},</p>
+            <p style="color:#374151;">Please find your quotation details below:</p>
+            <table style="width:100%;border-collapse:collapse;margin:16px 0;background:#f9fafb;border-radius:8px;">
+              <tr><td style="padding:12px 16px;color:#6b7280;">Quotation Number</td><td style="padding:12px 16px;font-weight:bold;">${quotation.quotationNumber}</td></tr>
+              <tr style="background:#f3f4f6;"><td style="padding:12px 16px;color:#6b7280;">Total Amount</td><td style="padding:12px 16px;font-weight:bold;">${currency} ${totalAmount}</td></tr>
+              <tr><td style="padding:12px 16px;color:#6b7280;">Valid Until</td><td style="padding:12px 16px;">${validUntil}</td></tr>
+            </table>
+            <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;" />
+            <p style="color:#9ca3af;font-size:12px;text-align:center;">© ${new Date().getFullYear()} MyBizTools. All rights reserved.</p>
+          </div>
+        `,
+      }).catch(err => console.error('[Quotation] Failed to send email:', err?.message));
+    }
 
     return {
       success: true,
@@ -1101,22 +1218,22 @@ export class QuotationService {
     const quotation = await prisma.quotation.update({
       where: { id: quotationId },
       data: {
-        clientName: data.clientName,
-        clientEmail: data.clientEmail,
-        subtotal: data.subtotal ? toKobo(data.subtotal) : undefined,
-        taxAmount: data.taxAmount ? toKobo(data.taxAmount) : undefined,
-        discountAmount: data.discountAmount ? toKobo(data.discountAmount) : undefined,
-        total: data.total ? toKobo(data.total) : undefined,
-        status: data.status,
-        validUntil: data.validUntil ? new Date(data.validUntil) : undefined,
-        notes: data.notes,
-        documentData: data.documentData,
+        clientName:      data.clientName,
+        clientEmail:     data.clientEmail,
+        subtotal:        data.subtotal        ? toKobo(data.subtotal)        : undefined,
+        taxAmount:       data.taxAmount       ? toKobo(data.taxAmount)       : undefined,
+        discountAmount:  data.discountAmount  ? toKobo(data.discountAmount)  : undefined,
+        total:           data.total           ? toKobo(data.total)           : undefined,
+        status:          data.status,
+        validUntil:      data.validUntil      ? new Date(data.validUntil)    : undefined,
+        notes:           data.notes,
+        documentData:    data.documentData,
         items: data.items ? {
           create: data.items.map((item: any) => ({
             description: item.description,
-            quantity: item.quantity ?? 1,
-            unitPrice: toKobo(item.unitPrice),
-            amount: toKobo(item.amount),
+            quantity:    item.quantity ?? 1,
+            unitPrice:   toKobo(item.unitPrice),
+            amount:      toKobo(item.amount),
           })),
         } : undefined,
       },
@@ -1137,10 +1254,8 @@ export class QuotationService {
   }
 }
 
-// ============================================================================
-// RECEIPT SERVICE
-// ============================================================================
 
+// RECEIPT SERVICE
 export class ReceiptService {
   private static format(receipt: any) {
     return {
@@ -1172,30 +1287,55 @@ export class ReceiptService {
     const receipt = await prisma.receipt.create({
       data: {
         userId,
-        receiptNumber: data.receiptNumber || genNumber('RCPT'),
-        customerName: data.customerName,
-        customerEmail: data.customerEmail,
-        customerPhone: data.customerPhone,
-        subtotal: toKobo(data.subtotal),
-        taxAmount: toKobo(data.taxAmount),
-        total: toKobo(data.total),
-        currency: data.currency ?? 'NGN',
-        paymentMethod: data.paymentMethod,
+        receiptNumber:    data.receiptNumber || genNumber('RCPT'),
+        customerName:     data.customerName,
+        customerEmail:    data.customerEmail,
+        customerPhone:    data.customerPhone,
+        subtotal:         toKobo(data.subtotal),
+        taxAmount:        toKobo(data.taxAmount),
+        total:            toKobo(data.total),
+        currency:         data.currency ?? 'NGN',
+        paymentMethod:    data.paymentMethod,
         paymentReference: data.paymentReference,
-        receiptDate: new Date(data.receiptDate || Date.now()),
-        notes: data.notes,
-        documentData: data.documentData,
+        receiptDate:      new Date(data.receiptDate || Date.now()),
+        notes:            data.notes,
+        documentData:     data.documentData,
         items: {
           create: (data.items || []).map((item: any) => ({
             description: item.description,
-            quantity: item.quantity ?? 1,
-            unitPrice: toKobo(item.unitPrice),
-            amount: toKobo(item.amount),
+            quantity:    item.quantity ?? 1,
+            unitPrice:   toKobo(item.unitPrice),
+            amount:      toKobo(item.amount),
           })),
         },
       },
       include: { items: true },
     });
+
+    // Send receipt email if customer email provided
+    if (data.customerEmail) {
+      const currency = data.currency ?? 'NGN';
+      const totalAmount = fromKobo(receipt.total).toLocaleString();
+
+      EmailNotificationService.sendEmail({
+        to: data.customerEmail,
+        subject: `Receipt ${receipt.receiptNumber} from MyBizTools`,
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:32px;border:1px solid #e5e7eb;border-radius:8px;">
+            <h2 style="color:#111827;">Receipt ${receipt.receiptNumber}</h2>
+            <p style="color:#374151;">Hi ${data.customerName ?? 'there'},</p>
+            <p style="color:#374151;">Thank you for your payment. Here is your receipt:</p>
+            <table style="width:100%;border-collapse:collapse;margin:16px 0;background:#f9fafb;border-radius:8px;">
+              <tr><td style="padding:12px 16px;color:#6b7280;">Receipt Number</td><td style="padding:12px 16px;font-weight:bold;">${receipt.receiptNumber}</td></tr>
+              <tr style="background:#f3f4f6;"><td style="padding:12px 16px;color:#6b7280;">Amount Paid</td><td style="padding:12px 16px;font-weight:bold;">${currency} ${totalAmount}</td></tr>
+              <tr><td style="padding:12px 16px;color:#6b7280;">Payment Method</td><td style="padding:12px 16px;">${data.paymentMethod ?? 'N/A'}</td></tr>
+            </table>
+            <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;" />
+            <p style="color:#9ca3af;font-size:12px;text-align:center;">© ${new Date().getFullYear()} MyBizTools. All rights reserved.</p>
+          </div>
+        `,
+      }).catch(err => console.error('[Receipt] Failed to send email:', err?.message));
+    }
 
     return {
       success: true,
@@ -1256,10 +1396,8 @@ export class ReceiptService {
   }
 }
 
-// ============================================================================
-// PAYSLIP SERVICE
-// ============================================================================
 
+// PAYSLIP SERVICE
 export class PayslipService {
   private static format(payslip: any) {
     return {
@@ -1300,31 +1438,56 @@ export class PayslipService {
       data: {
         userId,
         payslipNumber,
-        employeeName: data.employeeName,
-        employeeId: data.employeeId,
+        employeeName:       data.employeeName,
+        employeeId:         data.employeeId,
         employeeDepartment: data.employeeDepartment,
-        employeePosition: data.employeePosition,
-        payPeriodStart: new Date(data.payPeriodStart),
-        payPeriodEnd: new Date(data.payPeriodEnd),
-        paymentDate: new Date(data.paymentDate || Date.now()),
-        basicSalary: toKobo(data.basicSalary),
-        housingAllowance: toKobo(data.housingAllowance),
+        employeePosition:   data.employeePosition,
+        payPeriodStart:     new Date(data.payPeriodStart),
+        payPeriodEnd:       new Date(data.payPeriodEnd),
+        paymentDate:        new Date(data.paymentDate || Date.now()),
+        basicSalary:        toKobo(data.basicSalary),
+        housingAllowance:   toKobo(data.housingAllowance),
         transportAllowance: toKobo(data.transportAllowance),
-        otherAllowances: toKobo(data.otherAllowances),
-        bonus: toKobo(data.bonus),
-        overtime: toKobo(data.overtime),
-        grossEarnings: toKobo(data.grossEarnings),
-        payeTax: toKobo(data.payeTax),
-        pension: toKobo(data.pension),
-        nhf: toKobo(data.nhf),
-        loans: toKobo(data.loans),
-        otherDeductions: toKobo(data.otherDeductions),
-        totalDeductions: toKobo(data.totalDeductions),
-        netPay: toKobo(data.netPay),
-        currency: data.currency ?? 'NGN',
-        documentData: data.documentData,
+        otherAllowances:    toKobo(data.otherAllowances),
+        bonus:              toKobo(data.bonus),
+        overtime:           toKobo(data.overtime),
+        grossEarnings:      toKobo(data.grossEarnings),
+        payeTax:            toKobo(data.payeTax),
+        pension:            toKobo(data.pension),
+        nhf:                toKobo(data.nhf),
+        loans:              toKobo(data.loans),
+        otherDeductions:    toKobo(data.otherDeductions),
+        totalDeductions:    toKobo(data.totalDeductions),
+        netPay:             toKobo(data.netPay),
+        currency:           data.currency ?? 'NGN',
+        documentData:       data.documentData,
       },
     });
+
+    // Send payslip email if employee email provided
+    if (data.employeeEmail) {
+      const currency = data.currency ?? 'NGN';
+      const netPay = fromKobo(payslip.netPay).toLocaleString();
+
+      EmailNotificationService.sendEmail({
+        to: data.employeeEmail,
+        subject: `Payslip ${payslip.payslipNumber} from MyBizTools`,
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:32px;border:1px solid #e5e7eb;border-radius:8px;">
+            <h2 style="color:#111827;">Payslip ${payslip.payslipNumber}</h2>
+            <p style="color:#374151;">Hi ${data.employeeName ?? 'there'},</p>
+            <p style="color:#374151;">Please find your payslip details below:</p>
+            <table style="width:100%;border-collapse:collapse;margin:16px 0;background:#f9fafb;border-radius:8px;">
+              <tr><td style="padding:12px 16px;color:#6b7280;">Payslip Number</td><td style="padding:12px 16px;font-weight:bold;">${payslip.payslipNumber}</td></tr>
+              <tr style="background:#f3f4f6;"><td style="padding:12px 16px;color:#6b7280;">Net Pay</td><td style="padding:12px 16px;font-weight:bold;">${currency} ${netPay}</td></tr>
+              <tr><td style="padding:12px 16px;color:#6b7280;">Pay Period</td><td style="padding:12px 16px;">${new Date(data.payPeriodStart).toLocaleDateString()} - ${new Date(data.payPeriodEnd).toLocaleDateString()}</td></tr>
+            </table>
+            <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;" />
+            <p style="color:#9ca3af;font-size:12px;text-align:center;">© ${new Date().getFullYear()} MyBizTools. All rights reserved.</p>
+          </div>
+        `,
+      }).catch(err => console.error('[Payslip] Failed to send email:', err?.message));
+    }
 
     return {
       success: true,
@@ -1381,10 +1544,8 @@ export class PayslipService {
   }
 }
 
-// ============================================================================
-// DOCUMENT STATS SERVICE
-// ============================================================================
 
+// DOCUMENT STATS SERVICE
 export class DocumentStatsService {
   static async getUserDocumentCounts(userId: string): Promise<ServiceResponse> {
     const [invoiceCount, quotationCount, receiptCount, payslipCount] = await Promise.all([
