@@ -6,6 +6,8 @@ import { createRequire } from 'module';
 import multer from 'multer';
 import { env } from './config/env.js';
 import { swaggerSpec } from './config/swagger.js';
+import { authenticateUser } from './middleware/authMiddleware.js';
+import { EmailNotificationService } from './services/emailNotificationService.js';
 // import * as swaggerUi from 'swagger-ui-express';
 
 const require = createRequire(import.meta.url);
