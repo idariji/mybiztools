@@ -588,10 +588,19 @@ export class AuthService {
       return { success: false, message: 'Invalid or expired OTP', error: 'INVALID_OTP' };
     }
 
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { emailVerified: true },
-    });
+    const updatedUser = await prisma.user.update({
+    where: { id: user.id },
+    data: { emailVerified: true },
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      businessName: true,
+      emailVerified: true,
+      currentPlan: true,
+    },
+  });
 
     await OtpService.clear(user.id);
 
@@ -605,7 +614,7 @@ export class AuthService {
     return {
       success: true,
       message: 'Email verified successfully',
-      data: { user: this.toUserPayload({ ...user, emailVerified: true }), token },
+      data: { user: this.toUserPayload(updatedUser), token },
     };
   }
 
