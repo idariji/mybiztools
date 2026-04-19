@@ -137,6 +137,13 @@ export function LoginPage() {
       });
       const data = await res.json();
       if (data.success) {
+        // Store token + user so dashboard loads correctly
+        if (data.data?.token) {
+          localStorage.setItem('authToken', data.data.token);
+        }
+        if (data.data?.user) {
+          localStorage.setItem('user', JSON.stringify(data.data.user));
+        }
         addToast('Email verified! Welcome to MyBizTools.', 'success');
         setTimeout(() => navigate('/dashboard'), 1500);
       } else {

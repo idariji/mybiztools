@@ -600,7 +600,13 @@ export class AuthService {
       (err) => console.error('[Auth] Failed to send welcome email:', err)
     );
 
-    return { success: true, message: 'Email verified successfully' };
+    // Return token + user so frontend can log user in immediately after verification
+    const token = this.generateToken(user.id, user.email);
+    return {
+      success: true,
+      message: 'Email verified successfully',
+      data: { user: this.toUserPayload({ ...user, emailVerified: true }), token },
+    };
   }
 
   // RESEND VERIFICATION OTP
