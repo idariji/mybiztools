@@ -147,10 +147,10 @@ export function LoginPage() {
         addToast('Email verified! Welcome to MyBizTools.', 'success');
         setTimeout(() => navigate('/dashboard'), 1500);
       } else {
-        addToast(data.message || 'Invalid or expired code', 'error');
+        addToast(data.message || data.data?.message || 'Verification failed. Please try again.', 'error');
       }
-    } catch {
-      addToast('Could not reach server. Try again.', 'error');
+    } catch (err: any) {
+      addToast(err?.message || 'Could not reach server. Try again.', 'error');
     } finally {
       setOtpLoading(false);
     }
