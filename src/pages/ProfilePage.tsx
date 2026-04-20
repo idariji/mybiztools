@@ -12,7 +12,6 @@ export const ProfilePage: React.FC = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    email: '',
     businessName: '',
     phone: '',
     address: '',
@@ -26,7 +25,6 @@ export const ProfilePage: React.FC = () => {
       setFormData({
         firstName: currentUser.firstName || '',
         lastName: currentUser.lastName || '',
-        email: currentUser.email || '',
         businessName: currentUser.businessName || '',
         phone: currentUser.phone || '',
         address: currentUser.address || '',
@@ -122,11 +120,11 @@ export const ProfilePage: React.FC = () => {
                 </label>
                 <input
                   type="email"
-                  value={formData.email}
-                  onChange={(e) => handleChange('email', e.target.value)}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF8A2B]/20 focus:border-[#FF8A2B] transition-all duration-200"
-                  placeholder="john@example.com"
+                  value={user?.email || ''}
+                  readOnly
+                  className="w-full px-4 py-2 border rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
                 />
+                <p className="text-xs text-gray-400 mt-1">Email address cannot be changed</p>
               </div>
 
               <div>
