@@ -14,9 +14,9 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter } as any);
 
 async function main() {
-  const email    = process.env.ADMIN_EMAIL    || 'admin@mybiztools.ng';
+  const email = process.env.ADMIN_EMAIL    || 'admin@mybiztools.ng';
   const password = process.env.ADMIN_PASSWORD || 'Admin@1234';
-  const name     = process.env.ADMIN_NAME     || 'Super Admin';
+  const name = process.env.ADMIN_NAME     || 'Super Admin';
 
   const existing = await (prisma as any).admin.findUnique({ where: { email } });
   if (existing) {
@@ -29,11 +29,11 @@ async function main() {
   const hashed = await bcrypt.hash(password, 12);
   await (prisma as any).admin.create({
     data: {
-      id:        uuidv4(),
+      id: uuidv4(),
       email,
-      password:  hashed,
+      password: hashed,
       name,
-      role:      'super_admin',
+      role: 'super_admin',
       updatedAt: new Date(),
     },
   });
