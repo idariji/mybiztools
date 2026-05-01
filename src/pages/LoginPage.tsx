@@ -130,7 +130,7 @@ export function LoginPage() {
     if (otp.length !== 6) { addToast('Enter the 6-digit code', 'error'); return; }
     setOtpLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/auth/verify-otp`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://mybiztools.onrender.com'}/api/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: signupEmail, otp, purpose: 'email_verification' }),
@@ -158,7 +158,7 @@ export function LoginPage() {
 
   const handleResendOtp = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/auth/resend-otp`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://mybiztools.onrender.com'}/api/auth/resend-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: signupEmail }),

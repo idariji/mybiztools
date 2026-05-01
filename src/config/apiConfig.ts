@@ -5,7 +5,7 @@
  * Update API_BASE_URL based on your deployment environment.
  */
 
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://mybiztools.onrender.com';
 
 // Note: API authentication is handled via JWT tokens from authService
 // Do NOT expose API keys in frontend code
