@@ -6,7 +6,8 @@ import { createRequire } from 'module';
 import multer from 'multer';
 import { env } from './config/env.js';
 import { swaggerSpec } from './config/swagger.js';
-import passport from './config/passport.js';
+// import passport from './config/passport.js';
+import { configurePassport } from './config/passport.js';
 import googleAuthRoutes from './routes/googleAuthRoutes.js';
 
 // import { authenticateUser } from './middleware/authMiddleware.js';
@@ -140,6 +141,7 @@ app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString(), uptime: process.uptime() });
 });
 
+const passport = configurePassport();
 //Passport middleware
 app.use(passport.initialize());
 
