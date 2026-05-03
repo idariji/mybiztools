@@ -38,11 +38,13 @@ export const env = {
 
   // OTP
   otpExpiresInMinutes: parseInt(process.env.OTP_EXPIRES_MINUTES || '10', 10),
-} as const;
 
 googleClientId: process.env.GOOGLE_CLIENT_ID || '',
 googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
 googleCallbackUrl: process.env.GOOGLE_CALLBACK_URL || '',
+} as const;
+
+
 
 // VALIDATE ENV ON STARTUP
 export const validateEnv = (): void => {
