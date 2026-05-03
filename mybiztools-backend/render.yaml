@@ -3,7 +3,7 @@ services:
     name: mybiztools-api
     runtime: node
     region: frankfurt
-    plan: free
+    plan: starter
     rootDir: mybiztools-backend
     buildCommand: npm ci && npx prisma generate && npx prisma migrate deploy && npm run build
     startCommand: node dist/server.js
@@ -27,7 +27,7 @@ services:
       - key: TERMII_SENDER_ID
         value: MyBizTools
       - key: FRONTEND_URL
-        value: https://mybiztools.onrender.com
+        value: https://mybiztools.ng
       - key: PAYSTACK_SECRET_KEY
         sync: false
       - key: ANTHROPIC_API_KEY

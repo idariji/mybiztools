@@ -90,17 +90,17 @@ export function LoginPage() {
 
         let response = await doAuth();
 
-        // Server sleeping on Render free tier — auto-retry with countdown
+        // Server cold start — auto-retry with countdown
         if (!response.success && response.message.includes('Failed to connect')) {
-          addToast('Server is starting up. Retrying in 30 seconds…', 'info');
-          let count = 30;
+          addToast('Server is starting up. Retrying in 60 seconds…', 'info');
+          let count = 60;
           setRetryIn(count);
           const interval = setInterval(() => {
             count -= 1;
             setRetryIn(count);
             if (count <= 0) clearInterval(interval);
           }, 1000);
-          await new Promise(res => setTimeout(res, 30000));
+          await new Promise(res => setTimeout(res, 60000));
           clearInterval(interval);
           setRetryIn(0);
           response = await doAuth();
