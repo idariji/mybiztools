@@ -6,6 +6,8 @@ import { createRequire } from 'module';
 import multer from 'multer';
 import { env } from './config/env.js';
 import { swaggerSpec } from './config/swagger.js';
+import passport from './config/passport.js';
+import googleAuthRoutes from './routes/googleAuthRoutes.js';
 
 // import { authenticateUser } from './middleware/authMiddleware.js';
 // import { EmailNotificationService } from './services/emailNotificationService.js';
@@ -13,6 +15,13 @@ import { swaggerSpec } from './config/swagger.js';
 
 const require = createRequire(import.meta.url);
 const swaggerUi = require('swagger-ui-express');
+
+
+//Passport middleware
+app.use(passport.initialize());
+
+//Google auth routes
+app.use('/api/auth', googleAuthRoutes);
 
 // ROUTE IMPORTS
 // Add new route files here as the project grows
