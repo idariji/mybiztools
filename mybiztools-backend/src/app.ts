@@ -17,11 +17,7 @@ const require = createRequire(import.meta.url);
 const swaggerUi = require('swagger-ui-express');
 
 
-//Passport middleware
-app.use(passport.initialize());
 
-//Google auth routes
-app.use('/api/auth', googleAuthRoutes);
 
 // ROUTE IMPORTS
 // Add new route files here as the project grows
@@ -144,6 +140,10 @@ app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString(), uptime: process.uptime() });
 });
 
+//Passport middleware
+app.use(passport.initialize());
+
+
 
 // ROUTES
 app.use('/api/auth', authRoutes);
@@ -162,6 +162,7 @@ app.use('/api/sms', smsRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/store', storeRoutes);
 app.use('/api/emails', emailRoutes);
+app.use('/api/auth', googleAuthRoutes);
 
 
 

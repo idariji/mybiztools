@@ -54,13 +54,20 @@ router.get(
       }
 
       // Update last login
-      AuthService['prisma'] ?? null;
-      import('../lib/prisma.js').then(({ default: prisma }) => {
-        prisma.user.update({
-          where: { id: user.id },
-          data:  { lastLoginAt: new Date() },
-        }).catch(() => {});
-      });
+    //   AuthService['prisma'] ?? null;
+    //   import('../lib/prisma.js').then(({ default: prisma }) => {
+    //     prisma.user.update({
+    //       where: { id: user.id },
+    //       data:  { lastLoginAt: new Date() },
+    //     }).catch(() => {});
+    //   });
+
+import('../lib/prisma.js').then(({default : prisma }) => {
+    prisma.user.update({
+        where: {id: user.id},
+        data: {lastLoginAt: new Date()},
+    }).catch(() => {});
+});
 
       const token = AuthService.generateToken(user.id, user.email);
 
