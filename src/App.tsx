@@ -40,6 +40,7 @@ import { InventoryPage } from './pages/InventoryPage';
 import { StorefrontPage } from './pages/StorefrontPage';
 import { FinancingPage } from './pages/FinancingPage';
 import { PublicStorefrontPage } from './pages/PublicStorefrontPage';
+import { GoogleAuthSuccessPage } from './pages/GoogleAuthSuccessPage';
 
 export function App() {
   return (
@@ -57,6 +58,7 @@ export function App() {
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/store/:storeId" element={<PublicStorefrontPage />} />
+          <Route path="/auth/google/success" element={<GoogleAuthSuccessPage />} />
 
           {/* Protected Dashboard Routes */}
           <Route path="/dashboard" element={<ProtectedRoute><DashboardHome /></ProtectedRoute>} />
