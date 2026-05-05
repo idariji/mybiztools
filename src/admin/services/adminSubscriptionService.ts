@@ -11,6 +11,9 @@ import {
 } from '../types/admin';
 import { AdminActionLogger } from './adminActionLogger';
 import { DatabaseService } from './databaseService';
+import { API_BASE_URL as API_ROOT } from '../../config/apiConfig';
+
+const ADMIN_API = `${API_ROOT}/api/admin`;
 
 // ============================================================================
 // SUBSCRIPTION MANAGEMENT SERVICE
@@ -356,18 +359,64 @@ export class AdminSubscriptionService {
   static async getSubscriptionHistory(
     userId: string
   ): Promise<ManualSubscriptionChange[]> {
-    // In production, query from database
-    console.log(`Fetching subscription history for ${userId}`);
-    return [];
+    try {
+      const response = await fetch(`${ADMIN_API}/users/${userId}/subscriptions`, {
+        headers: {
+          Authorization: `Bearer ${DatabaseService.getAuthToken()}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) return [];
+      const result = await response.json();
+      const changes: any[] = result.data?.manualChanges ?? [];
+      return changes.map((c): ManualSubscriptionChange => ({
+        id: c.id,
+        user_id: c.userId,
+        admin_id: c.adminId,
+        action: c.action,
+        from_plan: c.fromPlan,
+        to_plan: c.toPlan,
+        effective_date: new Date(c.effectiveDate),
+        reason: c.reason,
+        status: c.status ?? 'completed',
+        created_at: new Date(c.createdAt),
+        completed_at: c.completedAt ? new Date(c.completedAt) : undefined,
+      }));
+    } catch {
+      return [];
+    }
   }
 
   /**
    * Get promotional overrides for user
    */
   static async getUserOverrides(userId: string): Promise<PromotionalOverride[]> {
-    // In production, query from database
-    console.log(`Fetching promotional overrides for ${userId}`);
-    return [];
+    try {
+      const response = await fetch(`${ADMIN_API}/users/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${DatabaseService.getAuthToken()}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) return [];
+      const result = await response.json();
+      const overrides: any[] = result.data?.overrides ?? [];
+      return overrides.map((o): PromotionalOverride => ({
+        id: o.id,
+        user_id: o.userId,
+        admin_id: o.appliedBy,
+        override_type: o.overrideType as PromotionalOverride['override_type'],
+        from_value: o.planOverride ?? o.discountPercentage ?? 0,
+        to_value: o.planOverride ?? o.discountPercentage ?? 0,
+        reason: o.reason,
+        is_active: o.isActive,
+        expires_at: o.endDate ? new Date(o.endDate) : undefined,
+        created_at: new Date(o.createdAt),
+        updated_at: new Date(o.updatedAt),
+      }));
+    } catch {
+      return [];
+    }
   }
 
   // ========================================================================

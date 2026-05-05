@@ -27,17 +27,12 @@ export function ForgotPasswordPage() {
     setError('');
 
     try {
-      const result = await authService.requestPasswordReset(email);
-      if (result.success) {
-        addToast('Password reset link sent to your email!', 'success');
-        setSent(true);
-      } else {
-        // Still show success message for security (don't reveal if email exists)
-        addToast('If an account exists with this email, a reset link will be sent.', 'success');
-        setSent(true);
-      }
+      await authService.requestPasswordReset(email);
+      // Always show success to avoid revealing whether email exists
+      addToast('If an account exists with this email, a reset code will be sent.', 'success');
+      setSent(true);
     } catch (err) {
-      addToast('Failed to send reset email. Please try again.', 'error');
+      addToast('Failed to send reset code. Please try again.', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -57,7 +52,7 @@ export function ForgotPasswordPage() {
             <>
               <h2 className="text-3xl font-bold text-[#0B132B] mb-2">Forgot Password?</h2>
               <p className="text-slate-600 mb-8">
-                Enter your email and we'll send you a reset link
+                Enter your email and we'll send you a 6-digit reset code
               </p>
 
               <form onSubmit={handleSubmit}>
@@ -76,7 +71,7 @@ export function ForgotPasswordPage() {
                   disabled={isLoading}
                   className="w-full bg-gradient-to-r from-[#5BC0BE] to-[#3da5a3] hover:from-[#4aafad] hover:to-[#2e8a88] text-white font-bold py-4 rounded-xl shadow-lg mb-4 disabled:opacity-50"
                 >
-                  {isLoading ? 'Sending...' : 'Send Reset Link'}
+                  {isLoading ? 'Sending...' : 'Send Reset Code'}
                 </Button>
 
                 <button
@@ -93,11 +88,17 @@ export function ForgotPasswordPage() {
               <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-[#0B132B] mb-2">Check Your Email</h2>
               <p className="text-slate-600 mb-6">
-                We've sent a password reset link to <strong>{email}</strong>
+                We've sent a 6-digit reset code to <strong>{email}</strong>. Enter it on the next page to set your new password.
               </p>
               <button
+                onClick={() => navigate(`/reset-password?email=${encodeURIComponent(email)}`)}
+                className="w-full bg-gradient-to-r from-[#5BC0BE] to-[#3da5a3] text-white font-bold py-3 rounded-xl shadow-lg mb-3"
+              >
+                Enter Reset Code
+              </button>
+              <button
                 onClick={() => navigate('/login')}
-                className="text-[#5BC0BE] font-semibold hover:underline"
+                className="text-sm text-slate-500 hover:text-[#5BC0BE] transition-colors"
               >
                 Return to Login
               </button>

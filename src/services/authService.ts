@@ -141,101 +141,76 @@ class AuthServiceClass {
     window.location.href = '/login';
   }
 
-  // Verify email with token
-  async verifyEmail(token: string): Promise<{ success: boolean; message: string; error?: string }> {
+  // Verify email via OTP (sent to email after signup)
+  async verifyEmailOtp(email: string, otp: string): Promise<AuthResponse> {
     try {
-      const response = await fetch(`${API_URL}/api/auth/verify/${token}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const response = await fetch(`${API_URL}/api/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp }),
       });
 
-      const data = await response.json();
+      const data: AuthResponse = await response.json();
 
-      // If verification successful, update user in localStorage
-      if (data.success) {
-        const currentUser = this.getCurrentUser();
-        if (currentUser) {
-          currentUser.emailVerified = true;
-          localStorage.setItem(this.userKey, JSON.stringify(currentUser));
-        }
+      if (data.success && data.data) {
+        localStorage.setItem(this.tokenKey, data.data.token);
+        const u = data.data.user as any;
+        if (u.currentPlan && !u.current_plan) u.current_plan = u.currentPlan;
+        localStorage.setItem(this.userKey, JSON.stringify(u));
       }
 
       return data;
     } catch (error) {
-      console.error('Email verification error:', error);
-      return {
-        success: false,
-        message: 'Failed to verify email. Please try again.',
-        error: 'NETWORK_ERROR',
-      };
+      console.error('OTP verification error:', error);
+      return { success: false, message: 'Failed to verify email. Please try again.', error: 'NETWORK_ERROR' };
     }
   }
 
-  // Resend verification email
+  // Resend email verification OTP
   async resendVerificationEmail(email: string): Promise<{ success: boolean; message: string; error?: string }> {
     try {
-      const response = await fetch(`${API_URL}/api/auth/resend-verification`, {
+      const response = await fetch(`${API_URL}/api/auth/resend-otp`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
 
       return await response.json();
     } catch (error) {
-      console.error('Resend verification error:', error);
-      return {
-        success: false,
-        message: 'Failed to resend verification email. Please try again.',
-        error: 'NETWORK_ERROR',
-      };
+      console.error('Resend OTP error:', error);
+      return { success: false, message: 'Failed to resend verification code. Please try again.', error: 'NETWORK_ERROR' };
     }
   }
 
-  // Request password reset
+  // Request password reset — backend sends OTP to email
   async requestPasswordReset(email: string): Promise<{ success: boolean; message: string; error?: string }> {
     try {
-      const response = await fetch(`${API_URL}/api/auth/forgot`, {
+      const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
 
       return await response.json();
     } catch (error) {
       console.error('Password reset request error:', error);
-      return {
-        success: false,
-        message: 'Failed to request password reset. Please try again.',
-        error: 'NETWORK_ERROR',
-      };
+      return { success: false, message: 'Failed to request password reset. Please try again.', error: 'NETWORK_ERROR' };
     }
   }
 
-  // Reset password with token
-  async resetPassword(token: string, newPassword: string): Promise<{ success: boolean; message: string; error?: string }> {
+  // Reset password using OTP from email
+  async resetPassword(email: string, otp: string, newPassword: string): Promise<{ success: boolean; message: string; error?: string }> {
     try {
-      const response = await fetch(`${API_URL}/api/auth/reset`, {
+      const response = await fetch(`${API_URL}/api/auth/reset-password`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token, password: newPassword }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp, password: newPassword }),
       });
 
       return await response.json();
     } catch (error) {
       console.error('Password reset error:', error);
-      return {
-        success: false,
-        message: 'Failed to reset password. Please try again.',
-        error: 'NETWORK_ERROR',
-      };
+      return { success: false, message: 'Failed to reset password. Please try again.', error: 'NETWORK_ERROR' };
     }
   }
 

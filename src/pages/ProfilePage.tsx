@@ -75,7 +75,7 @@ export const ProfilePage: React.FC = () => {
                 {formData.firstName ? formData.firstName.charAt(0).toUpperCase() : 'U'}
               </div>
               <h3 className="font-semibold text-gray-900">{formData.firstName && formData.lastName ? `${formData.firstName} ${formData.lastName}` : 'User'}</h3>
-              <p className="text-sm text-gray-600">{formData.email}</p>
+              <p className="text-sm text-gray-600">{user?.email}</p>
             </div>
           </div>
         </div>

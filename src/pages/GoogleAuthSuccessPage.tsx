@@ -31,7 +31,7 @@ export function GoogleAuthSuccessPage() {
         if (data.success && user) {
           const u = user as any;
           if (u.currentPlan && !u.current_plan) u.current_plan = u.currentPlan;
-          localStorage.setItem('authToken', token);
+          localStorage.setItem('authToken', token!);
           localStorage.setItem('user', JSON.stringify(u));
           refreshUser();
           navigate('/dashboard', { replace: true });
