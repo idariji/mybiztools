@@ -74,8 +74,7 @@ class AuthServiceClass {
   // Login user
   async login(input: LoginInput): Promise<AuthResponse> {
     try {
-      // const response = await fetch(`${API_URL}/api/auth/login`, {
-      const response = await fetch(`https://mybiztools.onrender.com/api/auth/login`, {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
