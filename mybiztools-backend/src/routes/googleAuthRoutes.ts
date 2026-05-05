@@ -53,21 +53,13 @@ router.get(
         return res.redirect(`${env.frontendUrl}/login?error=google_auth_failed`);
       }
 
-      // Update last login
-    //   AuthService['prisma'] ?? null;
-    //   import('../lib/prisma.js').then(({ default: prisma }) => {
-    //     prisma.user.update({
-    //       where: { id: user.id },
-    //       data:  { lastLoginAt: new Date() },
-    //     }).catch(() => {});
-    //   });
-
-import('../lib/prisma.js').then(({default : prisma }) => {
-    prisma.user.update({
-        where: {id: user.id},
-        data: {lastLoginAt: new Date()},
-    }).catch(() => {});
-});
+      // Update last login (fire-and-forget)
+      import('../lib/prisma.js').then(({ default: prisma }) => {
+        prisma.user.update({
+          where: { id: user.id },
+          data: { lastLoginAt: new Date() },
+        }).catch(() => {});
+      });
 
       const token = AuthService.generateToken(user.id, user.email);
 
