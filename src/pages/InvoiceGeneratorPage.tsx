@@ -210,21 +210,27 @@ export function InvoiceGeneratorPage() {
   const handleSendComplete = async (method: 'email' | 'whatsapp', message: string) => {
     try {
       if (method === 'email') {
-        const pdfBlob = await generatePDFBlob();
-        if (!pdfBlob) {
-          addToast('Failed to generate PDF', 'error');
-          return;
+        // Use existing id or save first to get one
+        let invoiceId = invoice.id;
+        if (!invoiceId) {
+          const saved = { ...invoice, status: 'sent' as const, updatedAt: new Date().toISOString() };
+          invoiceId = await InvoiceSyncService.save(saved);
+          if (invoiceId) setInvoice(prev => ({ ...prev, id: invoiceId! }));
         }
-        
-        await sendInvoiceEmail(invoice, message, pdfBlob);
+
+        const success = await sendInvoiceEmail(invoice, message, invoiceId);
         setShowSendModal(false);
-        addToast(`Invoice sent to ${invoice.clientInfo.email}`, 'success');
+        if (success) {
+          addToast(`Invoice sent to ${invoice.clientInfo.email}`, 'success');
+        } else {
+          addToast('Failed to send invoice. Please try again.', 'error');
+        }
       } else {
         sendInvoiceWhatsApp(invoice, message);
         setShowSendModal(false);
         addToast('Opening WhatsApp...', 'success');
       }
-    } catch (error) {
+    } catch {
       addToast('Failed to send invoice. Please try again.', 'error');
     }
   };

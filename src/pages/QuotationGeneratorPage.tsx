@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, Printer, Save, ArrowLeft, Link as LinkIcon, FileText } from 'lucide-react';
+import { Download, Printer, Save, Send, ArrowLeft, Link as LinkIcon, FileText } from 'lucide-react';
 import { QuotationForm } from '../components/quotation/QuotationForm';
 import { QuotationPreview } from '../components/quotation/QuotationPreview';
+import { SendQuotationModal } from '../components/quotation/SendQuotationModal';
 import { Quotation } from '../types/quotation';
 import { generateQuotationNumber, generatePublicLink } from '../utils/quotationUtils';
+import { sendQuotationEmail } from '../services/emailService';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useToast } from '../utils/useToast';
@@ -63,6 +65,7 @@ export function QuotationGeneratorPage() {
   }, []);
 
   const [showPreview, setShowPreview] = useState(false);
+  const [showSendModal, setShowSendModal] = useState(false);
 
   useEffect(() => {
     const subtotal = quotation.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
@@ -186,6 +189,44 @@ export function QuotationGeneratorPage() {
     }, 1000);
   };
 
+  const handleSendQuotation = () => {
+    if (!validateQuotation()) return;
+    if (!quotation.clientInfo.email && !quotation.clientInfo.phone) {
+      addToast('Client email or phone is required to send quotation', 'error');
+      return;
+    }
+    setShowSendModal(true);
+  };
+
+  const handleSendComplete = async (method: 'email' | 'whatsapp', message: string) => {
+    try {
+      if (method === 'email') {
+        let quotationId = quotation.id;
+        if (!quotationId) {
+          const saved = { ...quotation, status: 'sent' as const, updatedAt: new Date().toISOString() };
+          quotationId = await QuotationSyncService.save(saved);
+          if (quotationId) setQuotation(prev => ({ ...prev, id: quotationId! }));
+        }
+
+        const success = await sendQuotationEmail(quotation, message, quotationId);
+        setShowSendModal(false);
+        if (success) {
+          addToast(`Quotation sent to ${quotation.clientInfo.email}`, 'success');
+        } else {
+          addToast('Failed to send quotation. Please try again.', 'error');
+        }
+      } else {
+        const phone = quotation.clientInfo.phone.replace(/\D/g, '');
+        const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+        window.open(waUrl, '_blank');
+        setShowSendModal(false);
+        addToast('Opening WhatsApp...', 'success');
+      }
+    } catch {
+      addToast('Failed to send quotation. Please try again.', 'error');
+    }
+  };
+
   const validateQuotation = (): boolean => {
     if (!quotation.businessInfo.name || !quotation.businessInfo.email || !quotation.businessInfo.phone || !quotation.businessInfo.address) {
       addToast('Please fill in all business information', 'error');
@@ -209,6 +250,12 @@ export function QuotationGeneratorPage() {
   return (
     <>
       <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <SendQuotationModal
+        isOpen={showSendModal}
+        onClose={() => setShowSendModal(false)}
+        quotation={quotation}
+        onSend={handleSendComplete}
+      />
       <div className="min-h-screen bg-[#F0F3F5]">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4 sticky top-0 z-10">
@@ -265,8 +312,17 @@ export function QuotationGeneratorPage() {
               </button>
 
               <button
-                onClick={handleConvertToInvoice}
+                onClick={handleSendQuotation}
                 className="flex items-center justify-center gap-1 p-2 sm:px-3 sm:py-2 bg-[#FF8A2B] text-white rounded-lg hover:bg-[#FF6B00] transition-colors text-xs sm:text-sm font-medium"
+                title="Send Quotation"
+              >
+                <Send className="w-4 h-4" />
+                <span className="hidden sm:inline">Send</span>
+              </button>
+
+              <button
+                onClick={handleConvertToInvoice}
+                className="flex items-center justify-center gap-1 p-2 sm:px-3 sm:py-2 bg-[#1e3a8a] text-white rounded-lg hover:bg-[#1e40af] transition-colors text-xs sm:text-sm font-medium"
                 title="Convert to Invoice"
               >
                 <FileText className="w-4 h-4" />

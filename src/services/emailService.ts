@@ -155,29 +155,24 @@ const EMAIL_STYLES = `
 export const sendInvoiceEmail = async (
   invoice: Invoice,
   message: string,
-  pdfBlob: Blob
+  invoiceId?: string
 ): Promise<boolean> => {
   try {
     const formData = new FormData();
     formData.append('to', invoice.clientInfo.email);
     formData.append('subject', `Invoice #${invoice.invoiceNumber} from ${invoice.businessInfo.name}`);
     formData.append('message', message);
-    formData.append('invoice', pdfBlob, `${invoice.invoiceNumber}.pdf`);
     formData.append('businessName', invoice.businessInfo.name);
     formData.append('businessEmail', invoice.businessInfo.email);
+    if (invoiceId) formData.append('invoiceId', invoiceId);
 
     const response = await fetch(apiEndpoints.sendEmail, {
       method: 'POST',
-      headers: {
-        'Authorization': getAuthHeader(),
-      },
+      headers: { Authorization: getAuthHeader() },
       body: formData,
     });
 
-    if (!response.ok) {
-      throw new Error(`Server responded with ${response.status}`);
-    }
-
+    if (!response.ok) throw new Error(`Server responded with ${response.status}`);
     const data = await response.json();
     return data.success === true;
   } catch (error) {
@@ -189,29 +184,24 @@ export const sendInvoiceEmail = async (
 export const sendReceiptEmail = async (
   receipt: Receipt,
   message: string,
-  pdfBlob: Blob
+  receiptId?: string
 ): Promise<boolean> => {
   try {
     const formData = new FormData();
     formData.append('to', receipt.customerInfo.email || '');
-    formData.append('subject', `Receipt #${receipt.receiptNumber} - Thank You`);
+    formData.append('subject', `Receipt #${receipt.receiptNumber} from ${receipt.businessInfo.name}`);
     formData.append('message', message);
-    formData.append('receipt', pdfBlob, `${receipt.receiptNumber}.pdf`);
     formData.append('businessName', receipt.businessInfo.name);
     formData.append('businessEmail', receipt.businessInfo.email);
+    if (receiptId) formData.append('receiptId', receiptId);
 
     const response = await fetch(apiEndpoints.sendEmail, {
       method: 'POST',
-      headers: {
-        'Authorization': getAuthHeader(),
-      },
+      headers: { Authorization: getAuthHeader() },
       body: formData,
     });
 
-    if (!response.ok) {
-      throw new Error(`Server responded with ${response.status}`);
-    }
-
+    if (!response.ok) throw new Error(`Server responded with ${response.status}`);
     const data = await response.json();
     return data.success === true;
   } catch (error) {
@@ -223,29 +213,24 @@ export const sendReceiptEmail = async (
 export const sendQuotationEmail = async (
   quotation: Quotation,
   message: string,
-  pdfBlob: Blob
+  quotationId?: string
 ): Promise<boolean> => {
   try {
     const formData = new FormData();
     formData.append('to', quotation.clientInfo.email);
     formData.append('subject', `Quotation #${quotation.quotationNumber} from ${quotation.businessInfo.name}`);
     formData.append('message', message);
-    formData.append('quotation', pdfBlob, `${quotation.quotationNumber}.pdf`);
     formData.append('businessName', quotation.businessInfo.name);
     formData.append('businessEmail', quotation.businessInfo.email);
+    if (quotationId) formData.append('quotationId', quotationId);
 
     const response = await fetch(apiEndpoints.sendEmail, {
       method: 'POST',
-      headers: {
-        'Authorization': getAuthHeader(),
-      },
+      headers: { Authorization: getAuthHeader() },
       body: formData,
     });
 
-    if (!response.ok) {
-      throw new Error(`Server responded with ${response.status}`);
-    }
-
+    if (!response.ok) throw new Error(`Server responded with ${response.status}`);
     const data = await response.json();
     return data.success === true;
   } catch (error) {

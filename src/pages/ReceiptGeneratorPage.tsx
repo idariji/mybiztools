@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, Printer, Save, ArrowLeft, Share2 } from 'lucide-react';
+import { Download, Printer, Save, Send, ArrowLeft, Share2 } from 'lucide-react';
 import { ReceiptForm } from '../components/receipt/ReceiptForm';
 import { ReceiptPreview } from '../components/receipt/ReceiptPreview';
+import { SendReceiptModal } from '../components/receipt/SendReceiptModal';
 import { Receipt } from '../types/receipt';
 import { generateReceiptNumber } from '../utils/receiptUtils';
+import { sendReceiptEmail } from '../services/emailService';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useToast } from '../utils/useToast';
@@ -56,6 +58,7 @@ export function ReceiptGeneratorPage() {
   }, []);
 
   const [showPreview, setShowPreview] = useState(false);
+  const [showSendModal, setShowSendModal] = useState(false);
 
   useEffect(() => {
     const subtotal = receipt.items.reduce((sum, item) => sum + item.lineTotal, 0);
@@ -169,6 +172,44 @@ export function ReceiptGeneratorPage() {
     }
   };
 
+  const handleSendReceipt = () => {
+    if (!validateReceipt()) return;
+    if (!receipt.customerInfo.email && !receipt.customerInfo.phone) {
+      addToast('Customer email or phone is required to send receipt', 'error');
+      return;
+    }
+    setShowSendModal(true);
+  };
+
+  const handleSendComplete = async (method: 'email' | 'whatsapp', message: string) => {
+    try {
+      if (method === 'email') {
+        let receiptId = receipt.id;
+        if (!receiptId) {
+          const saved = { ...receipt, status: 'issued' as const, updatedAt: new Date().toISOString() };
+          receiptId = await ReceiptSyncService.save(saved);
+          if (receiptId) setReceipt(prev => ({ ...prev, id: receiptId! }));
+        }
+
+        const success = await sendReceiptEmail(receipt, message, receiptId);
+        setShowSendModal(false);
+        if (success) {
+          addToast(`Receipt sent to ${receipt.customerInfo.email}`, 'success');
+        } else {
+          addToast('Failed to send receipt. Please try again.', 'error');
+        }
+      } else {
+        const phone = (receipt.customerInfo.phone || '').replace(/\D/g, '');
+        const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+        window.open(waUrl, '_blank');
+        setShowSendModal(false);
+        addToast('Opening WhatsApp...', 'success');
+      }
+    } catch {
+      addToast('Failed to send receipt. Please try again.', 'error');
+    }
+  };
+
   const validateReceipt = (): boolean => {
     if (!receipt.businessInfo.name || !receipt.businessInfo.email || !receipt.businessInfo.phone || !receipt.businessInfo.address) {
       addToast('Please fill in all business information', 'error');
@@ -192,6 +233,12 @@ export function ReceiptGeneratorPage() {
   return (
     <>
       <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <SendReceiptModal
+        isOpen={showSendModal}
+        onClose={() => setShowSendModal(false)}
+        receipt={receipt}
+        onSend={handleSendComplete}
+      />
       <div className="min-h-screen bg-[#F0F3F5]">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4 sticky top-0 z-10">
@@ -239,8 +286,17 @@ export function ReceiptGeneratorPage() {
               </button>
 
               <button
-                onClick={handleShare}
+                onClick={handleSendReceipt}
                 className="flex items-center justify-center gap-1 p-2 sm:px-3 sm:py-2 bg-[#FF8A2B] text-white rounded-lg hover:bg-[#FF6B00] transition-colors text-xs sm:text-sm font-medium"
+                title="Send Receipt"
+              >
+                <Send className="w-4 h-4" />
+                <span className="hidden sm:inline">Send</span>
+              </button>
+
+              <button
+                onClick={handleShare}
+                className="flex items-center justify-center gap-1 p-2 sm:px-3 sm:py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-xs sm:text-sm font-medium"
                 title="Share"
               >
                 <Share2 className="w-4 h-4" />

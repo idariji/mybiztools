@@ -45,19 +45,21 @@ export const InvoiceSyncService = {
     }
   },
 
-  async save(invoice: any): Promise<void> {
+  async save(invoice: any): Promise<string | undefined> {
     try {
       if (invoice.id) {
         await apiFetch(`/invoices/${invoice.id}`, {
           method: 'PUT',
           body: JSON.stringify(invoice),
         });
+        return invoice.id;
       } else {
         const result = await apiFetch('/invoices', {
           method: 'POST',
           body: JSON.stringify(invoice),
         });
         invoice.id = extractId(result, 'invoice');
+        return invoice.id;
       }
     } catch {
       const key = localKey('invoice-drafts');
@@ -66,6 +68,7 @@ export const InvoiceSyncService = {
       if (idx >= 0) drafts[idx] = invoice;
       else drafts.push(invoice);
       localStorage.setItem(key, JSON.stringify(drafts));
+      return invoice.id;
     }
   },
 
@@ -90,19 +93,21 @@ export const QuotationSyncService = {
     }
   },
 
-  async save(quotation: any): Promise<void> {
+  async save(quotation: any): Promise<string | undefined> {
     try {
       if (quotation.id) {
         await apiFetch(`/quotations/${quotation.id}`, {
           method: 'PUT',
           body: JSON.stringify(quotation),
         });
+        return quotation.id;
       } else {
         const result = await apiFetch('/quotations', {
           method: 'POST',
           body: JSON.stringify(quotation),
         });
         quotation.id = extractId(result, 'quotation');
+        return quotation.id;
       }
     } catch {
       const key = localKey('quotation-drafts');
@@ -111,6 +116,7 @@ export const QuotationSyncService = {
       if (idx >= 0) drafts[idx] = quotation;
       else drafts.push(quotation);
       localStorage.setItem(key, JSON.stringify(drafts));
+      return quotation.id;
     }
   },
 
@@ -135,19 +141,21 @@ export const ReceiptSyncService = {
     }
   },
 
-  async save(receipt: any): Promise<void> {
+  async save(receipt: any): Promise<string | undefined> {
     try {
       if (receipt.id) {
         await apiFetch(`/receipts/${receipt.id}`, {
           method: 'PUT',
           body: JSON.stringify(receipt),
         });
+        return receipt.id;
       } else {
         const result = await apiFetch('/receipts', {
           method: 'POST',
           body: JSON.stringify(receipt),
         });
         receipt.id = extractId(result, 'receipt');
+        return receipt.id;
       }
     } catch {
       const key = localKey('receipt-drafts');
@@ -156,6 +164,7 @@ export const ReceiptSyncService = {
       if (idx >= 0) drafts[idx] = receipt;
       else drafts.push(receipt);
       localStorage.setItem(key, JSON.stringify(drafts));
+      return receipt.id;
     }
   },
 

@@ -189,25 +189,19 @@ export const sendPaymentReminderEmailSafe = async (
 export const sendInvoiceEmailSafe = async (
   invoice: Invoice,
   message: string,
-  pdfBlob: Blob
+  invoiceId?: string
 ): Promise<{ success: boolean; message: string }> => {
   try {
     if (!validateEmail(invoice.clientInfo.email)) {
       return { success: false, message: 'Invalid client email address' };
     }
 
-    await sendInvoiceEmail(invoice, message, pdfBlob);
+    await sendInvoiceEmail(invoice, message, invoiceId);
 
-    return {
-      success: true,
-      message: 'Invoice email sent successfully',
-    };
+    return { success: true, message: 'Invoice email sent successfully' };
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-    return {
-      success: false,
-      message: `Failed to send invoice email: ${errorMsg}`,
-    };
+    return { success: false, message: `Failed to send invoice email: ${errorMsg}` };
   }
 };
 
@@ -217,25 +211,19 @@ export const sendInvoiceEmailSafe = async (
 export const sendReceiptEmailSafe = async (
   receipt: Receipt,
   message: string,
-  pdfBlob: Blob
+  receiptId?: string
 ): Promise<{ success: boolean; message: string }> => {
   try {
     if (!validateEmail(receipt.customerInfo.email || '')) {
       return { success: false, message: 'Invalid client email address' };
     }
 
-    await sendReceiptEmail(receipt, message, pdfBlob);
+    await sendReceiptEmail(receipt, message, receiptId);
 
-    return {
-      success: true,
-      message: 'Receipt email sent successfully',
-    };
+    return { success: true, message: 'Receipt email sent successfully' };
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-    return {
-      success: false,
-      message: `Failed to send receipt email: ${errorMsg}`,
-    };
+    return { success: false, message: `Failed to send receipt email: ${errorMsg}` };
   }
 };
 
@@ -245,25 +233,19 @@ export const sendReceiptEmailSafe = async (
 export const sendQuotationEmailSafe = async (
   quotation: Quotation,
   message: string,
-  pdfBlob: Blob
+  quotationId?: string
 ): Promise<{ success: boolean; message: string }> => {
   try {
     if (!validateEmail(quotation.clientInfo.email)) {
       return { success: false, message: 'Invalid client email address' };
     }
 
-    await sendQuotationEmail(quotation, message, pdfBlob);
+    await sendQuotationEmail(quotation, message, quotationId);
 
-    return {
-      success: true,
-      message: 'Quotation email sent successfully',
-    };
+    return { success: true, message: 'Quotation email sent successfully' };
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-    return {
-      success: false,
-      message: `Failed to send quotation email: ${errorMsg}`,
-    };
+    return { success: false, message: `Failed to send quotation email: ${errorMsg}` };
   }
 };
 
