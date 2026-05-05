@@ -63,14 +63,45 @@ if (env.nodeEnv !== 'production') {
   corsOrigins.push(/^http:\/\/localhost:\d+$/);
 }
 
-app.use(
-  cors({
-    origin: corsOrigins,
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  })
-);
+// app.use(
+//   cors({
+//     origin: corsOrigins,
+//     credentials: true,
+//     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+//     allowedHeaders: ['Content-Type', 'Authorization'],
+//   })
+// );
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+   
+    if (!origin) return callback(null, true);
+
+    const isAllowed = corsOrigins.some((allowedOrigin) => {
+      if (typeof allowedOrigin === "string") {
+        return allowedOrigin === origin;
+      }
+      return allowedOrigin.test(origin);
+    });
+
+    if (isAllowed) {
+      return callback(null, true);
+    } else {
+      console.error("CORS blocked:", origin);
+      return callback(new Error("Not allowed by CORS"));
+    }
+  },
+
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+
+app.use(cors(corsOptions));
+
+
+app.options("*", cors(corsOptions));
 
 // SECURITY HEADERS
 app.use(
