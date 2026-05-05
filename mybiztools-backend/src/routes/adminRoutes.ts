@@ -117,7 +117,7 @@ router.post('/setup-env', async (req: Request, res: Response) => {
       WHERE table_name = 'Admin' AND table_schema = 'public'
       ORDER BY ordinal_position
     `;
-    results.existingColumns = cols.map(c => c.column_name);
+    results.existingColumns = cols.map((c: { column_name: string }) => c.column_name);
 
     // Step 2: Ensure every required column exists (idempotent — safe to re-run)
     await prisma.$executeRaw`ALTER TABLE "Admin" ADD COLUMN IF NOT EXISTS "is_active"     BOOLEAN   NOT NULL DEFAULT true`;
@@ -131,7 +131,7 @@ router.post('/setup-env', async (req: Request, res: Response) => {
       const hashed = await bcrypt.hash(adminPassword, 12);
       const email  = adminEmail.toLowerCase();
       const id     = uuidv4();
-      const existingCols = new Set(cols.map(c => c.column_name));
+      const existingCols = new Set(cols.map((c: { column_name: string }) => c.column_name));
 
       // Build INSERT columns/values dynamically — covers any mix of camelCase or snake_case
       const colNames: string[] = ['id', 'email', 'password', 'name', 'role'];
