@@ -145,10 +145,14 @@ export function DashboardHome() {
     const currentUser = authService.getCurrentUser();
     setUser(currentUser);
 
-    const inv = safeGetJSON<any[]>('invoice-drafts', []);
-    const quot = safeGetJSON<any[]>('quotation-drafts', []);
-    const rec = safeGetJSON<any[]>('receipt-drafts', []);
-    const pay = safeGetJSON<any[]>('payslip-drafts', []);
+    // Use user-scoped keys to match documentSyncService storage pattern
+    const uid = currentUser?.id;
+    const scopedKey = (base: string) => (uid ? `${base}-${uid}` : base);
+
+    const inv = safeGetJSON<any[]>(scopedKey('invoice-drafts'), []);
+    const quot = safeGetJSON<any[]>(scopedKey('quotation-drafts'), []);
+    const rec = safeGetJSON<any[]>(scopedKey('receipt-drafts'), []);
+    const pay = safeGetJSON<any[]>(scopedKey('payslip-drafts'), []);
 
     setInvoices(inv);
     setQuotations(quot);

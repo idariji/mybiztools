@@ -229,8 +229,16 @@ class AuthServiceClass {
 
       const data: AuthResponse = await response.json();
 
-      if (data.success && data.data) {
-        localStorage.setItem(this.userKey, JSON.stringify(data.data.user));
+      if (data.success) {
+        // Prefer full user from server; fall back to merging updates into current user
+        const serverUser = data.data?.user as any;
+        const merged: any = serverUser
+          ? { ...serverUser }
+          : { ...this.getCurrentUser(), ...updates };
+        if (merged.currentPlan && !merged.current_plan) merged.current_plan = merged.currentPlan;
+        localStorage.setItem(this.userKey, JSON.stringify(merged));
+        // Ensure data.data reflects what we stored so callers get the full object
+        if (!data.data) data.data = { user: merged as User, token: token || '' };
       }
 
       return data;

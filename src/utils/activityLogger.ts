@@ -2,6 +2,8 @@
  * Activity logger utility for tracking user document actions
  */
 
+import { authService } from '../services/authService';
+
 interface ActivityEntry {
   id: string;
   type: 'invoice' | 'quotation' | 'receipt' | 'payslip';
@@ -10,12 +12,16 @@ interface ActivityEntry {
   timestamp: string; // ISO string
 }
 
-const ACTIVITY_KEY = 'activity-log';
 const MAX_ENTRIES = 50;
+
+function activityKey(): string {
+  const userId = authService.getCurrentUser()?.id;
+  return userId ? `activity-log-${userId}` : 'activity-log';
+}
 
 function readLog(): ActivityEntry[] {
   try {
-    const raw = localStorage.getItem(ACTIVITY_KEY);
+    const raw = localStorage.getItem(activityKey());
     if (!raw) return [];
     return JSON.parse(raw) as ActivityEntry[];
   } catch {
@@ -25,7 +31,7 @@ function readLog(): ActivityEntry[] {
 
 function writeLog(entries: ActivityEntry[]): void {
   try {
-    localStorage.setItem(ACTIVITY_KEY, JSON.stringify(entries));
+    localStorage.setItem(activityKey(), JSON.stringify(entries));
   } catch {
     // Silently fail if localStorage is full
   }
@@ -54,5 +60,5 @@ export function getRecentActivity(limit = 10): ActivityEntry[] {
 }
 
 export function clearActivity(): void {
-  localStorage.removeItem(ACTIVITY_KEY);
+  localStorage.removeItem(activityKey());
 }
