@@ -182,7 +182,7 @@ export function QuotationPage() {
                       <td className="py-4 px-4 text-sm text-slate-900 font-medium">{quotation.quotationNumber}</td>
                       <td className="py-4 px-4 text-sm text-slate-600">{quotation.clientInfo?.name || 'N/A'}</td>
                       <td className="py-4 px-4 text-sm text-slate-900 font-semibold">
-                        {quotation.summary.total.toLocaleString()} {quotation.currency}
+                        {(quotation.summary?.total ?? 0).toLocaleString()} {quotation.currency}
                       </td>
                       <td className="py-4 px-4 text-sm text-slate-600">
                         {new Date(quotation.validUntil).toLocaleDateString()}
@@ -268,7 +268,7 @@ export function QuotationPage() {
                   </div>
                   <p className="text-sm text-slate-600">{quotation.clientInfo?.name || 'N/A'}</p>
                   <p className="text-base font-semibold text-slate-900">
-                    {quotation.summary.total.toLocaleString()} {quotation.currency}
+                    {(quotation.summary?.total ?? 0).toLocaleString()} {quotation.currency}
                   </p>
                   <p className="text-xs text-slate-500">Valid Until: {new Date(quotation.validUntil).toLocaleDateString()}</p>
                   <div className="flex items-center gap-2 pt-1">

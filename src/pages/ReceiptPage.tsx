@@ -117,7 +117,7 @@ export function ReceiptPage() {
                       <td className="py-4 px-4 text-sm text-slate-900 font-medium">{receipt.receiptNumber}</td>
                       <td className="py-4 px-4 text-sm text-slate-600">{receipt.customerInfo?.name || 'N/A'}</td>
                       <td className="py-4 px-4 text-sm text-slate-900 font-semibold">
-                        {receipt.summary.total.toLocaleString()} {receipt.currency}
+                        {(receipt.summary?.total ?? 0).toLocaleString()} {receipt.currency}
                       </td>
                       <td className="py-4 px-4 text-sm text-slate-600">
                         {new Date(receipt.receiptDate).toLocaleDateString()}
@@ -168,7 +168,7 @@ export function ReceiptPage() {
                   </div>
                   <p className="text-sm text-slate-600">{receipt.customerInfo?.name || 'N/A'}</p>
                   <p className="text-base font-semibold text-green-600">
-                    {receipt.summary.total.toLocaleString()} {receipt.currency}
+                    {(receipt.summary?.total ?? 0).toLocaleString()} {receipt.currency}
                   </p>
                   <p className="text-xs text-slate-500">{new Date(receipt.receiptDate).toLocaleDateString()}</p>
                   <div className="flex items-center gap-2 pt-1">

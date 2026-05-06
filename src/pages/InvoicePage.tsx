@@ -116,7 +116,7 @@ export function InvoicePage() {
                         <td className="py-4 px-4 text-sm text-slate-600">{invoice.clientInfo?.name || 'N/A'}</td>
                         <td className="py-4 px-4 text-sm text-slate-900 font-semibold">
                           {invoice.currency === 'NGN' ? '₦' : invoice.currency === 'USD' ? '$' : invoice.currency}
-                          {invoice.summary.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          {(invoice.summary?.total ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
                         <td className="py-4 px-4 text-sm text-slate-600">
                           {new Date(invoice.invoiceDate).toLocaleDateString()}
@@ -183,7 +183,7 @@ export function InvoicePage() {
                       'text-slate-900'
                     }`}>
                       {invoice.currency === 'NGN' ? '₦' : invoice.currency === 'USD' ? '$' : invoice.currency}
-                      {invoice.summary.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {(invoice.summary?.total ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                     <p className="text-xs text-slate-500">Due: {new Date(invoice.invoiceDate).toLocaleDateString()}</p>
                     <div className="flex items-center gap-2 pt-1">
