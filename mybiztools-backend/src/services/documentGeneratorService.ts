@@ -1098,7 +1098,7 @@ export class QuotationService {
         publicLinkExpires: publicLink
           ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
           : null,
-        documentData: data.documentData,
+        documentData: data,
         items: {
           create: (data.items || []).map((item: any) => ({
             description: item.description,
@@ -1169,7 +1169,9 @@ export class QuotationService {
       success: true,
       message: 'Quotations retrieved successfully',
       data: {
-        quotations: (quotations as any[]).map((q) => this.format(q)),
+        quotations: (quotations as any[]).map((q) =>
+          q.documentData ? { ...(q.documentData as any), id: q.id } : this.format(q)
+        ),
         pagination: { current: page, limit, total, pages: Math.ceil(total / limit) },
       },
     };
@@ -1366,7 +1368,9 @@ export class ReceiptService {
       success: true,
       message: 'Receipts retrieved successfully',
       data: {
-        receipts: (receipts as any[]).map((r) => this.format(r)),
+        receipts: (receipts as any[]).map((r) =>
+          r.documentData ? { ...(r.documentData as any), id: r.id } : this.format(r)
+        ),
         pagination: { current: page, limit, total, pages: Math.ceil(total / limit) },
       },
     };

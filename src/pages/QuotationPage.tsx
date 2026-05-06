@@ -41,11 +41,11 @@ export function QuotationPage() {
     setQuotations(drafts);
   };
 
-  const handleDelete = (quotationNumber: string) => {
+  const handleDelete = async (quotationNumber: string) => {
     if (confirm('Are you sure you want to delete this quotation?')) {
-      const updated = quotations.filter(q => q.quotationNumber !== quotationNumber);
-      localStorage.setItem('quotation-drafts', JSON.stringify(updated));
-      setQuotations(updated);
+      const target = quotations.find(q => q.quotationNumber === quotationNumber);
+      if (target?.id) await QuotationSyncService.delete(target.id);
+      setQuotations(prev => prev.filter(q => q.quotationNumber !== quotationNumber));
     }
   };
 

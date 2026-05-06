@@ -31,11 +31,11 @@ export function ReceiptPage() {
     navigate('/dashboard/receipts/create');
   };
 
-  const handleDelete = (receiptNumber: string) => {
+  const handleDelete = async (receiptNumber: string) => {
     if (confirm('Are you sure you want to delete this receipt?')) {
-      const updated = receipts.filter(r => r.receiptNumber !== receiptNumber);
-      localStorage.setItem('receipt-drafts', JSON.stringify(updated));
-      setReceipts(updated);
+      const target = receipts.find(r => r.receiptNumber === receiptNumber);
+      if (target?.id) await ReceiptSyncService.delete(target.id);
+      setReceipts(prev => prev.filter(r => r.receiptNumber !== receiptNumber));
     }
   };
 

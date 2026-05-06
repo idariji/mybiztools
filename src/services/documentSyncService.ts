@@ -94,17 +94,44 @@ export const QuotationSyncService = {
   },
 
   async save(quotation: any): Promise<string | undefined> {
+    // Map frontend nested Quotation shape to the flat shape the backend expects
+    const payload = {
+      quotationNumber:     quotation.quotationNumber,
+      issueDate:           quotation.issueDate,
+      validUntil:          quotation.validUntil,
+      currency:            quotation.currency,
+      status:              quotation.status,
+      notes:               quotation.notes,
+      terms:               quotation.terms,
+      paymentInstructions: quotation.paymentInstructions,
+      clientName:          quotation.clientInfo?.name    ?? quotation.clientName,
+      clientEmail:         quotation.clientInfo?.email   ?? quotation.clientEmail,
+      clientPhone:         quotation.clientInfo?.phone   ?? quotation.clientPhone,
+      clientAddress:       quotation.clientInfo?.address ?? quotation.clientAddress,
+      subtotal:            quotation.summary?.subtotal   ?? quotation.subtotal,
+      taxAmount:           quotation.summary?.totalVat   ?? quotation.taxAmount,
+      discountAmount:      quotation.summary?.discount   ?? quotation.discountAmount,
+      total:               quotation.summary?.total      ?? quotation.total,
+      items: (quotation.items || []).map((item: any) => ({
+        description: item.description ?? item.name,
+        quantity:    item.quantity,
+        unitPrice:   item.unitPrice,
+        amount:      item.lineTotal ?? item.amount,
+      })),
+      documentData: quotation,
+    };
+
     try {
       if (quotation.id) {
         await apiFetch(`/quotations/${quotation.id}`, {
           method: 'PUT',
-          body: JSON.stringify(quotation),
+          body: JSON.stringify(payload),
         });
         return quotation.id;
       } else {
         const result = await apiFetch('/quotations', {
           method: 'POST',
-          body: JSON.stringify(quotation),
+          body: JSON.stringify(payload),
         });
         quotation.id = extractId(result, 'quotation');
         return quotation.id;
