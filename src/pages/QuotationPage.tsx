@@ -24,7 +24,7 @@ export function QuotationPage() {
 
   const filteredQuotations = quotations.filter(q => {
     const matchesSearch = q.quotationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         q.clientInfo.name.toLowerCase().includes(searchTerm.toLowerCase());
+                         (q.clientInfo?.name || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || q.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -180,7 +180,7 @@ export function QuotationPage() {
                   filteredQuotations.map((quotation) => (
                     <tr key={quotation.quotationNumber} className="border-b border-slate-100 hover:bg-gradient-to-r hover:from-slate-50 hover:to-white transition-colors duration-150">
                       <td className="py-4 px-4 text-sm text-slate-900 font-medium">{quotation.quotationNumber}</td>
-                      <td className="py-4 px-4 text-sm text-slate-600">{quotation.clientInfo.name}</td>
+                      <td className="py-4 px-4 text-sm text-slate-600">{quotation.clientInfo?.name || 'N/A'}</td>
                       <td className="py-4 px-4 text-sm text-slate-900 font-semibold">
                         {quotation.summary.total.toLocaleString()} {quotation.currency}
                       </td>
@@ -266,7 +266,7 @@ export function QuotationPage() {
                       {QUOTATION_STATUSES.find(s => s.value === quotation.status)?.label}
                     </span>
                   </div>
-                  <p className="text-sm text-slate-600">{quotation.clientInfo.name}</p>
+                  <p className="text-sm text-slate-600">{quotation.clientInfo?.name || 'N/A'}</p>
                   <p className="text-base font-semibold text-slate-900">
                     {quotation.summary.total.toLocaleString()} {quotation.currency}
                   </p>

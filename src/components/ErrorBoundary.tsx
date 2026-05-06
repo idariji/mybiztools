@@ -1,5 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import { authService } from '../services/authService';
 
 interface Props {
   children: ReactNode;
@@ -38,7 +39,7 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   private handleGoHome = () => {
-    window.location.href = '/';
+    window.location.href = authService.isAuthenticated() ? '/dashboard' : '/';
   };
 
   public render() {

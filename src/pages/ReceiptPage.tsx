@@ -23,7 +23,7 @@ export function ReceiptPage() {
 
   const filteredReceipts = receipts.filter(r =>
     r.receiptNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.customerInfo.name.toLowerCase().includes(searchTerm.toLowerCase())
+    (r.customerInfo?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleView = (receipt: Receipt) => {
@@ -115,7 +115,7 @@ export function ReceiptPage() {
                   filteredReceipts.map((receipt) => (
                     <tr key={receipt.receiptNumber} className="border-b border-slate-100 hover:bg-gradient-to-r hover:from-slate-50 hover:to-white transition-colors duration-150">
                       <td className="py-4 px-4 text-sm text-slate-900 font-medium">{receipt.receiptNumber}</td>
-                      <td className="py-4 px-4 text-sm text-slate-600">{receipt.customerInfo.name}</td>
+                      <td className="py-4 px-4 text-sm text-slate-600">{receipt.customerInfo?.name || 'N/A'}</td>
                       <td className="py-4 px-4 text-sm text-slate-900 font-semibold">
                         {receipt.summary.total.toLocaleString()} {receipt.currency}
                       </td>
@@ -166,7 +166,7 @@ export function ReceiptPage() {
                     <span className="text-sm font-bold text-slate-900">{receipt.receiptNumber}</span>
                     <span className="text-xs text-slate-500 shrink-0">{receipt.paymentMethod}</span>
                   </div>
-                  <p className="text-sm text-slate-600">{receipt.customerInfo.name}</p>
+                  <p className="text-sm text-slate-600">{receipt.customerInfo?.name || 'N/A'}</p>
                   <p className="text-base font-semibold text-green-600">
                     {receipt.summary.total.toLocaleString()} {receipt.currency}
                   </p>

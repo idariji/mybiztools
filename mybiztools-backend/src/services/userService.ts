@@ -406,6 +406,8 @@ export interface UpdateProfileInput {
   lastName?: string;
   businessName?: string;
   phone?: string;
+  address?: string;
+  website?: string;
   avatarUrl?: string;
 }
 
@@ -416,6 +418,8 @@ export interface UserProfile {
   lastName: string | null;
   businessName: string | null;
   phone: string | null;
+  address: string | null;
+  website: string | null;
   avatarUrl: string | null;
   emailVerified: boolean;
   currentPlan: string;
@@ -447,6 +451,8 @@ export class UserService {
         lastName: true,
         businessName: true,
         phone: true,
+        address: true,
+        website: true,
         avatarUrl: true,
         emailVerified: true,
         currentPlan: true,
@@ -492,6 +498,8 @@ export class UserService {
         lastName: input.lastName,
         businessName: input.businessName,
         phone: input.phone,
+        address: input.address,
+        website: input.website,
         avatarUrl: input.avatarUrl,
       },
       select: {
@@ -501,6 +509,8 @@ export class UserService {
         lastName: true,
         businessName: true,
         phone: true,
+        address: true,
+        website: true,
         avatarUrl: true,
         emailVerified: true,
         currentPlan: true,

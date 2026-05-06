@@ -113,7 +113,7 @@ export function InvoicePage() {
                     {invoices.map((invoice) => (
                       <tr key={invoice.invoiceNumber} className="border-b border-slate-100 hover:bg-gradient-to-r hover:from-slate-50 hover:to-white transition-colors duration-150">
                         <td className="py-4 px-4 text-sm text-slate-900 font-medium">{invoice.invoiceNumber}</td>
-                        <td className="py-4 px-4 text-sm text-slate-600">{invoice.clientInfo.name || 'N/A'}</td>
+                        <td className="py-4 px-4 text-sm text-slate-600">{invoice.clientInfo?.name || 'N/A'}</td>
                         <td className="py-4 px-4 text-sm text-slate-900 font-semibold">
                           {invoice.currency === 'NGN' ? '₦' : invoice.currency === 'USD' ? '$' : invoice.currency}
                           {invoice.summary.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -176,7 +176,7 @@ export function InvoicePage() {
                          invoice.status === 'sent' ? 'Sent' : 'Draft'}
                       </span>
                     </div>
-                    <p className="text-sm text-slate-600">{invoice.clientInfo.name || 'N/A'}</p>
+                    <p className="text-sm text-slate-600">{invoice.clientInfo?.name || 'N/A'}</p>
                     <p className={`text-base font-semibold ${
                       invoice.status === 'paid' ? 'text-green-600' :
                       invoice.status === 'sent' ? 'text-blue-600' :
