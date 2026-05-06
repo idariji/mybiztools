@@ -1,9 +1,5 @@
 import { env } from './env.js';
 
-// ============================================================================
-// SWAGGER CONFIG
-// Docs available at: /api/docs
-// ============================================================================
 
 // const { createRequire } = await import('module');
 import { createRequire } from 'module';
