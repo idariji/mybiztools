@@ -142,17 +142,41 @@ export const ReceiptSyncService = {
   },
 
   async save(receipt: any): Promise<string | undefined> {
+    // Map frontend nested Receipt shape to the flat shape the backend expects
+    const payload = {
+      receiptNumber:    receipt.receiptNumber,
+      receiptDate:      receipt.receiptDate,
+      currency:         receipt.currency,
+      paymentMethod:    receipt.paymentMethod,
+      paymentReference: receipt.paymentReference,
+      notes:            receipt.notes,
+      status:           receipt.status,
+      customerName:     receipt.customerInfo?.name  ?? receipt.customerName,
+      customerEmail:    receipt.customerInfo?.email ?? receipt.customerEmail,
+      customerPhone:    receipt.customerInfo?.phone ?? receipt.customerPhone,
+      subtotal:         receipt.summary?.subtotal   ?? receipt.subtotal,
+      taxAmount:        receipt.summary?.vatAmount  ?? receipt.taxAmount,
+      total:            receipt.summary?.total      ?? receipt.total,
+      items: (receipt.items || []).map((item: any) => ({
+        description: item.name ?? item.description,
+        quantity:    item.quantity,
+        unitPrice:   item.unitPrice,
+        amount:      item.lineTotal ?? item.amount,
+      })),
+      documentData: receipt,
+    };
+
     try {
       if (receipt.id) {
         await apiFetch(`/receipts/${receipt.id}`, {
           method: 'PUT',
-          body: JSON.stringify(receipt),
+          body: JSON.stringify(payload),
         });
         return receipt.id;
       } else {
         const result = await apiFetch('/receipts', {
           method: 'POST',
-          body: JSON.stringify(receipt),
+          body: JSON.stringify(payload),
         });
         receipt.id = extractId(result, 'receipt');
         return receipt.id;

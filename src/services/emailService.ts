@@ -193,6 +193,7 @@ export const sendReceiptEmail = async (
     formData.append('message', message);
     formData.append('businessName', receipt.businessInfo.name);
     formData.append('businessEmail', receipt.businessInfo.email);
+    formData.append('customerName', receipt.customerInfo?.name || '');
     if (receiptId) formData.append('receiptId', receiptId);
 
     const response = await fetch(apiEndpoints.sendEmail, {
