@@ -633,7 +633,9 @@ export class AuthService {
     const otp = OtpService.generate();
     await OtpService.save(user.id, otp, 'email_verification');
 
-    await EmailNotificationService.sendOtpEmail(user.email, user.firstName, otp, 'email_verification');
+    EmailNotificationService.sendOtpEmail(user.email, user.firstName, otp, 'email_verification').catch(
+      (err) => console.error('[Auth] Failed to resend verification OTP:', err)
+    );
 
     return { success: true, message: 'Verification OTP sent. Please check your email.' };
   }
