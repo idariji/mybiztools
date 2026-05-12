@@ -40,7 +40,7 @@ export function PaymentHistoryViewer({
       try {
         setIsLoading(true);
         const result = await DatabaseService.getPaymentHistory({});
-        setPayments(result.payments || []);
+        setPayments(result.data?.payments || []);
         setError(null);
       } catch (err) {
         console.error('Failed to fetch payments:', err);
@@ -54,10 +54,10 @@ export function PaymentHistoryViewer({
     fetchPayments();
   }, []);
 
-  const filteredPayments = payments.filter((payment) => {
+  const filteredPayments = payments.filter((payment: any) => {
     const matchesSearch =
       payment.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      payment.user_id.toLowerCase().includes(searchQuery.toLowerCase());
+      (payment.userId?.toLowerCase() || '').includes(searchQuery.toLowerCase());
     const matchesStatus = filterStatus === 'all' || payment.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
@@ -186,12 +186,12 @@ export function PaymentHistoryViewer({
               onClick={() => {
                 const rows = [
                   ['Payment ID', 'User ID', 'Amount (NGN)', 'Status', 'Date'],
-                  ...filteredPayments.map(p => [
+                  ...filteredPayments.map((p: any) => [
                     p.id,
-                    p.user_id,
+                    p.userId || '',
                     p.amount.toString(),
                     p.status,
-                    p.created_at.toLocaleDateString()
+                    p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''
                   ])
                 ];
                 const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
@@ -247,7 +247,7 @@ export function PaymentHistoryViewer({
                             </p>
                           </td>
                           <td className="px-6 py-4">
-                            <p className="text-sm text-slate-600">{payment.user_id}</p>
+                            <p className="text-sm text-slate-600">{(payment as any).userId || '—'}</p>
                           </td>
                           <td className="px-6 py-4">
                             <p className="text-sm font-semibold text-slate-900">
@@ -263,7 +263,7 @@ export function PaymentHistoryViewer({
                           </td>
                           <td className="px-6 py-4">
                             <p className="text-sm text-slate-600">
-                              {payment.created_at.toLocaleDateString()}
+                              {(payment as any).createdAt ? new Date((payment as any).createdAt).toLocaleDateString() : '—'}
                             </p>
                           </td>
                           <td className="px-6 py-4 text-right">
@@ -346,7 +346,7 @@ export function PaymentHistoryViewer({
                         ₦{payment.amount.toLocaleString()}
                       </p>
                       <p className="text-xs text-slate-400">
-                        {payment.created_at.toLocaleDateString()}
+                        {(payment as any).createdAt ? new Date((payment as any).createdAt).toLocaleDateString() : '—'}
                       </p>
                     </div>
                     {expandedPayment === payment.id && (
@@ -374,27 +374,28 @@ interface PaymentDetailsProps {
 }
 
 function PaymentDetails({ payment }: PaymentDetailsProps) {
+  const p = payment as any;
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {payment.stripe_payment_id && (
-          <DetailRow label="Stripe ID" value={payment.stripe_payment_id} />
+        {p.paystackReference && (
+          <DetailRow label="Paystack Ref" value={p.paystackReference} />
         )}
-        {payment.stripe_invoice_id && (
-          <DetailRow label="Invoice ID" value={payment.stripe_invoice_id} />
+        <DetailRow label="Retry Count" value={p.retryCount ?? 0} />
+        {p.failureReason && (
+          <DetailRow label="Failure Reason" value={p.failureReason} />
         )}
-        <DetailRow label="Retry Count" value={payment.retry_count} />
-        {payment.failure_reason && (
-          <DetailRow label="Failure Reason" value={payment.failure_reason} />
+        {p.refundedAmount > 0 && (
+          <DetailRow label="Refunded" value={`₦${p.refundedAmount.toLocaleString()}`} />
         )}
       </div>
 
-      {payment.billing_period_start && (
+      {p.billingPeriodStart && (
         <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
           <p className="text-xs text-slate-500 font-medium mb-1">Billing Period</p>
           <p className="text-sm text-slate-900">
-            {payment.billing_period_start.toLocaleDateString()} -{' '}
-            {payment.billing_period_end?.toLocaleDateString()}
+            {new Date(p.billingPeriodStart).toLocaleDateString()} –{' '}
+            {p.billingPeriodEnd ? new Date(p.billingPeriodEnd).toLocaleDateString() : 'Present'}
           </p>
         </div>
       )}

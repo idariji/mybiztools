@@ -34,7 +34,21 @@ export function AbuseDetectionDashboard({ onInvestigate, onResolve }: AbuseDetec
       try {
         setIsLoading(true);
         const result = await DatabaseService.getAbuseReports({});
-        setReports(result.reports || []);
+        const raw = result.data?.reports || [];
+        const transformed = raw.map((r: any) => ({
+          id: r.id,
+          user_id: r.userId,
+          abuse_type: r.reportType as AbuseType,
+          severity: r.severity as AbuseSeverity,
+          status: (r.status === 'pending' ? 'open' : 'resolved') as AbuseStatus,
+          description: r.description,
+          evidence: r.evidence,
+          detected_at: new Date(r.flaggedAt),
+          resolution_notes: r.actionReason ?? undefined,
+          created_at: new Date(r.createdAt),
+          updated_at: new Date(r.updatedAt),
+        }));
+        setReports(transformed);
         setError(null);
       } catch (err) {
         console.error('Failed to fetch abuse reports:', err);
@@ -278,15 +292,18 @@ function AbuseReportDetails({ report }: { report: AbuseReport }) {
 // UTILITY FUNCTIONS
 // ============================================================================
 
-function formatAbuseType(type: AbuseType): string {
-  const map: Record<AbuseType, string> = {
+function formatAbuseType(type: string): string {
+  const map: Record<string, string> = {
     quota_abuse: 'Quota Abuse',
     payment_fraud: 'Payment Fraud',
     api_abuse: 'API Abuse',
     terms_violation: 'Terms Violation',
-    suspicious_activity: 'Suspicious Activity'
+    suspicious_activity: 'Suspicious Activity',
+    free_account_spam: 'Free Account Spam',
+    ai_abuse: 'AI Abuse',
+    deletion_loops: 'Deletion Loops',
   };
-  return map[type] || type;
+  return map[type] || type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
 function getSeverityColor(severity: AbuseSeverity): { bg: string; icon: string } {
@@ -319,8 +336,8 @@ function getStatusBadge(status: AbuseStatus): string {
   return map[status];
 }
 
-function formatTimeAgo(date: Date): string {
-  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+function formatTimeAgo(date: Date | string): string {
+  const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);

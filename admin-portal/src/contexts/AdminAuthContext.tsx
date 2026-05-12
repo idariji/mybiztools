@@ -56,11 +56,13 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
       const data = await response.json();
 
       if (data.success && data.data) {
+        const name: string = data.data.admin.name || '';
+        const [first, ...rest] = name.split(' ');
         const adminUser: AdminUser = {
           id: data.data.admin.id,
           email: data.data.admin.email,
-          firstName: data.data.admin.firstName,
-          lastName: data.data.admin.lastName,
+          firstName: first || null,
+          lastName: rest.length ? rest.join(' ') : null,
           role: data.data.admin.role,
         };
 

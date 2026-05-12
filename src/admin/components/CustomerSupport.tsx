@@ -67,23 +67,23 @@ export function CustomerSupport() {
         const data = await response.json();
         const transformedTickets = (data.data?.tickets || []).map((t: any) => ({
           id: t.id,
-          userId: t.user_id,
-          userName: t.customer_name,
-          userEmail: t.customer_email,
-          userPhone: t.customer_phone,
+          userId: t.userId,
+          userName: t.customerName,
+          userEmail: t.customerEmail,
+          userPhone: t.customerPhone,
           subject: t.subject,
           message: t.message,
           status: t.status,
           priority: t.priority,
           channel: t.channel,
-          createdAt: new Date(t.created_at),
-          updatedAt: new Date(t.updated_at),
+          createdAt: new Date(t.createdAt),
+          updatedAt: new Date(t.updatedAt),
           responses: (t.responses || []).map((r: any) => ({
             id: r.id,
             message: r.message,
             sentVia: r.channel,
-            sentBy: r.sender_name,
-            sentAt: new Date(r.created_at)
+            sentBy: r.senderName,
+            sentAt: new Date(r.createdAt)
           }))
         }));
         setTickets(transformedTickets);

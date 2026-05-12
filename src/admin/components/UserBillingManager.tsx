@@ -15,7 +15,7 @@ import {
   Pause,
   Users
 } from 'lucide-react';
-import { UserBillingProfile, PlanName } from '../types/admin';
+import { PlanName } from '../types/admin';
 import { UserProfileModal } from './UserProfileModal';
 import { DatabaseService } from '../services/databaseService';
 
@@ -30,7 +30,7 @@ export function UserBillingManager({ onUserSelect, onPlanChange, onSuspend }: Us
   const [filterPlan, setFilterPlan] = useState<PlanName | 'all'>('all');
   const [expandedUser, setExpandedUser] = useState<string | null>(null);
   const [selectedUserModal, setSelectedUserModal] = useState<any | null>(null);
-  const [users, setUsers] = useState<UserBillingProfile[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page] = useState(1);
@@ -40,7 +40,7 @@ export function UserBillingManager({ onUserSelect, onPlanChange, onSuspend }: Us
       try {
         setIsLoading(true);
         const result = await DatabaseService.getAllUsers(page, 50);
-        setUsers(result.users || []);
+        setUsers(result.data?.users || []);
         setError(null);
       } catch (err) {
         console.error('Failed to fetch users:', err);
@@ -54,10 +54,12 @@ export function UserBillingManager({ onUserSelect, onPlanChange, onSuspend }: Us
   }, [page]);
 
   const filteredUsers = users.filter((user) => {
+    const name = `${user.firstName || ''} ${user.lastName || ''}`.trim();
     const matchesSearch =
       user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesPlan = filterPlan === 'all' || user.current_plan.name === filterPlan;
+      name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (user.businessName?.toLowerCase() || '').includes(searchQuery.toLowerCase());
+    const matchesPlan = filterPlan === 'all' || user.currentPlan === filterPlan;
     return matchesSearch && matchesPlan;
   });
 
@@ -149,10 +151,10 @@ export function UserBillingManager({ onUserSelect, onPlanChange, onSuspend }: Us
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {filteredUsers.map((user) => (
-                  <React.Fragment key={user.user_id}>
+                  <React.Fragment key={user.id}>
                     <tr
                       className="hover:bg-gradient-to-r hover:from-slate-50 hover:to-white transition-colors duration-150 cursor-pointer"
-                      onClick={() => setExpandedUser(expandedUser === user.user_id ? null : user.user_id)}
+                      onClick={() => setExpandedUser(expandedUser === user.id ? null : user.id)}
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
@@ -160,26 +162,30 @@ export function UserBillingManager({ onUserSelect, onPlanChange, onSuspend }: Us
                             <User className="w-4 h-4 text-white" />
                           </div>
                           <div>
-                            <p className="text-sm font-semibold text-slate-900">{user.name}</p>
+                            <p className="text-sm font-semibold text-slate-900">
+                              {`${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email.split('@')[0]}
+                            </p>
                             <p className="text-xs text-slate-500">{user.email}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${getPlanBadge(user.current_plan.name)}`}>
-                          {user.current_plan.display_name}
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${getPlanBadge(user.currentPlan)}`}>
+                          {user.currentPlan ? user.currentPlan.charAt(0).toUpperCase() + user.currentPlan.slice(1) : 'Free'}
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
-                          user.account_status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                          user.subscriptionStatus === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
                         }`}>
-                          {user.account_status}
+                          {user.subscriptionStatus}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-slate-900">₦{user.total_spent.toLocaleString()}</td>
+                      <td className="px-6 py-4 text-sm font-semibold text-slate-900">—</td>
                       <td className="px-6 py-4 text-sm text-slate-500">
-                        {user.subscription.current_period_end.toLocaleDateString()}
+                        {user.subscription?.currentPeriodEnd
+                          ? new Date(user.subscription.currentPeriodEnd).toLocaleDateString()
+                          : '—'}
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-1.5">
@@ -187,19 +193,19 @@ export function UserBillingManager({ onUserSelect, onPlanChange, onSuspend }: Us
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedUserModal({
-                                id: user.user_id,
-                                name: user.name,
+                                id: user.id,
+                                name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email.split('@')[0],
                                 email: user.email,
-                                plan: user.current_plan.name === 'pro' ? 'Pro' : user.current_plan.name === 'enterprise' ? 'Enterprise' : 'Free',
+                                plan: user.currentPlan === 'pro' ? 'Pro' : user.currentPlan === 'enterprise' ? 'Enterprise' : 'Free',
                                 status: 'Active' as const,
-                                billingCycle: user.subscription.billing_cycle === 'monthly' ? 'Monthly' : 'Annual',
-                                subscriptionStart: user.subscription.started_at.toISOString().split('T')[0],
-                                subscriptionEnd: user.subscription.current_period_end.toISOString().split('T')[0],
+                                billingCycle: 'Monthly',
+                                subscriptionStart: user.subscription?.currentPeriodStart?.split('T')[0] || new Date().toISOString().split('T')[0],
+                                subscriptionEnd: user.subscription?.currentPeriodEnd?.split('T')[0] || new Date().toISOString().split('T')[0],
                                 lastPaymentDate: new Date().toISOString().split('T')[0],
                                 paymentMethod: 'Paystack',
                                 autoRenew: true,
-                                totalSpent: user.total_spent,
-                                signupDate: user.account_created_at.toISOString().split('T')[0],
+                                totalSpent: 0,
+                                signupDate: user.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
                               });
                             }}
                             className="p-2 hover:bg-blue-50 rounded-lg text-slate-400 hover:text-blue-600 transition-colors"
@@ -208,14 +214,14 @@ export function UserBillingManager({ onUserSelect, onPlanChange, onSuspend }: Us
                             <User className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={(e) => { e.stopPropagation(); onUserSelect?.(user.user_id); }}
+                            onClick={(e) => { e.stopPropagation(); onUserSelect?.(user.id); }}
                             className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-700 transition-colors"
                             title="Edit user"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={(e) => { e.stopPropagation(); onSuspend?.(user.user_id, 'Admin action'); }}
+                            onClick={(e) => { e.stopPropagation(); onSuspend?.(user.id, 'Admin action'); }}
                             className="p-2 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-600 transition-colors"
                             title="Suspend user"
                           >
@@ -225,7 +231,7 @@ export function UserBillingManager({ onUserSelect, onPlanChange, onSuspend }: Us
                       </td>
                     </tr>
 
-                    {expandedUser === user.user_id && (
+                    {expandedUser === user.id && (
                       <tr>
                         <td colSpan={6} className="bg-gradient-to-r from-slate-50 to-white border-t border-slate-100 px-6 py-4">
                           <UserBillingDetails user={user} onPlanChange={onPlanChange} />
@@ -255,7 +261,7 @@ export function UserBillingManager({ onUserSelect, onPlanChange, onSuspend }: Us
 }
 
 interface UserBillingDetailsProps {
-  user: UserBillingProfile;
+  user: any;
   onPlanChange?: (userId: string, newPlan: PlanName) => void;
 }
 
@@ -263,10 +269,10 @@ function UserBillingDetails({ user, onPlanChange }: UserBillingDetailsProps) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <DetailCard label="Account Created" value={user.account_created_at.toLocaleDateString()} icon={Calendar} />
-        <DetailCard label="Current Plan" value={user.current_plan.display_name} icon={CreditCard} />
-        <DetailCard label="Total Spent" value={`₦${user.total_spent.toLocaleString()}`} icon={CreditCard} />
-        <DetailCard label="Status" value={user.account_status} icon={AlertCircle} />
+        <DetailCard label="Account Created" value={user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'} icon={Calendar} />
+        <DetailCard label="Current Plan" value={user.currentPlan ? user.currentPlan.charAt(0).toUpperCase() + user.currentPlan.slice(1) : 'Free'} icon={CreditCard} />
+        <DetailCard label="Business" value={user.businessName || '—'} icon={CreditCard} />
+        <DetailCard label="Status" value={user.subscriptionStatus || '—'} icon={AlertCircle} />
       </div>
 
       <div className="bg-white p-4 rounded-xl border border-slate-200">
@@ -275,10 +281,10 @@ function UserBillingDetails({ user, onPlanChange }: UserBillingDetailsProps) {
           {(['free', 'pro', 'enterprise'] as const).map((plan) => (
             <button
               key={plan}
-              onClick={() => onPlanChange?.(user.user_id, plan)}
-              disabled={user.current_plan.name === plan}
+              onClick={() => onPlanChange?.(user.id, plan)}
+              disabled={user.currentPlan === plan}
               className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                user.current_plan.name === plan
+                user.currentPlan === plan
                   ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
                   : 'bg-gradient-to-r from-[#FF8A2B] to-[#FF6B00] text-white shadow-lg shadow-orange-500/25 hover:-translate-y-0.5'
               }`}
