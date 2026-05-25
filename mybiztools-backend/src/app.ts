@@ -49,6 +49,8 @@ app.set('trust proxy', 1);
 const corsOrigins: (string | RegExp)[] = [
   'https://www.mybiztools.ng',
   'https://mybiztools.ng',
+  'http://www.mybiztools.ng',
+  'http://mybiztools.ng',
   'https://mybiztools.onrender.com',
   'https://admin.mybiztools.ng',
 ];
