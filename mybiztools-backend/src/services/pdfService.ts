@@ -55,7 +55,10 @@ const buildInvoiceHtml = (invoice: any, businessName?: string, businessEmail?: s
 
   const itemRows = items.map((item: any) => `
     <tr>
-      <td>${item.description ?? ''}</td>
+      <td>
+        ${item.name ? `<strong>${item.name}</strong><br/>` : ''}
+        ${item.description ?? ''}
+      </td>
       <td class="text-right">${item.quantity ?? 1}</td>
       <td class="text-right">${currency} ${Number(item.unitPrice ?? 0).toLocaleString()}</td>
       <td class="text-right">${currency} ${Number(item.amount ?? 0).toLocaleString()}</td>
@@ -167,7 +170,10 @@ const buildQuotationHtml = (quotation: any, businessName?: string): string => {
 
   const itemRows = items.map((item: any) => `
     <tr>
-      <td>${item.description ?? ''}</td>
+      <td>
+        ${item.name ? `<strong>${item.name}</strong><br/>` : ''}
+        ${item.description ?? ''}
+      </td>
       <td class="text-right">${item.quantity ?? 1}</td>
       <td class="text-right">${currency} ${Number(item.unitPrice ?? 0).toLocaleString()}</td>
       <td class="text-right">${currency} ${Number(item.amount ?? 0).toLocaleString()}</td>
@@ -237,7 +243,10 @@ const buildReceiptHtml = (receipt: any, businessName?: string): string => {
 
   const itemRows = items.map((item: any) => `
     <tr>
-      <td>${item.description ?? ''}</td>
+      <td>
+        ${item.name ? `<strong>${item.name}</strong><br/>` : ''}
+        ${item.description ?? ''}
+      </td>
       <td class="text-right">${item.quantity ?? 1}</td>
       <td class="text-right">${currency} ${Number(item.unitPrice ?? 0).toLocaleString()}</td>
       <td class="text-right">${currency} ${Number(item.amount ?? 0).toLocaleString()}</td>
