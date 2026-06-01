@@ -9,12 +9,13 @@ import { Button } from '../components/ui/Button';
 import { useToast } from '../utils/useToast';
 import { ToastContainer } from '../components/ui/Toast';
 import { useAuth } from '../contexts/AuthContext';
+import { authService } from '../services/authService';
 
 export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { toasts, addToast, removeToast } = useToast();
-  const { login, signup } = useAuth();
+  const { login, signup, refreshUser } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [retryIn, setRetryIn] = useState(0);
@@ -131,24 +132,13 @@ export function LoginPage() {
     if (otp.length !== 6) { addToast('Enter the 6-digit code', 'error'); return; }
     setOtpLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://mybiztools.onrender.com'}/api/auth/verify-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: signupEmail, otp, purpose: 'email_verification' }),
-      });
-      const data = await res.json();
+      const data = await authService.verifyEmailOtp(signupEmail, otp);
       if (data.success) {
-        // Store token + user so dashboard loads correctly
-        if (data.data?.token) {
-          localStorage.setItem('authToken', data.data.token);
-        }
-        if (data.data?.user) {
-          localStorage.setItem('user', JSON.stringify(data.data.user));
-        }
+        refreshUser();
         addToast('Email verified! Welcome to MyBizTools.', 'success');
         setTimeout(() => navigate('/dashboard'), 1500);
       } else {
-        addToast(data.message || data.data?.message || 'Verification failed. Please try again.', 'error');
+        addToast(data.message || 'Verification failed. Please try again.', 'error');
       }
     } catch (err: any) {
       addToast(err?.message || 'Could not reach server. Try again.', 'error');

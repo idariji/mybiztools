@@ -65,4 +65,16 @@ export class UserController {
     const result = await UserService.deleteAccount(req.user!.id);
     res.status(result.success ? 200 : 400).json(result);
   }
+
+  /** GET /api/users/store-settings */
+  static async getStoreSettings(req: Request, res: Response): Promise<void> {
+    const result = await UserService.getStoreSettings(req.user!.id);
+    res.status(result.success ? 200 : 404).json(result);
+  }
+
+  /** PUT /api/users/store-settings */
+  static async updateStoreSettings(req: Request, res: Response): Promise<void> {
+    const result = await UserService.updateStoreSettings(req.user!.id, req.body);
+    res.status(result.success ? 200 : 400).json(result);
+  }
 }

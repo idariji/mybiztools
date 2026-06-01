@@ -21,16 +21,17 @@ router.get('/:storeId', async (req: Request, res: Response): Promise<void> => {
 
     let user = null;
 
+    const storeSelect = {
+      id: true, firstName: true, lastName: true,
+      businessName: true, phone: true, email: true,
+      storeTagline: true, storeDescription: true, storeCategory: true, storeWhatsapp: true,
+    };
+
     if (isUuid) {
-      user = await prisma.user.findUnique({
-        where: { id: storeId },
-        select: { id: true, firstName: true, lastName: true, businessName: true, phone: true, email: true },
-      });
+      user = await (prisma as any).user.findUnique({ where: { id: storeId }, select: storeSelect });
     } else {
-      // Match slug against all users' businessName or full name
-      const candidates = await (prisma as any).user.findMany({
-        select: { id: true, firstName: true, lastName: true, businessName: true, phone: true, email: true },
-      });
+      // Match slug against stored businessName or full name
+      const candidates = await (prisma as any).user.findMany({ select: storeSelect });
       user = candidates.find((u: any) => {
         const name = u.businessName || `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim();
         return slugify(name) === storeId;
@@ -67,8 +68,11 @@ router.get('/:storeId', async (req: Request, res: Response): Promise<void> => {
           userId: user.id,
           storeName,
           storeSlug: slugify(storeName),
-          phone: user.phone,
+          phone: user.storeWhatsapp || user.phone,
           email: user.email,
+          tagline: user.storeTagline || null,
+          description: user.storeDescription || null,
+          category: user.storeCategory || null,
         },
         products,
       },

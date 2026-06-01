@@ -38,6 +38,7 @@ import { AdminProtectedRoute } from './components/auth/AdminProtectedRoute';
 import { CustomersPage } from './pages/CustomersPage';
 import { InventoryPage } from './pages/InventoryPage';
 import { StorefrontPage } from './pages/StorefrontPage';
+import { OrdersPage } from './pages/OrdersPage';
 import { FinancingPage } from './pages/FinancingPage';
 import { PublicStorefrontPage } from './pages/PublicStorefrontPage';
 import { GoogleAuthSuccessPage } from './pages/GoogleAuthSuccessPage';
@@ -84,6 +85,7 @@ export function App() {
           <Route path="/dashboard/customers" element={<ProtectedRoute><DashboardLayout><CustomersPage /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/inventory" element={<ProtectedRoute><InventoryPage /></ProtectedRoute>} />
           <Route path="/dashboard/storefront" element={<ProtectedRoute><StorefrontPage /></ProtectedRoute>} />
+          <Route path="/dashboard/orders" element={<ProtectedRoute><DashboardLayout><OrdersPage /></DashboardLayout></ProtectedRoute>} />
           <Route path="/dashboard/financing" element={<ProtectedRoute><FinancingPage /></ProtectedRoute>} />
 
           {/* Admin Routes */}

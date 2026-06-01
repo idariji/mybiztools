@@ -216,7 +216,7 @@ export function QuotationGeneratorPage() {
           addToast('Failed to send quotation. Please try again.', 'error');
         }
       } else {
-        const phone = quotation.clientInfo.phone.replace(/\D/g, '');
+        const phone = (quotation.clientInfo.phone || '').replace(/\D/g, '');
         const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
         window.open(waUrl, '_blank');
         setShowSendModal(false);

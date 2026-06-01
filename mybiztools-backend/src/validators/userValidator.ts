@@ -57,6 +57,18 @@ export const deleteAccountSchema = Joi.object({
   }),
 });
 
+export const updateStoreSettingsSchema = Joi.object({
+  storeName: Joi.string().trim().max(100).optional().allow(''),
+  storeTagline: Joi.string().trim().max(200).optional().allow(''),
+  storeDescription: Joi.string().trim().max(1000).optional().allow(''),
+  storeCategory: Joi.string().trim().max(50).optional().allow(''),
+  storeWhatsapp: Joi.string()
+    .pattern(/^[+\d\s\-()]{7,20}$/)
+    .optional()
+    .allow('')
+    .messages({ 'string.pattern.base': 'Please provide a valid WhatsApp number' }),
+});
+
 export const createSupportTicketSchema = Joi.object({
   subject: Joi.string().trim().min(5).max(150).required().messages({
     'string.min': 'Subject must be at least 5 characters',

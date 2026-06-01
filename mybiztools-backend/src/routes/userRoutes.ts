@@ -300,6 +300,7 @@ import {
   updateAvatarSchema,
   changePasswordSchema,
   deleteAccountSchema,
+  updateStoreSettingsSchema,
 } from '../validators/userValidator.js';
 
 // USER ROUTES
@@ -481,5 +482,8 @@ router.get('/payments', UserController.getPaymentHistory);
  *         description: Invalid password
  */
 router.delete('/account', validate(deleteAccountSchema), UserController.deleteAccount);
+
+router.get('/store-settings', UserController.getStoreSettings);
+router.put('/store-settings', validate(updateStoreSettingsSchema), UserController.updateStoreSettings);
 
 export default router;

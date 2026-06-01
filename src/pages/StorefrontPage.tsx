@@ -7,6 +7,8 @@ import {
 import { DashboardLayout } from '../layout/DashboardLayout';
 import { authService } from '../services/authService';
 import { API_BASE_URL } from '../config/apiConfig';
+import { useToast } from '../utils/useToast';
+import { ToastContainer } from '../components/ui/Toast';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -58,12 +60,13 @@ function authHeaders(): HeadersInit {
 export function StorefrontPage() {
   const user = authService.getCurrentUser();
   const userId = (user as any)?.id ?? '';
+  const { toasts, addToast, removeToast } = useToast();
 
   function slugify(name: string): string {
     return name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   }
 
-  const [settings, setSettings] = useState<StoreSettings>(() => {
+  const localFallback = (): StoreSettings => {
     try {
       const saved = localStorage.getItem(SETTINGS_KEY);
       return saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : {
@@ -73,7 +76,10 @@ export function StorefrontPage() {
     } catch {
       return DEFAULT_SETTINGS;
     }
-  });
+  };
+
+  const [settings, setSettings] = useState<StoreSettings>(localFallback);
+  const [isSaving, setIsSaving] = useState(false);
 
   const storeSlug = slugify(settings.storeName || userId);
   const storeUrl = `${window.location.origin}/store/${storeSlug || userId}`;
@@ -85,6 +91,29 @@ export function StorefrontPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [productError, setProductError] = useState('');
+
+  // Load store settings from backend on mount
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/users/store-settings`, { headers: authHeaders() })
+      .then(r => r.json())
+      .then(res => {
+        if (res.success && res.data?.settings) {
+          const s = res.data.settings;
+          const merged: StoreSettings = {
+            storeName: s.businessName || localFallback().storeName,
+            tagline: s.storeTagline || '',
+            whatsapp: s.storeWhatsapp || '',
+            description: s.storeDescription || '',
+            category: s.storeCategory || 'General',
+          };
+          setSettings(merged);
+          setDraft(merged);
+          localStorage.setItem(SETTINGS_KEY, JSON.stringify(merged));
+        }
+      })
+      .catch(() => { /* stay with localStorage fallback */ });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Load products from inventory
   const loadProducts = useCallback(async () => {
@@ -110,10 +139,35 @@ export function StorefrontPage() {
 
   useEffect(() => { loadProducts(); }, [loadProducts]);
 
-  function saveSettings() {
-    setSettings(draft);
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(draft));
-    setEditingSettings(false);
+  async function saveSettings() {
+    setIsSaving(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/users/store-settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({
+          storeName: draft.storeName,
+          storeTagline: draft.tagline,
+          storeWhatsapp: draft.whatsapp,
+          storeDescription: draft.description,
+          storeCategory: draft.category,
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      setSettings(draft);
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(draft));
+      setEditingSettings(false);
+      addToast('Store settings saved!', 'success');
+    } catch {
+      addToast('Failed to save settings. Changes kept locally.', 'error');
+      // Keep local state updated even if API failed
+      setSettings(draft);
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(draft));
+      setEditingSettings(false);
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   function copyLink() {
@@ -128,6 +182,7 @@ export function StorefrontPage() {
 
   return (
     <DashboardLayout>
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -222,9 +277,10 @@ export function StorefrontPage() {
                 </button>
                 <button
                   onClick={saveSettings}
-                  className="flex items-center gap-1.5 text-sm font-semibold bg-[#FF8A2B] text-white px-4 py-1.5 rounded-lg hover:bg-[#FF6B00] transition-colors"
+                  disabled={isSaving}
+                  className="flex items-center gap-1.5 text-sm font-semibold bg-[#FF8A2B] text-white px-4 py-1.5 rounded-lg hover:bg-[#FF6B00] transition-colors disabled:opacity-60"
                 >
-                  <Save className="w-3.5 h-3.5" /> Save
+                  <Save className="w-3.5 h-3.5" /> {isSaving ? 'Saving…' : 'Save'}
                 </button>
               </div>
             ) : (

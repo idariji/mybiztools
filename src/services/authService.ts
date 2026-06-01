@@ -85,11 +85,29 @@ class AuthServiceClass {
       const data: AuthResponse = await response.json();
 
       if (data.success && data.data) {
-        localStorage.setItem(this.tokenKey, data.data.token);
+        const token = data.data.token;
+        localStorage.setItem(this.tokenKey, token);
         // Normalise camelCase server fields to snake_case expected by frontend
         const u = data.data.user as any;
         if (u.currentPlan && !u.current_plan) u.current_plan = u.currentPlan;
         localStorage.setItem(this.userKey, JSON.stringify(u));
+
+        // Fetch full profile to ensure phone, businessName, etc. are present
+        // (login endpoint may only return basic auth fields)
+        try {
+          const profileRes = await fetch(`${API_URL}/api/users/profile`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const profileData = await profileRes.json();
+          if (profileData.success && profileData.data?.user) {
+            const profile = profileData.data.user as any;
+            if (profile.currentPlan && !profile.current_plan) profile.current_plan = profile.currentPlan;
+            localStorage.setItem(this.userKey, JSON.stringify(profile));
+            data.data.user = profile as User;
+          }
+        } catch {
+          // Non-fatal: login still succeeded, just using basic user data
+        }
       }
 
       return data;
@@ -138,6 +156,7 @@ class AuthServiceClass {
   logout(): void {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.userKey);
+    localStorage.removeItem('dismissed-notifications');
     window.location.href = '/login';
   }
 

@@ -108,7 +108,8 @@ export function PayslipGeneratorPage() {
       addToast('Please fill in employer and employee names', 'warning');
       return;
     }
-    await PayslipSyncService.save({ ...payslip, status: 'draft', updatedAt: new Date().toISOString() });
+    const payslipId = await PayslipSyncService.save({ ...payslip, status: 'draft', updatedAt: new Date().toISOString() });
+    if (payslipId) setPayslip(prev => ({ ...prev, id: payslipId }));
     addToast('Payslip saved as draft!', 'success');
   };
 

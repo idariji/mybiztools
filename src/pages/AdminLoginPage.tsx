@@ -45,20 +45,9 @@ export function AdminLoginPage() {
         return;
       }
 
-      const { admin, token } = result.data;
+      const { token } = result.data;
 
       localStorage.setItem('adminAuthToken', token);
-      localStorage.setItem('authToken', token);
-      localStorage.setItem('user', JSON.stringify({
-        id: admin.id,
-        email: admin.email,
-        firstName: admin.name,
-        lastName: '',
-        businessName: null,
-        emailVerified: true,
-        current_plan: 'enterprise',
-        role: admin.role,
-      }));
 
       navigate('/admin');
     } catch (err: any) {

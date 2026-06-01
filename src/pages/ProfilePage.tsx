@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Save, User, Mail, Building, Phone, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { authService } from '../services/authService';
+import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../utils/useToast';
 import { ToastContainer } from '../components/ui/Toast';
 
 export const ProfilePage: React.FC = () => {
   const { toasts, addToast, removeToast } = useToast();
+  const { refreshUser } = useAuth();
   const [user, setUser] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -43,6 +45,7 @@ export const ProfilePage: React.FC = () => {
       const result = await authService.updateProfile(formData);
       if (result.success) {
         setUser(result.data?.user ?? { ...user, ...formData });
+        refreshUser();
         addToast('Profile updated successfully!', 'success');
       } else {
         addToast(result.message || 'Failed to update profile', 'error');

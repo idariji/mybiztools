@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, Send, Mail, MessageSquare } from 'lucide-react';
 import { Invoice } from '../../types/invoice';
 
@@ -13,6 +13,19 @@ export function SendInvoiceModal({ isOpen, onClose, invoice, onSend }: SendInvoi
   const [method, setMethod] = useState<'email' | 'whatsapp'>('email');
   const [customMessage, setCustomMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cancel pending send if modal closes before the timeout fires
+  useEffect(() => {
+    if (!isOpen) {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      setIsSending(false);
+      setCustomMessage('');
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -50,9 +63,11 @@ Thank you! 🙏`;
   const handleSend = () => {
     setIsSending(true);
     const message = customMessage || (method === 'email' ? defaultEmailMessage : defaultWhatsAppMessage);
-    
-    setTimeout(() => {
-      onSend(method, message);
+    const sendMethod = method;
+
+    timeoutRef.current = setTimeout(() => {
+      timeoutRef.current = null;
+      onSend(sendMethod, message);
       setIsSending(false);
       setCustomMessage('');
       onClose();

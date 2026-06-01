@@ -119,7 +119,7 @@ export function InvoiceGeneratorPage() {
         amountInWords,
       },
     }));
-  }, [invoice.items, invoice.summary.bankCharges]);
+  }, [invoice.items, invoice.summary.bankCharges, invoice.summary.vatEnabled]);
 
   const generatePDFBlob = async (): Promise<Blob | null> => {
     // Use the dedicated off-screen capture element (always visible, no clipping)

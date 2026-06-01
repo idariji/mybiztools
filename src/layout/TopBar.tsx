@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Bell, ChevronDown, User, Menu, AlertCircle, FileText, Clock, CheckCircle, X } from 'lucide-react';
 import { authService } from '../services/authService';
+import { useAuth } from '../contexts/AuthContext';
 import { safeGetJSON } from '../utils/storage';
 import { normalisePlan, FREE_DOCUMENT_LIMIT } from '../utils/planUtils';
 
@@ -113,7 +114,6 @@ const NOTE_COLORS: Record<string, string> = {
 export function TopBar({ onMenuClick }: TopBarProps = {}) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [user, setUser] = useState<any>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [dismissed, setDismissed] = useState<Set<string>>(() => {
     try { return new Set(JSON.parse(localStorage.getItem('dismissed-notifications') || '[]')); }
@@ -122,12 +122,11 @@ export function TopBar({ onMenuClick }: TopBarProps = {}) {
   const navigate = useNavigate();
   const notifRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
-    const currentUser = authService.getCurrentUser();
-    setUser(currentUser);
-    setNotifications(buildNotifications(currentUser));
-  }, []);
+    setNotifications(buildNotifications(user ?? authService.getCurrentUser()));
+  }, [user]);
 
   // Close dropdowns on outside click
   useEffect(() => {

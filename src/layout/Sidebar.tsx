@@ -5,7 +5,7 @@ import {
   LayoutDashboard, FileText, FileSpreadsheet, Receipt, CreditCard,
   QrCode, Calendar, PieChart, TrendingDown, Calculator, Bot,
   Settings, LogOut, ChevronLeft, Hexagon, Zap, Lock, X,
-  Users, Package, Store, BarChart2
+  Users, Package, Store, BarChart2, ShoppingBag
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -30,6 +30,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileMenuOpen, setMobileMenu
     { icon: Users,           label: 'Customers (CRM)',     path: '/dashboard/customers',           exact: false, featureKey: '' },
     { icon: Package,         label: 'Inventory',           path: '/dashboard/inventory',           exact: false, featureKey: '' },
     { icon: Store,           label: 'Storefront',          path: '/dashboard/storefront',          exact: false, featureKey: '' },
+    { icon: ShoppingBag,     label: 'Orders',              path: '/dashboard/orders',              exact: false, featureKey: '' },
     { icon: BarChart2,       label: 'Financing Readiness', path: '/dashboard/financing',           exact: false, featureKey: '' },
     { icon: QrCode,          label: 'Business Card & QR',  path: '/dashboard/business-card',       exact: false, featureKey: 'business-card' },
     { icon: Calendar,        label: 'Social Planner',      path: '/dashboard/social-planner',      exact: false, featureKey: 'social-planner' },

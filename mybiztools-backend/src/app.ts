@@ -37,6 +37,7 @@ import supportRoutes from './routes/supportRoutes.js';
 import smsRoutes from './routes/smsRoutes.js';
 import inventoryRoutes from './routes/inventoryRoutes.js';
 import storeRoutes from './routes/storeRoutes.js';
+import orderRoutes from './routes/orderRoutes.js';
 import emailRoutes from './routes/emailRoutes.js';
 
 // APP INIT
@@ -196,6 +197,7 @@ app.use('/api/admin/support', supportRoutes);
 app.use('/api/sms', smsRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/store', storeRoutes);
+app.use('/api/orders', orderRoutes);
 app.use('/api/emails', emailRoutes);
 app.use('/api/auth', googleAuthRoutes);
 

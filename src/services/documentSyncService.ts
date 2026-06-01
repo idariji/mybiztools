@@ -240,19 +240,20 @@ export const PayslipSyncService = {
     }
   },
 
-  async save(payslip: any): Promise<void> {
+  async save(payslip: any): Promise<string | undefined> {
     try {
       if (payslip.id) {
         await apiFetch(`/payslips/${payslip.id}`, {
           method: 'PUT',
           body: JSON.stringify(payslip),
         });
+        return payslip.id;
       } else {
         const result = await apiFetch('/payslips', {
           method: 'POST',
           body: JSON.stringify(payslip),
         });
-        payslip.id = extractId(result, 'payslip');
+        return extractId(result, 'payslip');
       }
     } catch {
       const key = localKey('payslip-drafts');

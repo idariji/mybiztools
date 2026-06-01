@@ -538,6 +538,70 @@ export class UserService {
   }
 
   // --------------------------------------------------------------------------
+  // STORE SETTINGS
+  // --------------------------------------------------------------------------
+
+  static async getStoreSettings(userId: string): Promise<ServiceResponse<{ settings: object }>> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        businessName: true,
+        phone: true,
+        storeTagline: true,
+        storeDescription: true,
+        storeCategory: true,
+        storeWhatsapp: true,
+      },
+    });
+
+    if (!user) {
+      return { success: false, message: 'User not found', error: 'USER_NOT_FOUND' };
+    }
+
+    return {
+      success: true,
+      message: 'Store settings retrieved',
+      data: { settings: user },
+    };
+  }
+
+  static async updateStoreSettings(
+    userId: string,
+    input: {
+      storeName?: string;
+      storeTagline?: string;
+      storeDescription?: string;
+      storeCategory?: string;
+      storeWhatsapp?: string;
+    }
+  ): Promise<ServiceResponse<{ settings: object }>> {
+    const updated = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(input.storeName !== undefined && { businessName: input.storeName }),
+        ...(input.storeTagline !== undefined && { storeTagline: input.storeTagline }),
+        ...(input.storeDescription !== undefined && { storeDescription: input.storeDescription }),
+        ...(input.storeCategory !== undefined && { storeCategory: input.storeCategory }),
+        ...(input.storeWhatsapp !== undefined && { storeWhatsapp: input.storeWhatsapp }),
+      },
+      select: {
+        businessName: true,
+        phone: true,
+        storeTagline: true,
+        storeDescription: true,
+        storeCategory: true,
+        storeWhatsapp: true,
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Store settings updated',
+      data: { settings: updated },
+    };
+  }
+
+  // --------------------------------------------------------------------------
   // UPDATE AVATAR
   // --------------------------------------------------------------------------
 
