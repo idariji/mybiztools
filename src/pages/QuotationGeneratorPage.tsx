@@ -198,7 +198,7 @@ export function QuotationGeneratorPage() {
     setShowSendModal(true);
   };
 
-  const handleSendComplete = async (method: 'email' | 'whatsapp', message: string) => {
+  const handleSendComplete = async (method: 'email' | 'whatsapp', message: string): Promise<boolean> => {
     try {
       if (method === 'email') {
         let quotationId = quotation.id;
@@ -207,23 +207,16 @@ export function QuotationGeneratorPage() {
           quotationId = await QuotationSyncService.save(saved);
           if (quotationId) setQuotation(prev => ({ ...prev, id: quotationId! }));
         }
-
         const success = await sendQuotationEmail(quotation, message, quotationId);
-        setShowSendModal(false);
-        if (success) {
-          addToast(`Quotation sent to ${quotation.clientInfo.email}`, 'success');
-        } else {
-          addToast('Failed to send quotation. Please try again.', 'error');
-        }
+        if (success) addToast(`Quotation sent to ${quotation.clientInfo.email}`, 'success');
+        return success;
       } else {
         const phone = (quotation.clientInfo.phone || '').replace(/\D/g, '');
-        const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-        window.open(waUrl, '_blank');
-        setShowSendModal(false);
-        addToast('Opening WhatsApp...', 'success');
+        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+        return true;
       }
     } catch {
-      addToast('Failed to send quotation. Please try again.', 'error');
+      return false;
     }
   };
 

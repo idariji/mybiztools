@@ -1,18 +1,31 @@
-import { useState } from 'react';
-import { X, Send, Mail, MessageSquare } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, Send, Mail, MessageSquare, CheckCircle, AlertCircle } from 'lucide-react';
 import { Quotation } from '../../types/quotation';
 
 interface SendQuotationModalProps {
   isOpen: boolean;
   onClose: () => void;
   quotation: Quotation;
-  onSend: (method: 'email' | 'whatsapp', message: string) => void;
+  onSend: (method: 'email' | 'whatsapp', message: string) => Promise<boolean>;
 }
 
 export function SendQuotationModal({ isOpen, onClose, quotation, onSend }: SendQuotationModalProps) {
   const [method, setMethod] = useState<'email' | 'whatsapp'>('email');
   const [customMessage, setCustomMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [sendError, setSendError] = useState('');
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+      setIsSending(false);
+      setSent(false);
+      setSendError('');
+      setCustomMessage('');
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -39,15 +52,28 @@ Please review and let us know if you'd like to proceed.
 
 Thank you! 🙏`;
 
-  const handleSend = () => {
+  const handleSend = async () => {
+    setSendError('');
     setIsSending(true);
     const message = customMessage || (method === 'email' ? defaultEmailMessage : defaultWhatsAppMessage);
-    setTimeout(() => {
-      onSend(method, message);
+    const sendMethod = method;
+
+    const success = await onSend(sendMethod, message);
+
+    if (success) {
       setIsSending(false);
-      setCustomMessage('');
-      onClose();
-    }, 1500);
+      setSent(true);
+      closeTimerRef.current = setTimeout(() => {
+        onClose();
+      }, 1500);
+    } else {
+      setIsSending(false);
+      setSendError(
+        method === 'email'
+          ? 'Failed to send email. Please check the address and try again.'
+          : 'Failed to open WhatsApp. Please try again.'
+      );
+    }
   };
 
   return (
@@ -58,87 +84,117 @@ Thank you! 🙏`;
             <h2 className="text-2xl font-bold text-gray-900">Send Quotation</h2>
             <p className="text-sm text-gray-600">Quotation #{quotation.quotationNumber}</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <button
+            onClick={onClose}
+            disabled={isSending}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
             <X className="w-5 h-5 text-gray-600" />
           </button>
         </div>
 
-        {/* Method Selection */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-3">Send via</label>
-          <div className="grid grid-cols-2 gap-4">
-            <button
-              onClick={() => setMethod('email')}
-              className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
-                method === 'email' ? 'border-[#FF8A2B] bg-orange-50' : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <Mail className={`w-5 h-5 ${method === 'email' ? 'text-[#FF8A2B]' : 'text-gray-600'}`} />
-              <div className="text-left">
-                <p className="font-semibold text-gray-900">Email</p>
-                <p className="text-xs text-gray-600">{quotation.clientInfo.email}</p>
-              </div>
-            </button>
-
-            <button
-              onClick={() => setMethod('whatsapp')}
-              className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
-                method === 'whatsapp' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <MessageSquare className={`w-5 h-5 ${method === 'whatsapp' ? 'text-green-600' : 'text-gray-600'}`} />
-              <div className="text-left">
-                <p className="font-semibold text-gray-900">WhatsApp</p>
-                <p className="text-xs text-gray-600">{quotation.clientInfo.phone}</p>
-              </div>
-            </button>
+        {/* Success state */}
+        {sent ? (
+          <div className="flex flex-col items-center justify-center py-12 gap-4">
+            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+              <CheckCircle className="w-9 h-9 text-green-500" />
+            </div>
+            <p className="text-lg font-semibold text-slate-800">
+              {method === 'email' ? 'Quotation sent successfully!' : 'WhatsApp opened!'}
+            </p>
+            <p className="text-sm text-slate-400">This window will close automatically…</p>
           </div>
-        </div>
-
-        {/* Message */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Message {method === 'email' ? '(Email Body)' : '(WhatsApp Text)'}
-          </label>
-          <textarea
-            value={customMessage || (method === 'email' ? defaultEmailMessage : defaultWhatsAppMessage)}
-            onChange={(e) => setCustomMessage(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF8A2B] focus:border-transparent resize-none"
-            rows={12}
-          />
-          <p className="text-xs text-gray-500 mt-2">
-            {method === 'email'
-              ? 'Quotation PDF will be attached automatically'
-              : 'Quotation link will be included in the message'}
-          </p>
-        </div>
-
-        {/* Actions */}
-        <div className="flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSend}
-            disabled={isSending}
-            className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-[#FF8A2B] text-white rounded-xl font-semibold hover:bg-[#FF6B00] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSending ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Sending...
-              </>
-            ) : (
-              <>
-                <Send className="w-5 h-5" />
-                Send {method === 'email' ? 'Email' : 'WhatsApp'}
-              </>
+        ) : (
+          <>
+            {sendError && (
+              <div className="flex items-start gap-2 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 mb-4 text-sm">
+                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                {sendError}
+              </div>
             )}
-          </button>
-        </div>
+
+            {/* Method Selection */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-3">Send via</label>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  onClick={() => setMethod('email')}
+                  disabled={isSending}
+                  className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all disabled:opacity-50 ${
+                    method === 'email' ? 'border-[#FF8A2B] bg-orange-50' : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <Mail className={`w-5 h-5 ${method === 'email' ? 'text-[#FF8A2B]' : 'text-gray-600'}`} />
+                  <div className="text-left">
+                    <p className="font-semibold text-gray-900">Email</p>
+                    <p className="text-xs text-gray-600">{quotation.clientInfo.email}</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setMethod('whatsapp')}
+                  disabled={isSending}
+                  className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all disabled:opacity-50 ${
+                    method === 'whatsapp' ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <MessageSquare className={`w-5 h-5 ${method === 'whatsapp' ? 'text-green-600' : 'text-gray-600'}`} />
+                  <div className="text-left">
+                    <p className="font-semibold text-gray-900">WhatsApp</p>
+                    <p className="text-xs text-gray-600">{quotation.clientInfo.phone}</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Message */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Message {method === 'email' ? '(Email Body)' : '(WhatsApp Text)'}
+              </label>
+              <textarea
+                value={customMessage || (method === 'email' ? defaultEmailMessage : defaultWhatsAppMessage)}
+                onChange={(e) => setCustomMessage(e.target.value)}
+                disabled={isSending}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF8A2B] focus:border-transparent resize-none disabled:opacity-50"
+                rows={12}
+              />
+              <p className="text-xs text-gray-500 mt-2">
+                {method === 'email'
+                  ? 'Quotation PDF will be attached automatically'
+                  : 'Quotation link will be included in the message'}
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <button
+                onClick={onClose}
+                disabled={isSending}
+                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSend}
+                disabled={isSending}
+                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-[#FF8A2B] text-white rounded-xl font-semibold hover:bg-[#FF6B00] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isSending ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Sending…
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-5 h-5" />
+                    Send {method === 'email' ? 'Email' : 'WhatsApp'}
+                  </>
+                )}
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

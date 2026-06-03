@@ -181,7 +181,7 @@ export function ReceiptGeneratorPage() {
     setShowSendModal(true);
   };
 
-  const handleSendComplete = async (method: 'email' | 'whatsapp', message: string) => {
+  const handleSendComplete = async (method: 'email' | 'whatsapp', message: string): Promise<boolean> => {
     try {
       if (method === 'email') {
         let receiptId = receipt.id;
@@ -190,23 +190,16 @@ export function ReceiptGeneratorPage() {
           receiptId = await ReceiptSyncService.save(saved);
           if (receiptId) setReceipt(prev => ({ ...prev, id: receiptId! }));
         }
-
         const success = await sendReceiptEmail(receipt, message, receiptId);
-        setShowSendModal(false);
-        if (success) {
-          addToast(`Receipt sent to ${receipt.customerInfo.email}`, 'success');
-        } else {
-          addToast('Failed to send receipt. Please try again.', 'error');
-        }
+        if (success) addToast(`Receipt sent to ${receipt.customerInfo.email}`, 'success');
+        return success;
       } else {
         const phone = (receipt.customerInfo.phone || '').replace(/\D/g, '');
-        const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-        window.open(waUrl, '_blank');
-        setShowSendModal(false);
-        addToast('Opening WhatsApp...', 'success');
+        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+        return true;
       }
     } catch {
-      addToast('Failed to send receipt. Please try again.', 'error');
+      return false;
     }
   };
 
