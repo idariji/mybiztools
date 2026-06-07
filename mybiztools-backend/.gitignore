@@ -27,3 +27,6 @@ uploads/
 # Prisma
 prisma/*.db
 prisma/*.db-journal
+
+# Puppeteer downloaded Chromium
+.cache/

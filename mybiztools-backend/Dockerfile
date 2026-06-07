@@ -1,8 +1,15 @@
 # Use Node.js LTS
 FROM node:20-slim
 
-# Install OpenSSL for Prisma
-RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+# Install OpenSSL (Prisma) and system Chromium + fonts (puppeteer PDF rendering).
+# Using the apt Chromium pulls in all required shared libraries automatically.
+RUN apt-get update -y \
+  && apt-get install -y openssl chromium fonts-liberation \
+  && rm -rf /var/lib/apt/lists/*
+
+# Use the system Chromium installed above instead of downloading one during npm ci.
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 # Set working directory
 WORKDIR /app

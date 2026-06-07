@@ -388,6 +388,7 @@
 
 
 import type { ServiceResponse } from '../types/index.js';
+import puppeteer, { type Browser } from 'puppeteer';
 
 // ============================================================================
 // PDF SERVICE
@@ -796,17 +797,67 @@ const buildReceiptHtml = (receipt: any, businessName?: string): string => {
 
 // ── PDF Generator ─────────────────────────────────────────────────────────────
 
-const generatePdf = async (html: string): Promise<Buffer> => {
-  const htmlPdf = await import('html-pdf-node');
-  const options = {
-    format: 'A4',
-    margin: { top: '10mm', bottom: '10mm', left: '10mm', right: '10mm' },
-    printBackground: true,
-  };
-  const file = { content: html };
-  const pdfBuffer = await htmlPdf.default.generatePdf(file, options);
-  return Buffer.from(pdfBuffer as unknown as ArrayBuffer);
+// A single Chromium instance is reused across requests — launching is expensive.
+// It is lazily created on first use and relaunched automatically if it disconnects.
+let browserPromise: Promise<Browser> | null = null;
+
+const getBrowser = async (): Promise<Browser> => {
+  if (!browserPromise) {
+    browserPromise = puppeteer.launch({
+      headless: true,
+      // --no-sandbox is required to run Chromium as root inside most container hosts (e.g. Render).
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+    });
+  }
+
+  try {
+    const browser = await browserPromise;
+    // If a previous instance crashed/closed, drop it and relaunch on the next call.
+    if (!browser.connected) {
+      browserPromise = null;
+      return getBrowser();
+    }
+    return browser;
+  } catch (err) {
+    browserPromise = null;
+    throw err;
+  }
 };
+
+const generatePdf = async (html: string): Promise<Buffer> => {
+  const browser = await getBrowser();
+  const page = await browser.newPage();
+  try {
+    // Templates are fully self-contained (inline styles, system fonts, no remote
+    // assets), so 'load' is sufficient — no need to wait on network idle.
+    await page.setContent(html, { waitUntil: 'load' });
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      margin: { top: '10mm', bottom: '10mm', left: '10mm', right: '10mm' },
+      printBackground: true,
+    });
+    return Buffer.from(pdfBuffer);
+  } finally {
+    await page.close();
+  }
+};
+
+// Gracefully close the shared browser on shutdown so Chromium does not linger.
+const closeBrowser = async (): Promise<void> => {
+  if (browserPromise) {
+    const pending = browserPromise;
+    browserPromise = null;
+    try {
+      const browser = await pending;
+      await browser.close();
+    } catch {
+      /* already gone */
+    }
+  }
+};
+
+process.once('SIGTERM', () => { void closeBrowser(); });
+process.once('SIGINT', () => { void closeBrowser(); });
 
 // ============================================================================
 // PUBLIC API
