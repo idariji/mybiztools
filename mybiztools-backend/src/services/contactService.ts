@@ -496,7 +496,7 @@ export class ContactService {
         phone: input.phone,
         company: input.company,
         jobTitle: input.jobTitle,
-        type,
+        type: input.type ?? 'customer',
         address: input.address,
         city: input.city,
         state: input.state,
