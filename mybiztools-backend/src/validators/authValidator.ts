@@ -65,9 +65,9 @@ export const verifyOtpSchema = Joi.object({
   otp: otpField,
   purpose: Joi.string()
     .valid('email_verification', 'password_reset')
-    .required()
+    .default('email_verification')
+    .optional()
     .messages({
       'any.only': 'Purpose must be email_verification or password_reset',
-      'any.required': 'OTP purpose is required',
     }),
 });
