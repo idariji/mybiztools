@@ -478,15 +478,15 @@ export class ContactService {
   // --------------------------------------------------------------------------
 
   static async createContact(input: CreateContactInput): Promise<ServiceResponse> {
-    const type = input.type ?? 'customer';
+    // const type = input.type ?? 'customer';
 
-    if (!VALID_TYPES.includes(type)) {
-      return {
-        success: false,
-        message: `Invalid contact type. Must be one of: ${VALID_TYPES.join(', ')}`,
-        error: 'INVALID_TYPE',
-      };
-    }
+    // if (!VALID_TYPES.includes(type)) {
+    //   return {
+    //     success: false,
+    //     message: `Invalid contact type. Must be one of: ${VALID_TYPES.join(', ')}`,
+    //     error: 'INVALID_TYPE',
+    //   };
+    // }
 
     const contact = await prisma.contact.create({
       data: {
