@@ -756,7 +756,7 @@ export function CustomersPage() {
         });
         const result = await res.json();
         if (result.success) {
-          setCustomers((prev) => [contactToCustomer(result.data), ...prev]);
+          setCustomers((prev) => [contactToCustomer(result.data.contact ?? result.data), ...prev]);
           setShowAddModal(false);
           addToast(`${data.firstName} ${data.lastName} added!`, 'success');
         } else {
@@ -780,7 +780,7 @@ export function CustomersPage() {
         });
         const result = await res.json();
         if (result.success) {
-          const updated = contactToCustomer(result.data);
+          const updated = contactToCustomer(result.data.contact ?? result.data);
           setCustomers((prev) => prev.map((c) => (c.id === editingCustomer.id ? updated : c)));
           setSelectedCustomer((prev) => (prev?.id === editingCustomer.id ? updated : prev));
           setEditingCustomer(null);
@@ -891,7 +891,7 @@ export function CustomersPage() {
         });
         const result = await res.json();
         if (result.success) {
-          setCustomers(prev => [contactToCustomer(result.data), ...prev]);
+          setCustomers(prev => [contactToCustomer(result.data.contact ?? result.data), ...prev]);
           imported++;
         } else { skipped++; }
       } catch { skipped++; }
