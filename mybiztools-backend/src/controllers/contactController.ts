@@ -8,7 +8,9 @@ import { validatePagination } from '../utils/validation.js';
 
 const parseTags = (tags: any): string[] | undefined => {
   if (!tags) return undefined;
-  return Array.isArray(tags) ? tags : tags.split(',').map((t: string) => t.trim());
+  if (Array.isArray(tags)) return tags.map((t: any) => String(t).trim()).filter(Boolean);
+  if (typeof tags === 'string') return tags.split(',').map((t) => t.trim()).filter(Boolean);
+  return undefined;
 };
 
 export class ContactController {
